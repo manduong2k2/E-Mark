@@ -233,8 +233,7 @@
 }
 
 .onboarding-role-card--selected {
-  border-color: var(--master-primary);
-  box-shadow: 0 0 0 2px var(--master-primary), 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+  border-color: var(--master-color);
 }
 
 /* Selection indicator */

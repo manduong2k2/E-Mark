@@ -197,9 +197,15 @@ export default function AuthPage() {
         const user = await authService.profile();
         setUser(user.data.data);
         showSuccess(response.data.message, 'Welcome');
-        setTimeout(() => {
-          navigate('/home');
-        }, 1000);
+        if(response.data.isNewUser) {
+          setTimeout(() => {
+            navigate('/onboarding');
+          }, 1000);
+        } else {
+          setTimeout(() => {
+            navigate('/home');
+          }, 1000);
+        }
       } else {
         showError(response.data.message || `${label} login failed`, `${label} Login`);
       }

@@ -89,6 +89,7 @@ public class AuthController extends BaseController {
                 .orElseThrow(() -> new BadRequestException(Message.OAUTH_PROVIDER_UNSUPPORTED));
         OAuthLoginCommand command = OAuthLoginCommand.fromRequest(oauthProvider, req);
         AuthResponse authRes = auth.loginWithOAuth(command);
+
         return authCookieResponse(authRes);
     }
 
@@ -202,6 +203,7 @@ public class AuthController extends BaseController {
         HttpHeaders cookies = cookieService.createAuthCookies(authRes.getAccessToken(), authRes.getRefreshToken());
         Map<String, Object> response = new HashMap<>();
         response.put("message", authRes.getMessage());
+        response.put("isNewUser", authRes.isNewUser());
         return ResponseEntity.ok().headers(cookies).body(response);
     }
 

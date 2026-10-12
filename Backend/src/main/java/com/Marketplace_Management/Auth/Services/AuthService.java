@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
@@ -105,7 +106,8 @@ public class AuthService implements IAuthService {
 
         Optional<OAuthInfo> link = oauthInfoRepo.findByProviderAndSubject(info.provider(), info.subject());
         if (link.isEmpty()) {
-            return sessionService.issue(linkOrCreateUser(info), Message.LOGIN_SUCCESS);
+            OAuthUserResult result = linkOrCreateUser(info);
+            return sessionService.issue(result.user(), Message.LOGIN_SUCCESS).isNewUser(result.isNewUser());
         }
 
         // Linked accounts were activated when linked: INACTIVE now means deactivated by an admin.
@@ -117,15 +119,20 @@ public class AuthService implements IAuthService {
         return sessionService.issue(user, Message.LOGIN_SUCCESS);
     }
 
-    private User linkOrCreateUser(OAuthUserInfo info) {
+    private OAuthUserResult linkOrCreateUser(OAuthUserInfo info) {
         // Linking/creating relies on the email: it must exist and be verified by the provider
         if (info.email() == null || info.email().isBlank() || !info.emailVerified()) {
             throw new AuthenticationException(Message.OAUTH_EMAIL_REQUIRED) {};
         }
 
+        AtomicBoolean isNewUser = new AtomicBoolean(false);
+
         User user = repo.findByEmail(info.email())
                 .map(existing -> activateWithProviderProfile(existing, info))
-                .orElseGet(() -> createOAuthUser(info));
+                .orElseGet(() -> {
+                    isNewUser.set(true);
+                    return createOAuthUser(info);
+                });
 
         oauthInfoRepo.save(OAuthInfo.builder()
                 .userId(user.getId())
@@ -133,8 +140,13 @@ public class AuthService implements IAuthService {
                 .oauthProviderSubject(info.subject())
                 .createdAt(Instant.now())
                 .build());
-        return user;
+        return new OAuthUserResult(user, isNewUser.get());
     }
+
+    public record OAuthUserResult(
+        User user,
+        boolean isNewUser
+    ) {}
 
     private User activateWithProviderProfile(User user, OAuthUserInfo info) {
         // The provider has verified the email, so the account no longer needs email activation

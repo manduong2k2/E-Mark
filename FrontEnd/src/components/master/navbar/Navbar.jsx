@@ -100,7 +100,7 @@ export default function Navbar() {
             <div className="user-dropdown">
               <button className="user-dropdown-toggle" type="button" aria-label="User menu">
                 {user.avatar ? (
-                  <img src={user.avatar} alt="Avatar" className="user-dropdown-avatar" />
+                  <img src={user.avatar} alt="Avatar" referrerPolicy="no-referrer" className="user-dropdown-avatar" />
                 ) : (
                   <span className="user-dropdown-avatar user-dropdown-avatar--fallback">
                     {user.name?.charAt(0)?.toUpperCase() || '?'}
