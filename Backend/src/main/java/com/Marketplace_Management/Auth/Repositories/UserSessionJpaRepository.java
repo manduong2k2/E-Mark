@@ -13,14 +13,16 @@ import org.springframework.data.repository.query.Param;
 import com.Marketplace_Management.Auth.Entities.UserSessionEntity;
 
 public interface UserSessionJpaRepository extends JpaRepository<UserSessionEntity, UUID> {
-    List<UserSessionEntity> findByUserIdIn(Collection<UUID> userIds);
+
+    @Query("SELECT s FROM UserSessionEntity s WHERE s.user.id IN :userIds")
+    List<UserSessionEntity> findByUserIdIn(@Param("userIds") Collection<UUID> userIds);
 
     @Modifying
     @Query("DELETE FROM UserSessionEntity s WHERE s.refreshJti = :jti")
     int deleteByRefreshJti(@Param("jti") String jti);
 
     @Modifying
-    @Query("DELETE FROM UserSessionEntity s WHERE s.userId = :userId AND s.accessJti = :jti")
+    @Query("DELETE FROM UserSessionEntity s WHERE s.user.id = :userId AND s.accessJti = :jti")
     int deleteByUserIdAndAccessJti(@Param("userId") UUID userId, @Param("jti") String jti);
 
     @Modifying

@@ -27,8 +27,9 @@ const NAV_ITEMS = [
     icon: 'bi-shield-lock',
     label: 'Identity & Access',
     children: [
-      { to: '/admin/users', icon: 'bi-people',       label: 'Users' },
-      { to: '/admin/roles', icon: 'bi-person-badge', label: 'Roles' },
+      { to: '/admin/users',    icon: 'bi-people',        label: 'Users' },
+      { to: '/admin/roles',    icon: 'bi-person-badge',  label: 'Roles' },
+      { to: '/admin/sessions', icon: 'bi-window-stack',  label: 'Sessions' },
     ],
   },
 ];

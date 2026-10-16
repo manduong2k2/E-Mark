@@ -52,14 +52,10 @@ public class UserSessionEntity {
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
     private UUID id;
 
-    @Column(name = "user_id", nullable = false)
-    private UUID userId;
-
-    // Read-only mapping that only declares the FK (writes go through userId).
     // ON DELETE CASCADE: deleting a user removes their sessions — so tokens must be revoked BEFORE
     // the delete (see UserSessionService.revokeAllBeforeDelete).
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false,
+    @JoinColumn(name = "user_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_user_sessions_user"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ToString.Exclude

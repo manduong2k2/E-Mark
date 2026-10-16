@@ -25,6 +25,7 @@ import AdminProductEditPage from '../pages/admin/products/AdminProductEditPage';
 import AdminVendorsPage from '../pages/admin/vendors/AdminVendorsPage';
 import AdminUsersPage from '../pages/admin/iam/AdminUsersPage';
 import AdminRolesPage from '../pages/admin/iam/AdminRolesPage';
+import AdminSessionsPage from '../pages/admin/iam/AdminSessionsPage';
 
 import ProductDetailPage from '../pages/product/ProductDetailPage';
 import BrandDetailPage from '../pages/brand/BrandDetailPage';
@@ -96,6 +97,7 @@ export default function AppRouter() {
             {/* Identity & Access */}
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/roles" element={<AdminRolesPage />} />
+            <Route path="/admin/sessions" element={<AdminSessionsPage />} />
             {/* Default admin redirect */}
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>

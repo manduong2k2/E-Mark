@@ -10,6 +10,7 @@ public final class Message {
 
     public static final String TOKEN_INVALID = "Invalid token";
     public static final String SESSION_REVOKE_FAILED = "Could not sign the user out of their active sessions. Please try again later.";
+    public static final String SESSION_NOT_FOUND = "Session not found";
     public static final String TOKEN_EXPIRED = "Token expired";
     public static final String TOKEN_BLACKLISTED = "Token has been blacklisted";
     
