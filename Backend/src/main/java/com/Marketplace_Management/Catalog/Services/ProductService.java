@@ -83,8 +83,9 @@ public class ProductService implements IProductService {
                     .build()
         ).collect(java.util.stream.Collectors.toList());
 
+        // Admins may create a product for any vendor; a vendor always creates for its own store.
         // No vendor given: the product belongs to the current user's vendor (getById throws 404 for an unknown id)
-        VendorResponse vendor = command.getVendorId() != null
+        VendorResponse vendor = command.getVendorId() != null && SecurityUtils.isAdmin()
                 ? vendorService.getById(command.getVendorId())
                 : vendorService.getByUser(SecurityUtils.currentUserId());
         if (vendor == null) {

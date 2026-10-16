@@ -24,17 +24,8 @@ export const formatDate = (value, withTime = false) => {
     : date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-/** Order status → label + pill tone + icon. */
-export const ORDER_STATUSES = {
-  PENDING: { label: 'Pending', tone: 'warning', icon: 'bi-hourglass-split' },
-  CONFIRMED: { label: 'Confirmed', tone: 'info', icon: 'bi-check2-circle' },
-  SHIPPED: { label: 'Shipped', tone: 'accent', icon: 'bi-truck' },
-  DELIVERED: { label: 'Delivered', tone: 'success', icon: 'bi-box-seam' },
-  CANCELLED: { label: 'Cancelled', tone: 'danger', icon: 'bi-x-circle' },
-};
-
-export const orderStatus = (status) =>
-  ORDER_STATUSES[status] || { label: status || 'Unknown', tone: 'neutral', icon: 'bi-question-circle' };
+/** Order statuses (backend OrderStatusEnum), shared with the admin and vendor pages. */
+export { ORDER_STATUSES, orderStatus } from '../../utils/orderStatus';
 
 /** Short, readable order number from its UUID. */
 export const orderNumber = (id) => `#${shortId(id)}`;

@@ -7,26 +7,10 @@ import { useApiQuery, formatDateTime, formatCurrency } from '../shared/adminUiUt
 import defaultProductImage from '../../../assets/product.png';
 import './AdminOrderDetailPage.css';
 import { shortId } from '../../../utils/ids';
-
-// Order statuses (backend OrderStatusEnum) → label + Pill tone (same mapping as the orders list)
-const ORDER_STATUS = {
-  PENDING:    { label: 'Pending',    tone: 'warning' },
-  PAID:       { label: 'Paid',       tone: 'info' },
-  PROCESSING: { label: 'Processing', tone: 'info' },
-  SHIPPING:   { label: 'Shipping',   tone: 'info' },
-  COMPLETED:  { label: 'Completed',  tone: 'success' },
-  CANCELLED:  { label: 'Cancelled',  tone: 'danger' },
-  EXPIRED:    { label: 'Expired',    tone: 'neutral' },
-};
-const EXTRA_TONES = {
-  CONFIRMED: 'info', SHIPPED: 'success', DELIVERED: 'success', FAILED: 'danger', REFUNDED: 'neutral',
-};
+import { orderStatus } from '../../../utils/orderStatus';
 
 function OrderStatusPill({ status }) {
-  const key = (status || '').toUpperCase();
-  const cfg = ORDER_STATUS[key];
-  const tone = cfg?.tone || EXTRA_TONES[key] || 'neutral';
-  const label = cfg?.label || (key ? key.charAt(0) + key.slice(1).toLowerCase() : 'Unknown');
+  const { label, tone } = orderStatus(status);
   return <Pill tone={tone}>{label}</Pill>;
 }
 

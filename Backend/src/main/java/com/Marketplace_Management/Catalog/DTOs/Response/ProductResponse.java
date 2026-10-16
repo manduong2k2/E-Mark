@@ -16,7 +16,7 @@ import com.Marketplace_Management.Shared.Utils.Helpers.UrlHelper;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor // For Jackson deserialization
-@JsonPropertyOrder({ "id", "name", "brand", "categories", "description", "status", "options", "variants" })
+@JsonPropertyOrder({ "id", "name", "brand", "categories", "description", "status", "vendorId", "options", "variants" })
 public class ProductResponse {
     private UUID id;
     private String name;
@@ -26,6 +26,8 @@ public class ProductResponse {
     private String status;
     private List<Variant> variants;
     private List<ProductOptionResponse> options;
+    /** Owning store; vendor (details) is only filled in on create */
+    private UUID vendorId;
     private VendorResponse vendor;
 
     public ProductResponse(Product product) {
@@ -41,6 +43,7 @@ public class ProductResponse {
                 : null;
         this.description = product.getDescription();
         this.status = product.getStatus();
+        this.vendorId = product.getVendorId();
         this.options = product.getOptions() != null
                 ? product.getOptions().stream().map(option -> new ProductOptionResponse(option)).toList()
                 : null;
