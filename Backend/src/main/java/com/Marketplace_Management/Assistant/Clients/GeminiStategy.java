@@ -17,6 +17,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.Marketplace_Management.Assistant.Constants.Message;
+import com.Marketplace_Management.Assistant.Contracts.AssistantStrategy;
 import com.Marketplace_Management.Shared.Utils.Http.RestClients;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,18 +26,18 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * Thin HTTP client for the Gemini API (generateContent).
  * The API key is sent in the x-goog-api-key header (never in the URL, so it does not end up in logs).
  */
-@Component
-public class GeminiClient {
-    private static final Logger logger = LoggerFactory.getLogger(GeminiClient.class);
+@Component("gemini")
+public class GeminiStategy implements AssistantStrategy {
+    private static final Logger logger = LoggerFactory.getLogger(GeminiStategy.class);
 
     private final RestClient restClient;
     private final String model;
 
-    public GeminiClient(
+    public GeminiStategy(
             RestClient.Builder builder,
-            @Value("${application.gemini.api-key}") String apiKey,
-            @Value("${application.gemini.model:gemini-3.6-flash}") String model,
-            @Value("${application.gemini.base-url:https://generativelanguage.googleapis.com/v1beta}") String baseUrl) {
+            @Value("${third-party.gemini.api-key}") String apiKey,
+            @Value("${third-party.gemini.model:gemini-3.6-flash}") String model,
+            @Value("${third-party.gemini.base-url:https://generativelanguage.googleapis.com/v1beta}") String baseUrl) {
         this.model = model;
         this.restClient = RestClients.withTimeouts(builder, baseUrl, Duration.ofSeconds(10), Duration.ofSeconds(60))
                 .defaultHeader("x-goog-api-key", apiKey)

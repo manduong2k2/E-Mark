@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -38,7 +39,7 @@ import com.Marketplace_Management.Auth.Events.UserAccessChangedEvent;
 import com.Marketplace_Management.Auth.Models.Role;
 import com.Marketplace_Management.Auth.Models.OAuthInfo;
 import com.Marketplace_Management.Auth.Models.User;
-import com.Marketplace_Management.Auth.Services.OAuth.OAuthStrategyResolver;
+import com.Marketplace_Management.Auth.Services.OAuth.OAuthStrategy;
 import com.Marketplace_Management.Auth.Services.OAuth.OAuthUserInfo;
 import com.Marketplace_Management.Shared.Constants.UserRole;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
@@ -55,27 +56,25 @@ public class AuthService implements IAuthService {
     private final JwtService tokenService;
     private final PasswordEncoder encoder;
     private final EmailVerificationTokenService emailVerificationTokenService;
-    private final OAuthStrategyResolver oauthStrategies;
     private final IOAuthInfoRepository oauthInfoRepo;
     private final UserSessionService sessionService;
     private final ApplicationEventPublisher eventPublisher;
+    private final Map<String, OAuthStrategy> oauthStrategies;
 
     public AuthService(IUserRepository repo, IRoleRepository roleRepo, JwtService tokenService,
             PasswordEncoder encoder, EmailVerificationTokenService emailVerificationTokenService,
-            IFileService fileService,
-            OAuthStrategyResolver oauthStrategies, IOAuthInfoRepository oauthInfoRepo,
-            UserSessionService sessionService,
-            ApplicationEventPublisher eventPublisher) {
+            IFileService fileService, IOAuthInfoRepository oauthInfoRepo, UserSessionService sessionService,
+            ApplicationEventPublisher eventPublisher, Map<String, OAuthStrategy> oauthStrategies) {
         this.repo = repo;
         this.roleRepo = roleRepo;
         this.tokenService = tokenService;
         this.encoder = encoder;
         this.emailVerificationTokenService = emailVerificationTokenService;
         this.fileService = fileService;
-        this.oauthStrategies = oauthStrategies;
         this.oauthInfoRepo = oauthInfoRepo;
         this.sessionService = sessionService;
         this.eventPublisher = eventPublisher;
+        this.oauthStrategies = oauthStrategies;
     }
 
     @Transactional
@@ -95,7 +94,14 @@ public class AuthService implements IAuthService {
 
     @Transactional
     public AuthResponse loginWithOAuth(OAuthLoginCommand command) {
-        OAuthUserInfo info = oauthStrategies.resolve(command.getProvider()).verify(command.getCredential());
+
+        OAuthStrategy strategy = oauthStrategies.get(command.getProvider().name().toLowerCase());
+
+        if (strategy == null) {
+            throw new BadRequestException(Message.OAUTH_PROVIDER_UNSUPPORTED);
+        }
+
+        OAuthUserInfo info = strategy.verify(command.getCredential());
 
         Optional<OAuthInfo> link = oauthInfoRepo.findByProviderAndSubject(info.provider(), info.subject());
         if (link.isEmpty()) {

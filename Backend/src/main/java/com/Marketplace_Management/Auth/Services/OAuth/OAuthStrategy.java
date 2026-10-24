@@ -2,10 +2,6 @@ package com.Marketplace_Management.Auth.Services.OAuth;
 
 import com.Marketplace_Management.Auth.Constants.OAuthProvider;
 
-/**
- * Verifies a credential issued by one identity provider and returns who it belongs to.
- * One implementation per provider; picked by {@link OAuthStrategyResolver}.
- */
 public interface OAuthStrategy {
 
     OAuthProvider provider();

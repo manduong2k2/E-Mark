@@ -22,11 +22,11 @@ import com.google.api.client.json.gson.GsonFactory;
  * Google's public keys are downloaded once and cached by the verifier, then each token is checked
  * locally: signature, issuer, expiry and audience (our OAuth client ID).
  */
-@Component
+@Component("google")
 public class GoogleOAuthStrategy implements OAuthStrategy {
     private final GoogleIdTokenVerifier verifier;
 
-    public GoogleOAuthStrategy(@Value("${application.google.client-id}") String clientId) {
+    public GoogleOAuthStrategy(@Value("${third-party.google.client-id}") String clientId) {
         this.verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), GsonFactory.getDefaultInstance())
                 .setAudience(List.of(clientId))
                 .build();

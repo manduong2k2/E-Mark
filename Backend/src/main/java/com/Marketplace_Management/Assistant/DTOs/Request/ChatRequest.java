@@ -15,4 +15,7 @@ public class ChatRequest {
     @NotBlank(message = "message must not be empty")
     @Size(max = 4000, message = "message must not exceed 4000 characters")
     private String message;
+    
+    private String provider;
 }
+

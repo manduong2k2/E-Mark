@@ -270,6 +270,36 @@
   gap: 8px;
 }
 
+.provider-selector {
+  display: flex;
+  margin-left: auto;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.provider-selector button {
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.provider-selector button.active {
+  background: #ffffff;
+  color: var(--master-primary);
+}
+
+.provider-selector button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .header-btn {
   background: rgba(255, 255, 255, 0.15);
   border: none;

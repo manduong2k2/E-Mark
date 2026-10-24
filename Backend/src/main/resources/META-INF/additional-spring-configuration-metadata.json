@@ -55,22 +55,22 @@
     "description": "Expiration for refresh token"
   },
   {
-    "name": "application.frontend.base-url",
+    "name": "third-party.frontend.base-url",
     "type": "java.lang.String",
     "description": "Base URL for frontend application"
   },
   {
-    "name": "application.google.client-id",
+    "name": "third-party.google.client-id",
     "type": "java.lang.String",
     "description": "Google OAuth client ID, used as the expected audience when verifying Google Sign-In ID tokens"
   },
   {
-    "name": "application.facebook.app-id",
+    "name": "third-party.facebook.app-id",
     "type": "java.lang.String",
     "description": "Facebook App ID; access tokens from Facebook Login must be issued for this app"
   },
   {
-    "name": "application.facebook.app-secret",
+    "name": "third-party.facebook.app-secret",
     "type": "java.lang.String",
     "description": "Facebook App Secret, used for the app access token and appsecret_proof when calling the Graph API"
   },
@@ -81,7 +81,7 @@
     "defaultValue": false
   },
   {
-    "name": "application.facebook.graph-url",
+    "name": "third-party.facebook.graph-url",
     "type": "java.lang.String",
     "description": "Base URL of the Facebook Graph API",
     "defaultValue": "https://graph.facebook.com"
@@ -97,20 +97,36 @@
     "description": "Path to the Liquibase change log file"
   },
   {
-    "name": "application.gemini.api-key",
+    "name": "third-party.gemini.api-key",
     "type": "java.lang.String",
     "description": "API key for Gemini AI service"
   },
   {
-    "name": "application.gemini.model",
+    "name": "third-party.gemini.model",
     "type": "java.lang.String",
     "description": "Gemini model used by the assistant chat",
     "defaultValue": "gemini-3.8-flash"
   },
   {
-    "name": "application.gemini.base-url",
+    "name": "third-party.gemini.base-url",
     "type": "java.lang.String",
     "description": "Base URL of the Gemini REST API",
     "defaultValue": "https://generativelanguage.googleapis.com/v1beta"
+  },
+  {
+    "name": "third-party.groq.api-key",
+    "type": "java.lang.String",
+    "description": "API key for Groq service"
+  },
+  {
+    "name": "third-party.groq.model",
+    "type": "java.lang.String",
+    "description": "Groq model used by the assistant chat"
+  },
+  {
+    "name": "third-party.groq.base-url",
+    "type": "java.lang.String",
+    "description": "Base URL of the Groq REST API",
+    "defaultValue": "https://api.groq.com/openai/v1"
   }
 ]}

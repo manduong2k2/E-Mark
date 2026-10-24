@@ -1,24 +1,35 @@
 package com.Marketplace_Management.Assistant.Services;
 
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
-import com.Marketplace_Management.Assistant.Clients.GeminiClient;
+import com.Marketplace_Management.Assistant.Contracts.AssistantStrategy;
 import com.Marketplace_Management.Assistant.Contracts.IChatService;
 import com.Marketplace_Management.Assistant.DTOs.Commands.ChatCommand;
 import com.Marketplace_Management.Assistant.DTOs.Response.ChatResponse;
 
 @Service
 public class ChatService implements IChatService {
-    private final GeminiClient geminiClient;
+     private final Map<String, AssistantStrategy> strategies;
 
-    public ChatService(GeminiClient geminiClient) {
-        this.geminiClient = geminiClient;
+    public ChatService(Map<String, AssistantStrategy> strategies) {
+        this.strategies = strategies;
     }
 
-    /** Stateless for now: no conversation history is stored or sent, each message is answered on its own. */
     @Override
     public ChatResponse chat(ChatCommand command) {
-        String reply = geminiClient.generate(command.getMessage());
-        return new ChatResponse(reply, geminiClient.getModel());
+        String provider = command.getProvider();
+
+        AssistantStrategy strategy = strategies.get(provider);
+
+        if (strategy == null) {
+            throw new IllegalArgumentException(
+                    "Unsupported assistant provider: " + provider);
+        }
+
+        String reply = strategy.generate(command.getMessage());
+
+        return new ChatResponse(reply, strategy.getModel());
     }
 }

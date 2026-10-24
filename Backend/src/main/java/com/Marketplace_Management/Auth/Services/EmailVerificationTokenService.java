@@ -30,7 +30,7 @@ public class EmailVerificationTokenService {
     @Value("${spring.application.base-url}")
     private String baseUrl;
 
-    @Value("${application.frontend.base-url}")
+    @Value("${third-party.frontend.base-url}")
     private String frontendBaseUrl;
 
     @Transactional

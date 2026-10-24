@@ -14,8 +14,9 @@ import lombok.NoArgsConstructor;
 public class ChatCommand {
     private UUID userId;
     private String message;
+    private String provider;
 
     public static ChatCommand fromRequest(UUID userId, ChatRequest request) {
-        return new ChatCommand(userId, request.getMessage().trim());
+        return new ChatCommand(userId, request.getMessage().trim(), request.getProvider());
     }
 }

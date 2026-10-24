@@ -49,6 +49,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [showTyping, setShowTyping] = useState(false);
+  const [provider, setProvider] = useState('gemini');
   const chatBodyRef = useRef(null);
 
   // Initialize with welcome message
@@ -88,7 +89,7 @@ const Chatbot = () => {
     setShowTyping(true);
 
     try {
-      const response = await assistantService.chat(message);
+      const response = await assistantService.chat(message, provider);
       if (response.ok) {
         addMessage('bot', response.data?.data?.reply || '');
       } else {
@@ -161,6 +162,24 @@ const Chatbot = () => {
                 {showTyping ? 'Đang trả lời...' : 'Sẵn sàng hỗ trợ'}
               </p>
             </div>
+          </div>
+          <div className="provider-selector" aria-label="Chọn AI provider">
+            <button
+              type="button"
+              className={provider === 'gemini' ? 'active' : ''}
+              onClick={() => setProvider('gemini')}
+              disabled={showTyping}
+            >
+              Gemini
+            </button>
+            <button
+              type="button"
+              className={provider === 'groq' ? 'active' : ''}
+              onClick={() => setProvider('groq')}
+              disabled={showTyping}
+            >
+              GPT
+            </button>
           </div>
           <div className="header-actions">
             <button

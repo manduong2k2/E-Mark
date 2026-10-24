@@ -59,7 +59,7 @@ public class AuthController extends BaseController {
     @Value("${spring.application.base-url}")
     private String baseUrl;
 
-    @Value("${application.frontend.base-url}")
+    @Value("${third-party.frontend.base-url}")
     private String frontendBaseUrl;
 
     public AuthController(IAuthService auth, ICookieService cookieService) {

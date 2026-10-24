@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,7 +32,6 @@ import com.Marketplace_Management.Auth.Models.User;
 import com.Marketplace_Management.Auth.Services.AuthService;
 import com.Marketplace_Management.Auth.Services.UserSessionService;
 import com.Marketplace_Management.Auth.Services.OAuth.OAuthStrategy;
-import com.Marketplace_Management.Auth.Services.OAuth.OAuthStrategyResolver;
 import com.Marketplace_Management.Auth.Services.OAuth.OAuthUserInfo;
 import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
 
@@ -44,7 +44,7 @@ class AuthServiceOAuthTest {
 
     @Mock IUserRepository userRepository;
     @Mock UserSessionService sessionService;
-    @Mock OAuthStrategyResolver oauthStrategies;
+    @Mock Map<String, OAuthStrategy> oauthStrategies;
     @Mock IOAuthInfoRepository oauthInfoRepo;
     @Mock OAuthStrategy facebook;
 
@@ -55,7 +55,7 @@ class AuthServiceOAuthTest {
 
     @BeforeEach
     void setUp() {
-        when(oauthStrategies.resolve(OAuthProvider.FACEBOOK)).thenReturn(facebook);
+        when(oauthStrategies.get("facebook")).thenReturn(facebook);
     }
 
     private void providerReturns(String email, boolean verified) {
@@ -142,5 +142,16 @@ class AuthServiceOAuthTest {
         assertEquals(Message.OAUTH_EMAIL_REQUIRED, ex.getMessage());
         verify(userRepository, never()).save(any());
         verify(oauthInfoRepo, never()).save(any());
+    }
+
+    @Test
+    void unsupportedProvider_isRejected() {
+        when(oauthStrategies.get("facebook")).thenReturn(null);
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> authService.loginWithOAuth(command));
+
+        assertEquals(Message.OAUTH_PROVIDER_UNSUPPORTED, ex.getMessage());
+        verify(oauthInfoRepo, never()).findByProviderAndSubject(any(), any());
+        verify(sessionService, never()).issue(any(), any());
     }
 }

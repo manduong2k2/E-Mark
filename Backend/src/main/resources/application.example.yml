@@ -64,7 +64,7 @@ spring:
       password:
       timeout: 2000ms
 
-application:
+third-party:
   frontend:
     base-url: http://localhost:5173
   google:
@@ -75,6 +75,10 @@ application:
   gemini:
     api-key: your-gemini-api-key
     model: gemini-3.8-flash
+  groq:
+    api-key: your-groq-api-key
+    model: openai/gpt-oss-20b
+    base-url: https://api.groq.com/openai/v1
     
 # Logging Configuration
 logging:

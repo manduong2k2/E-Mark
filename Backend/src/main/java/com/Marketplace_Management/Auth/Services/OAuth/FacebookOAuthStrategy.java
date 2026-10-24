@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *     for OUR app — otherwise a token obtained by any other Facebook app could log in here.
  *  2. /me (with appsecret_proof): id, name, email, picture of that user.
  */
-@Component
+@Component("facebook")
 public class FacebookOAuthStrategy implements OAuthStrategy {
     private static final Logger logger = LoggerFactory.getLogger(FacebookOAuthStrategy.class);
 
@@ -42,9 +42,9 @@ public class FacebookOAuthStrategy implements OAuthStrategy {
 
     public FacebookOAuthStrategy(
             RestClient.Builder builder,
-            @Value("${application.facebook.app-id}") String appId,
-            @Value("${application.facebook.app-secret}") String appSecret,
-            @Value("${application.facebook.graph-url:https://graph.facebook.com}") String graphUrl) {
+            @Value("${third-party.facebook.app-id}") String appId,
+            @Value("${third-party.facebook.app-secret}") String appSecret,
+            @Value("${third-party.facebook.graph-url:https://graph.facebook.com}") String graphUrl) {
         this.appId = appId;
         this.appSecret = appSecret;
         this.restClient = RestClients.withTimeouts(builder, graphUrl, Duration.ofSeconds(5), Duration.ofSeconds(10)).build();
