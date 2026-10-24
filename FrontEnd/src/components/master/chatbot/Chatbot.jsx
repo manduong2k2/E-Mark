@@ -155,13 +155,6 @@ const Chatbot = () => {
               />
               <span className="status-dot"></span>
             </div>
-            <div className="bot-details">
-              <h3>AI Assistant ✨</h3>
-              <p>
-                <i className="fa-solid fa-circle" style={{fontSize: '6px', color: '#4ade80'}}></i>{' '}
-                {showTyping ? 'Đang trả lời...' : 'Sẵn sàng hỗ trợ'}
-              </p>
-            </div>
           </div>
           <div className="provider-selector" aria-label="Chọn AI provider">
             <button
