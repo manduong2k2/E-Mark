@@ -33,6 +33,7 @@ import com.Marketplace_Management.Auth.Services.UserSessionService;
 import com.Marketplace_Management.Auth.Services.OAuth.OAuthStrategy;
 import com.Marketplace_Management.Auth.Services.OAuth.OAuthStrategyResolver;
 import com.Marketplace_Management.Auth.Services.OAuth.OAuthUserInfo;
+import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceOAuthTest {
@@ -93,16 +94,19 @@ class AuthServiceOAuthTest {
     }
 
     @Test
-    void existingEmail_isLinkedToProvider() {
+    void existingActiveEmail_isLinkedToProvider() {
         providerReturns(EMAIL, true);
         UUID userId = UUID.randomUUID();
-        User user = User.builder().id(userId).email(EMAIL).status(UserStatus.INACTIVE).build();
+        User user = User.builder().id(userId).email(EMAIL).status(UserStatus.ACTIVE).build();
+        AuthResponse expected = org.mockito.Mockito.mock(AuthResponse.class);
 
         when(oauthInfoRepo.findByProviderAndSubject(OAuthProvider.FACEBOOK, SUBJECT)).thenReturn(Optional.empty());
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         when(userRepository.save(user)).thenReturn(user);
+        when(sessionService.issue(user, Message.LOGIN_SUCCESS)).thenReturn(expected);
+        when(expected.isNewUser(false)).thenReturn(expected);
 
-        authService.loginWithOAuth(command);
+        assertEquals(expected, authService.loginWithOAuth(command));
 
         ArgumentCaptor<OAuthInfo> link = ArgumentCaptor.forClass(OAuthInfo.class);
         verify(oauthInfoRepo).save(link.capture());
@@ -111,6 +115,22 @@ class AuthServiceOAuthTest {
         assertEquals(SUBJECT, link.getValue().getOauthProviderSubject());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
         verify(sessionService).issue(user, Message.LOGIN_SUCCESS);
+    }
+
+    @Test
+    void existingInactiveEmail_isRejectedWithoutLinkingOrIssuingSession() {
+        providerReturns(EMAIL, true);
+        User user = User.builder().id(UUID.randomUUID()).email(EMAIL).status(UserStatus.INACTIVE).build();
+
+        when(oauthInfoRepo.findByProviderAndSubject(OAuthProvider.FACEBOOK, SUBJECT)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> authService.loginWithOAuth(command));
+
+        assertEquals(Message.ACTIVATION, ex.getMessage());
+        verify(userRepository, never()).save(any());
+        verify(oauthInfoRepo, never()).save(any());
+        verify(sessionService, never()).issue(any(), any());
     }
 
     @Test
