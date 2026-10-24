@@ -11,6 +11,8 @@ export default function ProductForm({
   onSubmit,
   onCancel,
   loading = false,
+  // false on vendor pages: a vendor always creates products for its own store
+  showVendor = true,
 }) {
   const defaultStatus = statuses.length > 0 ? statuses[0] : '';
 
@@ -376,14 +378,16 @@ export default function ProductForm({
                 </div>
 
                 {/* Vendor */}
-                <div className="form-group form-group-full">
-                  <label className="form-label">Vendor</label>
-                  <SearchableVendorSelect
-                    value={formData.vendorId}
-                    onChange={handleChange}
-                    error={errors.vendorId}
-                  />
-                </div>
+                {showVendor && (
+                  <div className="form-group form-group-full">
+                    <label className="form-label">Vendor</label>
+                    <SearchableVendorSelect
+                      value={formData.vendorId}
+                      onChange={handleChange}
+                      error={errors.vendorId}
+                    />
+                  </div>
+                )}
 
                 {/* Brand */}
                 <div className="form-group">

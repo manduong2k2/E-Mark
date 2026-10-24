@@ -3,6 +3,7 @@
    Tokens (--adm-*) + generic components: page header, buttons, toolbar,
    card/table, chips, status pills, pagination, empty state, skeleton,
    modal, drawer, form fields. Built on the admin theme tokens (light + dark).
+   Also used by the vendor dashboard (pages/vendor): wrap content in .admin-ui-page.
    ========================================================== */
 
 /* ── Tokens ─────────────────────────────────────────────────
@@ -17,12 +18,13 @@
   --adm-accent-soft: #eef0ff;
   --adm-accent-ring: rgba(79, 70, 229, 0.18);
 
-  /* Surfaces & text (follow the admin light/dark theme) */
-  --adm-surface: var(--admin-surface);
-  --adm-surface-2: var(--admin-surface-soft);
-  --adm-border: var(--admin-border);
-  --adm-text: var(--admin-text);
-  --adm-muted: var(--admin-muted);
+  /* Surfaces & text: the admin theme (AdminLayout.css); outside the admin area (e.g. the
+     vendor dashboard) the store theme, so the design system works on any page */
+  --adm-surface: var(--admin-surface, var(--master-surface));
+  --adm-surface-2: var(--admin-surface-soft, var(--master-surface-alt));
+  --adm-border: var(--admin-border, var(--master-border));
+  --adm-text: var(--admin-text, var(--master-text));
+  --adm-muted: var(--admin-muted, var(--master-text-muted));
 
   /* Status tones: text color + soft background */
   --adm-success: #059669;

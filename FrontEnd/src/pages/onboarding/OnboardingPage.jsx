@@ -34,7 +34,7 @@ const ROLES = [
       { icon: 'fa-headset', text: 'Dedicated merchant support manager & growth toolkits' },
     ],
     footer: 'Configure your seller profile',
-    to: '/vendor-create',
+    to: '/my-vendor/store/new',
   },
 ];
 

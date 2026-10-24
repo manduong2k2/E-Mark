@@ -25,6 +25,7 @@ import AdminProductEditPage from '../pages/admin/products/AdminProductEditPage';
 import AdminVendorsPage from '../pages/admin/vendors/AdminVendorsPage';
 import AdminUsersPage from '../pages/admin/iam/AdminUsersPage';
 import AdminRolesPage from '../pages/admin/iam/AdminRolesPage';
+import AdminSessionsPage from '../pages/admin/iam/AdminSessionsPage';
 
 import ProductDetailPage from '../pages/product/ProductDetailPage';
 import BrandDetailPage from '../pages/brand/BrandDetailPage';
@@ -34,8 +35,12 @@ import AdminOrderHistoryPage from '../pages/admin/orders/AdminOrderHistoryPage';
 import AdminOrderDetailPage from '../pages/admin/orders/AdminOrderDetailPage';
 import OnboardingPage from '../pages/onboarding/OnboardingPage';
 import VendorDetailPage from '../pages/vendor/detail/VendorDetailPage';
-import MyVendorPage from '../pages/vendor/my/MyVendorPage';
-import VendorCreatePage from '../pages/vendor/create/VendorCreatePage';
+import VendorLayout from '../pages/vendor/dashboard/VendorLayout';
+import VendorOverviewPage from '../pages/vendor/dashboard/VendorOverviewPage';
+import VendorProductsPage from '../pages/vendor/dashboard/VendorProductsPage';
+import VendorProductFormPage from '../pages/vendor/dashboard/VendorProductFormPage';
+import VendorOrdersPage from '../pages/vendor/dashboard/VendorOrdersPage';
+import VendorStorePage from '../pages/vendor/dashboard/VendorStorePage';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { AdminContext, AdminProvider } from '../contexts/AdminContext';
@@ -96,6 +101,7 @@ export default function AppRouter() {
             {/* Identity & Access */}
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/roles" element={<AdminRolesPage />} />
+            <Route path="/admin/sessions" element={<AdminSessionsPage />} />
             {/* Default admin redirect */}
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>
@@ -119,8 +125,18 @@ export default function AppRouter() {
             <Route path="/checkout" element={<CartCheckoutPage />} />
             <Route path="/orders" element={<OrderHistoryPage />} />
             <Route path="/orders/:id" element={<OrderDetailPage />} />
-            <Route path="/my-vendor" element={<MyVendorPage />} />
-            <Route path="/vendor-create" element={<VendorCreatePage />} />
+            {/* Seller dashboard */}
+            <Route path="/my-vendor" element={<VendorLayout />}>
+              <Route index element={<VendorOverviewPage />} />
+              <Route path="products" element={<VendorProductsPage />} />
+              <Route path="products/new" element={<VendorProductFormPage />} />
+              <Route path="products/:id/edit" element={<VendorProductFormPage />} />
+              <Route path="orders" element={<VendorOrdersPage />} />
+              <Route path="store" element={<VendorStorePage />} />
+              <Route path="store/new" element={<VendorStorePage />} />
+            </Route>
+            {/* Old store creation URL (onboarding links to it) */}
+            <Route path="/vendor-create" element={<Navigate to="/my-vendor/store/new" replace />} />
           </Route>
 
           {/* Root redirect */}

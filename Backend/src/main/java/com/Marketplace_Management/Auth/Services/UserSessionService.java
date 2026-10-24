@@ -19,9 +19,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.Marketplace_Management.Auth.Constants.Message;
 import com.Marketplace_Management.Auth.Contracts.IUserSessionRepository;
+import com.Marketplace_Management.Auth.DTOs.Commands.GetListSessionCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.AuthResponse;
+import com.Marketplace_Management.Auth.DTOs.Response.SessionResponse;
 import com.Marketplace_Management.Auth.Models.User;
 import com.Marketplace_Management.Auth.Models.UserSession;
+import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Security.JwtService;
 import com.Marketplace_Management.Shared.Security.JwtService.IssuedToken;
 
@@ -45,7 +48,6 @@ public class UserSessionService {
         this.sessionRepo = sessionRepo;
     }
 
-    /** New token pair + a session row for it. */
     public AuthResponse issue(User user, String message) {
         List<String> roleCodes = user.getRoles().stream().map(role -> role.getCode()).toList();
         IssuedToken access = jwtService.generateAccessToken(user.getId(), roleCodes, user.getName());
@@ -64,17 +66,11 @@ public class UserSessionService {
         return new AuthResponse(access.token(), refresh.token(), message);
     }
 
-    /**
-     * Refresh: the old session is replaced by the one created by {@link #issue}. The old refresh
-     * token stays usable for a short grace period (other tabs refreshing at the same time).
-     * A missing session is fine (e.g. removed by an access change): the table never gates a refresh.
-     */
     public void rotate(Claims refreshClaims) {
         sessionRepo.deleteByRefreshJti(refreshClaims.getId());
         jwtService.blacklistWithGrace(refreshClaims.getId(), refreshClaims.getExpiration().toInstant());
     }
 
-    /** Logout: revoke both tokens and drop their session. Works with expired/invalid cookies too. */
     public void logout(String accessToken, String refreshToken) {
         jwtService.invalidateToken(accessToken);
         jwtService.invalidateToken(refreshToken);
@@ -90,14 +86,6 @@ public class UserSessionService {
         }
     }
 
-    /**
-     * Access changed (roles, status, deleted): revoke every live access token of these users so their
-     * next request gets 401 and the client refreshes (new token = current roles). Uses the stored
-     * jti/expiry, no token decoding. A session is deleted only once its token is blacklisted, so a
-     * Redis failure leaves it in place to be revoked again later.
-     *
-     * REQUIRES_NEW: called from an AFTER_COMMIT listener, where the caller's transaction is finished.
-     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int revokeAll(Collection<UUID> userIds) {
         List<UserSession> sessions = sessionRepo.findByUserIds(userIds);
@@ -110,14 +98,6 @@ public class UserSessionService {
         return revoked.size();
     }
 
-    /**
-     * Revokes every session of a user who is about to be deleted. Must run BEFORE the delete:
-     * user_sessions.user_id cascades on delete, so an AFTER_COMMIT revokeAll would find no rows and the
-     * user's access tokens would stay valid until they expire. Unlike revokeAll there is no later retry
-     * (the rows are gone with the user), so a blacklist failure throws and aborts the delete.
-     *
-     * REQUIRES_NEW: the revocation stands even if the delete then fails (the user just has to log in again).
-     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void revokeAllBeforeDelete(UUID userId) {
         List<UserSession> sessions = sessionRepo.findByUserIds(List.of(userId));
@@ -142,20 +122,39 @@ public class UserSessionService {
         return revoked;
     }
 
-    /** Daily at 03:00: sessions whose access token has expired have nothing left to revoke. */
     @Scheduled(cron = "0 0 3 * * *")
     public void deleteExpiredSessions() {
         int deleted = sessionRepo.deleteExpired(Instant.now());
         logger.info("Deleted {} expired user sessions", deleted);
     }
 
-    /**
-     * Client IP. Behind Nginx, X-Real-IP is set from $remote_addr (overwritten by Nginx, so the client
-     * cannot forge it). X-Forwarded-For is NOT trusted for its first entry: with
-     * $proxy_add_x_forwarded_for Nginx appends to whatever the client sent, so the first value is
-     * client-controlled. Fallback: the direct peer address (local dev without a proxy).
-     * Null outside an HTTP request (e.g. message consumers).
-     */
+    public PaginatedResponse<SessionResponse> getSessions(GetListSessionCommand command) {
+        return sessionRepo.findAll(command);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void terminateSession(UUID sessionId) {
+        UserSession session = sessionRepo.findById(sessionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, Message.SESSION_NOT_FOUND));
+
+        jwtService.blacklist(session.getAccessJti(), session.getAccessExpiresAt());
+        jwtService.blacklist(session.getRefreshJti(), session.getRefreshExpiresAt());
+        sessionRepo.deleteByIds(List.of(sessionId));
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public int terminateSessions(List<UUID> sessionIds) {
+        if (sessionIds == null || sessionIds.isEmpty()) return 0;
+
+        List<UserSession> targets = sessionIds.stream()
+                .map(id -> sessionRepo.findById(id))
+                .filter(java.util.Optional::isPresent)
+                .map(java.util.Optional::get)
+                .toList();
+
+        return blacklistAndDelete(targets).size();
+    }
+
     private String currentIp() {
         if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
             return null;

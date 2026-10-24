@@ -33,3 +33,11 @@ export const roleAdminService = {
   update: (id, data) => apiService.fetch(`/api/roles/${id}`, { method: 'PUT', body: data, silent: true }),
   remove: (id) => apiService.fetch(`/api/roles/${id}`, { method: 'DELETE' }),
 };
+
+export const sessionAdminService = {
+  // params: page, size, sortBy, sortOrder, search (IP), userId, createdFrom, createdTo
+  list: (params) => apiService.fetch(`/api/admin/sessions${toQuery(params)}`),
+  terminate: (id) => apiService.fetch(`/api/admin/sessions/${id}`, { method: 'DELETE' }),
+  terminateMany: (sessionIds) =>
+    apiService.fetch('/api/admin/sessions', { method: 'DELETE', body: { sessionIds } }),
+};

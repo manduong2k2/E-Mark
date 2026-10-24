@@ -5,6 +5,7 @@ import { brandService } from '../../../services/brandService';
 import { categoryService } from '../../../services/categoryService';
 import { productService } from '../../../services/productService';
 import ProductForm from '../../../components/product/form/ProductForm';
+import { buildProductFormData } from '../../../components/product/form/productFormData';
 import { PageHeader, EmptyState } from '../shared/AdminUi';
 import './AdminProductFormPage.css';
 
@@ -46,40 +47,6 @@ export default function AdminProductCreatePage() {
     fetchData();
   }, []);
 
-  const buildFd = (formData) => {
-    const fd = new FormData();
-    ['name', 'description', 'brandId', 'vendorId', 'status'].forEach(k =>
-      fd.append(k, formData[k] ?? '')
-    );
-    formData.categoryIds?.forEach(id => fd.append('categoryIds', id));
-
-    // Add options
-    formData.options?.forEach((opt, idx) => {
-      fd.append(`options[${idx}].tempId`, opt.tempId);
-      fd.append(`options[${idx}].name`, opt.name);
-      fd.append(`options[${idx}].value`, opt.value);
-    });
-
-    // Add variants with images
-    formData.variants?.forEach((var_, idx) => {
-      fd.append(`variants[${idx}].name`, var_.name);
-      fd.append(`variants[${idx}].price`, var_.price);
-      fd.append(`variants[${idx}].stock`, var_.stock);
-      fd.append(`variants[${idx}].sku`, var_.sku);
-      var_.optionIds?.forEach((optId, optIdx) => {
-        fd.append(`variants[${idx}].optionIds[${optIdx}]`, optId);
-      });
-
-      // Add image files
-      var_.images?.forEach((img) => {
-        if (img.type === 'new' && img.file) {
-          fd.append(`variants[${idx}].images`, img.file);
-        }
-      });
-    });
-
-    return fd;
-  };
 
   const handleSubmit = async (formData) => {
     setSubmitting(true);
@@ -87,7 +54,7 @@ export default function AdminProductCreatePage() {
       const res = await fetch(`${API_URL}/api/products`, {
         method: 'POST',
         credentials: 'include',
-        body: buildFd(formData),
+        body: buildProductFormData(formData),
       });
 
       const data = await res.json();

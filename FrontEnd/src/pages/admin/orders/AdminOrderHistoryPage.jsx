@@ -6,29 +6,12 @@ import { PageHeader, SearchBox, Avatar, Pill, Pagination, EmptyState } from '../
 import { PAGE_SIZE, useDebounce, useApiQuery, formatDate, formatCurrency } from '../shared/adminUiUtils';
 import './AdminOrderHistoryPage.css';
 import { shortId } from '../../../utils/ids';
+import { ORDER_STATUSES, orderStatus } from '../../../utils/orderStatus';
 
 const SORT_LABELS = { createdAt: 'Date', total: 'Total' };
 
-// Order statuses (backend OrderStatusEnum) → label + Pill tone
-const ORDER_STATUS = {
-  PENDING:    { label: 'Pending',    tone: 'warning' },
-  PAID:       { label: 'Paid',       tone: 'info' },
-  PROCESSING: { label: 'Processing', tone: 'info' },
-  SHIPPING:   { label: 'Shipping',   tone: 'info' },
-  COMPLETED:  { label: 'Completed',  tone: 'success' },
-  CANCELLED:  { label: 'Cancelled',  tone: 'danger' },
-  EXPIRED:    { label: 'Expired',    tone: 'neutral' },
-};
-// Legacy / alternative names that may still come back from the API
-const EXTRA_TONES = {
-  CONFIRMED: 'info', SHIPPED: 'success', DELIVERED: 'success', FAILED: 'danger', REFUNDED: 'neutral',
-};
-
 function OrderStatusPill({ status }) {
-  const key = (status || '').toUpperCase();
-  const cfg = ORDER_STATUS[key];
-  const tone = cfg?.tone || EXTRA_TONES[key] || 'neutral';
-  const label = cfg?.label || (key ? key.charAt(0) + key.slice(1).toLowerCase() : 'Unknown');
+  const { label, tone } = orderStatus(status);
   return <Pill tone={tone}>{label}</Pill>;
 }
 
@@ -106,7 +89,7 @@ function AdminOrderHistoryPage() {
           aria-label="Status filter"
         >
           <option value="">All statuses</option>
-          {Object.entries(ORDER_STATUS).map(([value, { label }]) => (
+          {Object.entries(ORDER_STATUSES).map(([value, { label }]) => (
             <option key={value} value={value}>{label}</option>
           ))}
         </select>
