@@ -14,11 +14,11 @@ import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import java.io.IOException;
 
 public interface IProductService {
-    public PaginatedResponse<ProductShortResponse> getAllProducts(GetListProductCommand command);
+    public PaginatedResponse<ProductShortResponse> getAll(GetListProductCommand command);
 
     public ProductResponse createProduct(CreateProductCommand command) throws IOException;
 
-    public ProductResponse getProduct(UUID id);
+    public ProductResponse getById(UUID id);
 
     public ProductResponse updateProduct(UUID id, UpdateProductCommand command) throws IOException;
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { assistantService } from '../../../services/assistantService';
+import AttachmentRenderer from './sub-components/AttachmentRenderer';
 import './Chatbot.css';
 
 const getCurrentTime = () => {
@@ -91,7 +92,20 @@ const Chatbot = () => {
     try {
       const response = await assistantService.chat(message, provider);
       if (response.ok) {
-        addMessage('bot', response.data?.data?.reply || '');
+        const reply = response.data?.data?.reply || '';
+        const attachments = response.data?.data?.attachments;
+        
+        // Add bot message with reply text
+        addMessage('bot', reply);
+        
+        // Add attachment component if present
+        if (attachments && attachments.intent && attachments.data) {
+          addMessage('bot', '', { 
+            isAttachment: true,
+            attachmentIntent: attachments.intent,
+            attachmentData: attachments.data
+          });
+        }
       } else {
         addMessage('bot', errorReply(response), { isError: true });
       }
@@ -202,37 +216,48 @@ const Chatbot = () => {
                 </div>
               )}
               <div className="msg-content">
-                <div
-                  className="msg-bubble"
-                  // Safe: formatMessage escapes all HTML before adding its own tags
-                  dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
-                />
-                {msg.showQuickChips && (
-                  <div className="quick-chips">
-                    <button
-                      className="chip-btn"
-                      onClick={() => handleQuickMessage('Sản phẩm nổi bật')}
-                      disabled={showTyping}
-                    >
-                      🔥 Sản phẩm nổi bật
-                    </button>
-                    <button
-                      className="chip-btn"
-                      onClick={() => handleQuickMessage('Chính sách đổi trả')}
-                      disabled={showTyping}
-                    >
-                      📦 Chính sách đổi trả
-                    </button>
-                    <button
-                      className="chip-btn"
-                      onClick={() => handleQuickMessage('Tư vấn cấu hình')}
-                      disabled={showTyping}
-                    >
-                      💻 Tư vấn cấu hình
-                    </button>
+                {msg.isAttachment ? (
+                  <div className="msg-attachment">
+                    <AttachmentRenderer 
+                      intent={msg.attachmentIntent} 
+                      data={msg.attachmentData} 
+                    />
                   </div>
+                ) : (
+                  <>
+                    <div
+                      className="msg-bubble"
+                      // Safe: formatMessage escapes all HTML before adding its own tags
+                      dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
+                    />
+                    {msg.showQuickChips && (
+                      <div className="quick-chips">
+                        <button
+                          className="chip-btn"
+                          onClick={() => handleQuickMessage('Sản phẩm nổi bật')}
+                          disabled={showTyping}
+                        >
+                          🔥 Sản phẩm nổi bật
+                        </button>
+                        <button
+                          className="chip-btn"
+                          onClick={() => handleQuickMessage('Chính sách đổi trả')}
+                          disabled={showTyping}
+                        >
+                          📦 Chính sách đổi trả
+                        </button>
+                        <button
+                          className="chip-btn"
+                          onClick={() => handleQuickMessage('Tư vấn cấu hình')}
+                          disabled={showTyping}
+                        >
+                          💻 Tư vấn cấu hình
+                        </button>
+                      </div>
+                    )}
+                    <span className="msg-time">{msg.time}</span>
+                  </>
                 )}
-                <span className="msg-time">{msg.time}</span>
               </div>
             </div>
           ))}

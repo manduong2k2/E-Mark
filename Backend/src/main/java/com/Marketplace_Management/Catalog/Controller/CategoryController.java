@@ -38,7 +38,7 @@ public class CategoryController extends BaseController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAll(@Valid @ModelAttribute GetListCategoryRequest request) {
-        return paginatedResponse(categoryService.getAllCategories(GetListCategoryCommand.fromRequest(request)));
+        return paginatedResponse(categoryService.getAll(GetListCategoryCommand.fromRequest(request)));
     }
 
     @PreAuthorize("hasAuthority('" + UserRole.ADMIN + "')")
@@ -50,7 +50,7 @@ public class CategoryController extends BaseController {
     @PreAuthorize("hasAuthority('" + UserRole.ADMIN + "')")
     @GetMapping("/{categoryId}")
     public ResponseEntity<Map<String, Object>> details(@PathVariable UUID categoryId) {
-        return objectResponse(categoryService.getCategory(categoryId));
+        return objectResponse(categoryService.getById(categoryId));
     }
 
     @PreAuthorize("hasAuthority('" + UserRole.ADMIN + "')")

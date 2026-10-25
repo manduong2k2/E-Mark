@@ -1,0 +1,122 @@
+Chatbot Component Structure
+===========================
+
+src/components/master/chatbot/
+│
+├── Chatbot.jsx                          (Main chatbot component - MODIFIED)
+├── Chatbot.css                          (Chatbot styles - MODIFIED)
+├── INTEGRATION_GUIDE.md                 (API integration documentation - NEW)
+├── FOLDER_STRUCTURE.txt                 (This file - NEW)
+│
+└── sub-components/                      (NEW FOLDER - Smart component rendering)
+    │
+    ├── AttachmentRenderer.jsx           (Smart component selector)
+    ├── index.js                         (Centralized exports)
+    ├── README.md                        (Detailed documentation)
+    │
+    ├── product/                         (Product entity components)
+    │   ├── ProductCard.jsx              (Single product display)
+    │   ├── ProductCard.css              (Product card styling)
+    │   ├── ProductList.jsx              (Multiple products with pagination)
+    │   └── ProductList.css              (Product list styling)
+    │
+    ├── category/                        (Category entity components)
+    │   ├── CategoryCard.jsx             (Single category display)
+    │   ├── CategoryCard.css             (Category card styling)
+    │   ├── CategoryList.jsx             (Multiple categories with pagination)
+    │   └── CategoryList.css             (Category list styling)
+    │
+    ├── brand/                           (Brand entity components)
+    │   ├── BrandCard.jsx                (Single brand display)
+    │   ├── BrandCard.css                (Brand card styling)
+    │   ├── BrandList.jsx                (Multiple brands with pagination)
+    │   └── BrandList.css                (Brand list styling)
+    │
+    └── vendor/                          (Vendor entity components)
+        ├── VendorCard.jsx               (Single vendor display)
+        ├── VendorCard.css               (Vendor card styling)
+        ├── VendorList.jsx               (Multiple vendors with pagination)
+        └── VendorList.css               (Vendor list styling)
+
+
+TOTAL FILES CREATED: 20
+  ├── React Components: 8 (Card + List for each entity type)
+  ├── CSS Files: 8 (Styling for each component)
+  ├── Utility Files: 2 (AttachmentRenderer, index.js)
+  ├── Documentation: 3 (README, INTEGRATION_GUIDE, FOLDER_STRUCTURE)
+  └── Modified: 2 (Chatbot.jsx, Chatbot.css)
+
+
+Component Flow
+==============
+
+User Message
+    ↓
+Chatbot.jsx (handleSendMessage)
+    ↓
+API Response with attachments
+    ├─→ reply: "Text response"
+    └─→ attachments: { intent: "products", data: {...} }
+    ↓
+Chatbot.jsx (parseAttachments)
+    ├─→ Add text message
+    └─→ Add component message
+    ↓
+AttachmentRenderer.jsx
+    ├─→ Check intent type (product/category/brand/vendor)
+    ├─→ Check if data is list or detail
+    └─→ Select and render appropriate component
+    ↓
+ProductCard / ProductList / CategoryCard / CategoryList / etc.
+    ↓
+Visual display in chat bubble
+
+
+Key Features
+============
+
+✓ Automatic component selection based on intent
+✓ Smart list vs. detail detection
+✓ Two render modes:
+  - Card: Single item display (optimized for chat)
+  - List: Multiple items with pagination
+✓ Responsive design (fits in 380px chat window)
+✓ Styled to match chatbot theme
+✓ Empty state handling
+✓ Graceful error handling
+✓ Easily extensible for new entity types
+✓ Fully backward compatible
+
+
+Integration Steps for Backend
+==============================
+
+1. Ensure API returns format:
+   {
+     success: true,
+     data: {
+       reply: "...",
+       attachments: {
+         intent: "products",
+         data: { ... }
+       }
+     }
+   }
+
+2. For single items: Make sure data is object with id, name, etc.
+3. For lists: Wrap items in data.data array with pagination fields
+4. Test with examples in INTEGRATION_GUIDE.md
+
+
+Component Sizes
+===============
+
+List Container:     320px wide × 400px max-height (scrollable)
+Card Container:     320px wide × auto height
+Chat Window:        380px wide × 580px height
+Mobile Adapted:     (100vw - 32px) width
+
+Individual Card Height: ~100px (depending on content)
+Scrollbar: 4px width
+Padding: 12px inside cards
+Gap between items: 10px

@@ -10,11 +10,11 @@ import com.Marketplace_Management.Catalog.DTOs.Response.CategoryResponse;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 public interface ICategoryService {
-    public PaginatedResponse<CategoryResponse> getAllCategories(GetListCategoryCommand command);
+    public PaginatedResponse<CategoryResponse> getAll(GetListCategoryCommand command);
 
     public CategoryResponse createCategory(CreateCategoryCommand command) throws IOException;
 
-    public CategoryResponse getCategory(UUID id);
+    public CategoryResponse getById(UUID id);
 
     public CategoryResponse updateCategory(UUID id, UpdateCategoryCommand command) throws IOException;
 

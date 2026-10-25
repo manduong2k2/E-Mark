@@ -44,7 +44,7 @@ public class ProductController extends BaseController{
     @GetMapping
     public ResponseEntity<Map<String,Object>> getAll(@Valid @ModelAttribute GetListProductRequest request) {
         GetListProductCommand command = GetListProductCommand.fromRequest(request);
-        PaginatedResponse<ProductShortResponse> products = productService.getAllProducts(command);
+        PaginatedResponse<ProductShortResponse> products = productService.getAll(command);
 
         return paginatedResponse(products);
     }
@@ -68,7 +68,7 @@ public class ProductController extends BaseController{
 
     @GetMapping("/{productId}")
     public ResponseEntity<Map<String, Object>> details(@PathVariable UUID productId) {
-        ProductResponse product = productService.getProduct(productId);
+        ProductResponse product = productService.getById(productId);
 
         return objectResponse(product);
     }

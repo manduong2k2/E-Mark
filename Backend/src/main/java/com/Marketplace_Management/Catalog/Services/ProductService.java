@@ -57,14 +57,14 @@ public class ProductService implements IProductService {
     }
 
     //@Cacheable(value = "products", key = "#command.page + '_' + #command.size + '_' + #command.search + '_' + #command.categoryIds + '_' + #command.brandId")
-    public PaginatedResponse<ProductShortResponse> getAllProducts(GetListProductCommand command) {
+    public PaginatedResponse<ProductShortResponse> getAll(GetListProductCommand command) {
 
         return productRepository.findAll(command).map(product -> product.withUrl(baseUrl));
     }
 
-    @Cacheable(value = "product", key = "#ProductId")
-    public ProductResponse getProduct(UUID ProductId) {
-        Product product = productRepository.findById(ProductId);
+    @Cacheable(value = "product", key = "#productId")
+    public ProductResponse getById(UUID productId) {
+        Product product = productRepository.findById(productId);
 
         if (product == null) {
             throw new ResourceNotFoundException("Product not found");

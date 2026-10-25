@@ -10,7 +10,7 @@ import com.Marketplace_Management.Catalog.DTOs.Response.BrandResponse;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 public interface IBrandService {
-    public PaginatedResponse<BrandResponse> getAllBrands(GetListBrandCommand command);
+    public PaginatedResponse<BrandResponse> getAll(GetListBrandCommand command);
 
     public BrandResponse createBrand(CreateBrandCommand command) throws IOException;
 

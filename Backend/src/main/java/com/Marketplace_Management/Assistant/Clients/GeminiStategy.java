@@ -36,10 +36,10 @@ public class GeminiStategy implements AssistantStrategy {
     public GeminiStategy(
             RestClient.Builder builder,
             @Value("${third-party.gemini.api-key}") String apiKey,
-            @Value("${third-party.gemini.model:gemini-3.6-flash}") String model,
+            @Value("${third-party.gemini.model:gemini-3.5-flash-lite}") String model,
             @Value("${third-party.gemini.base-url:https://generativelanguage.googleapis.com/v1beta}") String baseUrl) {
         this.model = model;
-        this.restClient = RestClients.withTimeouts(builder, baseUrl, Duration.ofSeconds(10), Duration.ofSeconds(60))
+        this.restClient = RestClients.withTimeouts(builder, baseUrl, Duration.ofSeconds(60), Duration.ofSeconds(120))
                 .defaultHeader("x-goog-api-key", apiKey)
                 .build();
     }

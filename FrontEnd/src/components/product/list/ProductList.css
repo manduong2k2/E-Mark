@@ -1,8 +1,4 @@
 /* ProductList.css */
-.product-list-container {
-  padding: 20px;
-  margin: 20px 0;
-}
 
 .product-list-container.user-view {
   background: transparent;

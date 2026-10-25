@@ -37,7 +37,7 @@ public class BrandService implements IBrandService {
         this.fileService = fileService;
     }
 
-    public PaginatedResponse<BrandResponse> getAllBrands(GetListBrandCommand command) {
+    public PaginatedResponse<BrandResponse> getAll(GetListBrandCommand command) {
         return brandRepository.findAll(command).map(brand -> brand.withUrl(baseUrl));
     }
 

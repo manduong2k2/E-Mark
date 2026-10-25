@@ -38,7 +38,7 @@ public class BrandController extends BaseController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAll(@Valid @ModelAttribute GetListBrandRequest request) {
-        return paginatedResponse(brandService.getAllBrands(GetListBrandCommand.fromRequest(request)));
+        return paginatedResponse(brandService.getAll(GetListBrandCommand.fromRequest(request)));
     }
 
     @PreAuthorize("hasAuthority('" + UserRole.ADMIN + "')")

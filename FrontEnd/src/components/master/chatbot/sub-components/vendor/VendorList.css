@@ -1,0 +1,61 @@
+.chatbot-vendor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.chatbot-vendor-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chatbot-vendor-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatbot-vendor-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.vendor-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.empty-state i {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.list-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.page-info {
+  font-weight: 600;
+}

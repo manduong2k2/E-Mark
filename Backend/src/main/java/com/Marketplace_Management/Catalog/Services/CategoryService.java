@@ -41,11 +41,11 @@ public class CategoryService implements ICategoryService {
     }
 
     @Cacheable(value = "categories", key = "#command.page + '_' + #command.size + '_' + #command.search")
-    public PaginatedResponse<CategoryResponse> getAllCategories(GetListCategoryCommand command) {
+    public PaginatedResponse<CategoryResponse> getAll(GetListCategoryCommand command) {
         return categoryRepository.findAll(command).map(category -> new CategoryResponse(category).withUrl(baseUrl));
     }
 
-    public CategoryResponse getCategory(UUID CategoryId) {
+    public CategoryResponse getById(UUID CategoryId) {
         return categoryRepository.findById(CategoryId)
                 .map(category -> new CategoryResponse(category).withUrl(baseUrl))
                 .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND));

@@ -426,6 +426,11 @@
   background: rgba(0, 0, 0, 0.06);
 }
 
+.msg-attachment {
+  max-width: 320px;
+  animation: fadeInMsg 0.3s ease-out;
+}
+
 .msg-time {
   font-size: 0.68rem;
   color: var(--text-muted);
