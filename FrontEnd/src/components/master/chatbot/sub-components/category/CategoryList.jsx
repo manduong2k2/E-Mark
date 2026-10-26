@@ -8,7 +8,7 @@ const CategoryList = ({ data = {} }) => {
   if (!categories || categories.length === 0) {
     return (
       <div className="chatbot-category-list">
-        <div className="empty-state">
+        <div className="chatbot-empty-state">
           <i className="fa-solid fa-tag"></i>
           <p>Không tìm thấy danh mục</p>
         </div>
@@ -18,14 +18,14 @@ const CategoryList = ({ data = {} }) => {
 
   return (
     <div className="chatbot-category-list">
-      <div className="category-list-container">
+      <div className="chatbot-category-list-container">
         {categories.map((category) => (
           <CategoryCard key={category.id} category={category} />
         ))}
       </div>
       {totalPages > 1 && (
-        <div className="list-pagination">
-          <span className="page-info">
+        <div className="chatbot-list-pagination">
+          <span className="chatbot-page-info">
             Trang {currentPage + 1}/{totalPages}
           </span>
         </div>

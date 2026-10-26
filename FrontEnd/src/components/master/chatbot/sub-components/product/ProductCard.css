@@ -56,8 +56,12 @@
 }
 
 .product-card-name, .product-card-brand, 
-.product-card-price, .product-card-status {
+.product-card-price {
   color: #0f172a;
+}
+
+.product-card-stock{
+  color: #46d877;
 }
 
 .product-card-price {

@@ -8,7 +8,7 @@ const BrandList = ({ data = {} }) => {
   if (!brands || brands.length === 0) {
     return (
       <div className="chatbot-brand-list">
-        <div className="empty-state">
+        <div className="chatbot-empty-state">
           <i className="fa-solid fa-trademark"></i>
           <p>Không tìm thấy thương hiệu</p>
         </div>
@@ -18,14 +18,14 @@ const BrandList = ({ data = {} }) => {
 
   return (
     <div className="chatbot-brand-list">
-      <div className="brand-list-container">
+      <div className="chatbot-brand-list-container">
         {brands.map((brand) => (
           <BrandCard key={brand.id} brand={brand} />
         ))}
       </div>
       {totalPages > 1 && (
-        <div className="list-pagination">
-          <span className="page-info">
+        <div className="chatbot-list-pagination">
+          <span className="chatbot-page-info">
             Trang {currentPage + 1}/{totalPages}
           </span>
         </div>

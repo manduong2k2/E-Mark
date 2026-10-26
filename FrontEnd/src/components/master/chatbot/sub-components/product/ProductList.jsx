@@ -8,7 +8,7 @@ const ProductList = ({ data = {} }) => {
   if (!products || products.length === 0) {
     return (
       <div className="chatbot-product-list">
-        <div className="empty-state">
+        <div className="chatbot-empty-state">
           <i className="fa-solid fa-cube"></i>
           <p>Không tìm thấy sản phẩm</p>
         </div>
@@ -18,14 +18,14 @@ const ProductList = ({ data = {} }) => {
 
   return (
     <div className="chatbot-product-list">
-      <div className="product-list-container">
+      <div className="chatbot-product-list-container">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
       {totalPages > 1 && (
-        <div className="list-pagination">
-          <span className="page-info">
+        <div className="chatbot-list-pagination">
+          <span className="chatbot-page-info">
             Trang {currentPage + 1}/{totalPages}
           </span>
         </div>

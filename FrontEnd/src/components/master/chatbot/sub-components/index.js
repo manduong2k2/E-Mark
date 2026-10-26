@@ -13,3 +13,7 @@ export { default as BrandList } from './brand/BrandList';
 // Vendor components
 export { default as VendorCard } from './vendor/VendorCard';
 export { default as VendorList } from './vendor/VendorList';
+
+// Order components
+export { default as OrderCard } from './order/OrderCard';
+export { default as OrderList } from './order/OrderList';

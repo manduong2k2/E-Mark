@@ -1,9 +1,19 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './VendorCard.css';
 
 const VendorCard = ({ vendor }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = (e) => {
+    e.stopPropagation();
+    if (vendor.id) {
+      navigate(`/vendor/${vendor.id}`);
+    }
+  };
+
   return (
-    <div className="chatbot-vendor-card">
+    <div className="chatbot-vendor-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className="vendor-card-avatar">
         {vendor.logo ? (
           <img src={vendor.logo} alt={vendor.name} />

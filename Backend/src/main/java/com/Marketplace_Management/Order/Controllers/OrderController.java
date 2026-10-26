@@ -51,7 +51,7 @@ public class OrderController {
     public ResponseEntity<PaginatedResponse<HistoryResponse>> listByUser(@Valid ListOrderRequest request) {
         ListOrderCommand command = ListOrderCommand.fromRequest(request);
 
-        PaginatedResponse<HistoryResponse> response = orderService.listByUser(command);
+        PaginatedResponse<HistoryResponse> response = orderService.myOrders(command);
         return ResponseEntity.ok(response);
     }
 

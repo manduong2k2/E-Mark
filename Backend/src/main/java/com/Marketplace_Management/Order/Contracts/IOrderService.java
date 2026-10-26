@@ -11,6 +11,6 @@ import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 public interface IOrderService {
     PaginatedResponse<HistoryResponse> list(ListOrderCommand command);
     OrderResponse findById(UUID id);
-    PaginatedResponse<HistoryResponse> listByUser(ListOrderCommand command);
+    PaginatedResponse<HistoryResponse> myOrders(ListOrderCommand command);
     OrderResponse placeOrder(PlaceOrderCommand command);
 }

@@ -8,6 +8,8 @@ import {
   BrandList,
   VendorCard,
   VendorList,
+  OrderCard,
+  OrderList,
 } from './index';
 
 /**
@@ -44,6 +46,11 @@ const getComponent = (intent, data) => {
   // Vendor components
   if (intentLower === 'vendor' || intentLower === 'vendors') {
     return isListFormat(data) ? VendorList : VendorCard;
+  }
+
+  // Order components
+  if (intentLower === 'order' || intentLower === 'orders') {
+    return isListFormat(data) ? OrderList : OrderCard;
   }
 
   return null;

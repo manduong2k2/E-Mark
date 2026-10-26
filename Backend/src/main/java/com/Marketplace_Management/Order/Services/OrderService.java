@@ -42,7 +42,7 @@ public class OrderService implements IOrderService{
         return repository.findAll(command);
     }
 
-    public PaginatedResponse<HistoryResponse> listByUser(ListOrderCommand command) {
+    public PaginatedResponse<HistoryResponse> myOrders(ListOrderCommand command) {
         return repository.findByUserIdWithFilters(SecurityUtils.currentUserId(), command);
     }
 

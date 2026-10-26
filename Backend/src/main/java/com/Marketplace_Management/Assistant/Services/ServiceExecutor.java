@@ -29,7 +29,7 @@ public class ServiceExecutor {
 
     private static final Map<String, Set<String>> ALLOWED_METHODS = Map.of(
             "products", Set.of("getAll", "getById"),
-            "orders", Set.of("getAll", "getById"),
+            "orders", Set.of("getAll", "getById", "myOrders"),
             "users", Set.of("getAll", "getById"),
             "brands", Set.of("getAll", "getById"),
             "categories", Set.of("getAll", "getById"),

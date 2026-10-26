@@ -95,17 +95,14 @@ const Chatbot = () => {
         const reply = response.data?.data?.reply || '';
         const attachments = response.data?.data?.attachments;
         
-        // Add bot message with reply text
-        addMessage('bot', reply);
-        
-        // Add attachment component if present
-        if (attachments && attachments.intent && attachments.data) {
-          addMessage('bot', '', { 
+        // Add bot message with reply text and attachment in a single message
+        addMessage('bot', reply, { 
+          ...(attachments && attachments.intent && attachments.data && {
             isAttachment: true,
             attachmentIntent: attachments.intent,
             attachmentData: attachments.data
-          });
-        }
+          })
+        });
       } else {
         addMessage('bot', errorReply(response), { isError: true });
       }
@@ -217,12 +214,20 @@ const Chatbot = () => {
               )}
               <div className="msg-content">
                 {msg.isAttachment ? (
-                  <div className="msg-attachment">
-                    <AttachmentRenderer 
-                      intent={msg.attachmentIntent} 
-                      data={msg.attachmentData} 
-                    />
-                  </div>
+                  <>
+                    {msg.content && (
+                      <div
+                        className="msg-bubble"
+                        dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
+                      />
+                    )}
+                    <div className="msg-attachment">
+                      <AttachmentRenderer 
+                        intent={msg.attachmentIntent} 
+                        data={msg.attachmentData} 
+                      />
+                    </div>
+                  </>
                 ) : (
                   <>
                     <div
@@ -241,17 +246,17 @@ const Chatbot = () => {
                         </button>
                         <button
                           className="chip-btn"
-                          onClick={() => handleQuickMessage('Chính sách đổi trả')}
+                          onClick={() => handleQuickMessage('Nhãn hiệu phổ biến')}
                           disabled={showTyping}
                         >
-                          📦 Chính sách đổi trả
+                          ⭐ Nhãn hiệu phổ biến
                         </button>
                         <button
                           className="chip-btn"
-                          onClick={() => handleQuickMessage('Tư vấn cấu hình')}
+                          onClick={() => handleQuickMessage('Lịch sử đơn hàng')}
                           disabled={showTyping}
                         >
-                          💻 Tư vấn cấu hình
+                          📋 Lịch sử đơn hàng
                         </button>
                       </div>
                     )}

@@ -99,7 +99,7 @@ public class PromptBuilder {
 					- "size": 5 (use this field when user requests a specific number of items)
 					- "sortBy": "createdAt" (use this field when user requests sorting or the most or least about something, use the appropriate field from the availableSort list)
 					- "sortOrder": "desc"
-					- "search": null
+					- "search": (use this method when user mention product's name or something relevant)
 
 					Override defaults only when explicitly requested by the user.
 					Set "search" to the requested keyword or phrase, or null if none is provided.
@@ -152,46 +152,73 @@ public class PromptBuilder {
 		Map<String, Object> availableServices = new HashMap<>();
 
 		availableServices.put("products", Map.of(
+				"description", "Use this domain when the user mentions products, items for sale, product names, prices, stock, inventory, product categories, or brands of products.",
 				"getAll", Map.of(
 						"parameters", Map.of(
-								"categoryIds",
-								"List of category IDs to filter by, UUID",
+								"categoryIds", "List of category IDs to filter by, UUID",
 								"brandId", "Brand ID to filter by, UUID",
 								"vendorId", "Vendor ID to filter by, UUID"),
-						"availableSort", List.of("name", "variants.price", "variants.stock", "createdAt")),
+						"availableSort", List.of(
+								"name", "variants.price", "variants.stock", "createdAt")),
 				"getById", Map.of(
 						"parameters", Map.of(
 								"id", "Product ID to retrieve, UUID"))));
+
 		availableServices.put("orders", Map.of(
+				"description", "Use this domain when the user mentions orders, purchases, order history, order status, order totals, or tracking an existing order.",
 				"getAll", Map.of(
 						"parameters", Map.of(
-								"status", "Order status to filter by, String"),
-						"availableSort", List.of("createdAt", "totalAmount", "status")),
+								"status", "Order status to filter by, String",
+								"dateFrom", "get orders placed after a specific date", 
+								"dateTo" , "get orders  placed before a specific date", 
+								"totalMin", "get orders with totalAmount greater than a specific number", 
+								"totalMax", "get orders from totalAmount less than a specific number"),
+						"availableSort", List.of(
+								"createdAt", "totalAmount", "status")),
+				"myOrders", Map.of(
+						"parameters", Map.of(
+								"status", "Order status to filter by, String",
+								"dateFrom", "get orders from a specific date", 
+								"dateTo" , "get orders from a specific date", 
+								"totalMin", "get orders from a specific date", 
+								"totalMax", "get orders from a specific date"),
+						"availableSort", List.of(
+								"createdAt", "totalAmount", "status")),			
 				"getById", Map.of(
 						"parameters", Map.of(
 								"id", "Order ID to retrieve, UUID"))));
+
 		availableServices.put("users", Map.of(
+				"description", "Use this domain when the user mentions users, customer accounts, user profiles, account information, or retrieving user records.",
 				"getAll", Map.of(
 						"parameters", Map.of(),
-						"availableSort", List.of("name", "price", "createdAt")),
+						"availableSort", List.of(
+								"name", "price", "createdAt")),
 				"getById", Map.of(
 						"parameters", Map.of(
 								"id", "User ID to retrieve, UUID"))));
+
 		availableServices.put("brands", Map.of(
+				"description", "Use this domain when the user mentions brands, brand information, brand profiles, or retrieving a specific brand.",
 				"getAll", Map.of(
 						"parameters", Map.of(),
-						"availableSort", List.of("name", "email", "total")),
+						"availableSort", List.of(
+								"name", "email", "total")),
 				"getById", Map.of(
 						"parameters", Map.of(
 								"id", "Brand ID to retrieve, UUID"))));
+
 		availableServices.put("categories", Map.of(
+				"description", "Use this domain when the user mentions product categories, classification, category listings, or retrieving a specific category.",
 				"getAll", Map.of(
 						"parameters", Map.of(),
 						"availableSort", List.of("name")),
 				"getById", Map.of(
 						"parameters", Map.of(
 								"id", "Category ID to retrieve, UUID"))));
+
 		availableServices.put("vendors", Map.of(
+				"description", "Use this domain when the user mentions vendors, sellers, suppliers, vendor information, or retrieving a specific vendor.",
 				"getAll", Map.of(
 						"parameters", Map.of(),
 						"availableSort", List.of("name")),
