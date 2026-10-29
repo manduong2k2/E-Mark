@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 
 import com.Marketplace_Management.Shared.Validation.Rules.UniqueValidator;
 
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = UniqueValidator.class)
 @Repeatable(UniqueList.class)
@@ -21,7 +21,7 @@ public @interface Unique {
 
     Class<? extends Payload>[] payload() default {};
 
-    String except() default "";
+    String ignore() default "";
 
     String table();
     String column();

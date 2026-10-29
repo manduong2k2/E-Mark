@@ -3,9 +3,11 @@ package com.Marketplace_Management.Catalog.DTOs.Commands.Product;
 import java.util.List;
 import java.util.UUID;
 
-import com.Marketplace_Management.Catalog.DTOs.Requests.Product.UpdateProductRequest;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.Marketplace_Management.Shared.DTOs.Commands.BaseCommand;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,17 +20,32 @@ public class UpdateProductCommand extends BaseCommand {
     private UUID brandId;
     private String description;
     private List<UUID> categoryIds;
+    private List<UpdateProductVariantCommand> variants;
+    private List<UpdateProductOptionCommand> options;
     private String status;
 
-    public static UpdateProductCommand fromRequest(UpdateProductRequest request) {
-        // Every field is optional: null means "keep the current value"
-        return UpdateProductCommand.builder()
-            .name(safeTrim(request.getName()))
-            .brandId(uuidOrNull(request.getBrandId()))
-            .description(safeTrim(request.getDescription()))
-            .categoryIds(request.getCategoryIds() != null ? request.getCategoryIds().stream().map(UUID::fromString).toList() : null)
-            .status(safeTrim(request.getStatus()))
-            .build();
+    @Data
+    @Builder
+    @EqualsAndHashCode(callSuper = true)
+    public static class UpdateProductVariantCommand extends BaseCommand {
+        private UUID id;
+        private String name;
+        private String sku;
+        private double price;
+        private int stock;
+
+        private List<MultipartFile> images;
+        private List<Long> optionIds;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Builder
+    @EqualsAndHashCode(callSuper = false)
+    public static class UpdateProductOptionCommand extends BaseCommand {
+        private UUID id;
+        private Long tempId;
+        private String name;
+        private String value;
     }
 }
-

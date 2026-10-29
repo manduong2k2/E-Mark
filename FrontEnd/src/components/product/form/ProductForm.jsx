@@ -64,6 +64,7 @@ export default function ProductForm({
         ).filter(idx => idx !== -1) || [];
 
         return {
+          id: v.id || null,
           tempId: v.id || Date.now() + Math.random(),
           name: v.name || '',
           price: v.price ?? '',

@@ -14,6 +14,7 @@ export function buildProductFormData(formData, { keepExistingImages = false } = 
   });
 
   formData.variants?.forEach((variant, idx) => {
+    fd.append(`variants[${idx}].id`, variant.id ?? '');
     fd.append(`variants[${idx}].name`, variant.name);
     fd.append(`variants[${idx}].price`, variant.price);
     fd.append(`variants[${idx}].stock`, variant.stock);

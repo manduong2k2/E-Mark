@@ -59,7 +59,7 @@ public class ProductController extends BaseController{
     @PreAuthorize("hasAnyAuthority('" + UserRole.ADMIN + "', '" + UserRole.VENDOR + "')")
     @PostMapping
     public ResponseEntity<Map<String, Object>> create(@Valid @ModelAttribute CreateProductRequest request) throws IOException {
-        CreateProductCommand command = CreateProductCommand.fromRequest(request);
+        CreateProductCommand command = request.validated();
 
         ProductResponse productRes = productService.createProduct(command);
 
@@ -87,7 +87,7 @@ public class ProductController extends BaseController{
         @PathVariable UUID productId,
         @Valid @ModelAttribute UpdateProductRequest request
     ) throws IOException {
-        UpdateProductCommand command = UpdateProductCommand.fromRequest(request);
+        UpdateProductCommand command = request.validated();
         ProductResponse updated = productService.updateProduct(productId, command);
 
         return objectResponse(updated);
