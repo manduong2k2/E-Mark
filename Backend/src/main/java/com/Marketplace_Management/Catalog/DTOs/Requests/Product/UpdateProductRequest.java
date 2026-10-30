@@ -94,9 +94,9 @@ public class UpdateProductRequest {
                 .name(name)
                 .brandId(UUID.fromString(brandId))
                 .description(description)
-                .categoryIds(categoryIds.stream().map(UUID::fromString).toList())
+                .categoryIds(categoryIds != null ? categoryIds.stream().map(UUID::fromString).toList() : null)
                 .status(status)
-                .variants(variants.stream().map(v -> 
+                .variants(variants != null ? variants.stream().map(v -> 
                     UpdateProductCommand.UpdateProductVariantCommand.builder()
                         .id(v.getId())
                         .name(v.getName())
@@ -105,14 +105,14 @@ public class UpdateProductRequest {
                         .stock(v.getStock())
                         .images(v.getImages())
                         .build()
-                ).toList())
-                .options(options.stream().map(o -> 
+                ).toList() : null)
+                .options(options != null ? options.stream().map(o -> 
                     UpdateProductCommand.UpdateProductOptionCommand.builder()
                         .tempId(o.getTempId())
                         .name(o.getName())
                         .value(o.getValue())
                         .build()
-                ).toList())
+                ).toList() : null)
                 .build();
     }
 }

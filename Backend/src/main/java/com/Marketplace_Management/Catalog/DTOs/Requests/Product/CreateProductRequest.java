@@ -100,7 +100,7 @@ public class CreateProductRequest {
                 .brandId(UUID.fromString(brandId))
                 .description(description)
                 .vendorId(UUID.fromString(vendorId))
-                .categoryIds(categoryIds.stream().map(UUID::fromString).toList())
+                .categoryIds(categoryIds != null ? categoryIds.stream().map(UUID::fromString).toList() : List.of())
                 .status(status)
                 .variants(variants.stream().map(v -> 
                     CreateProductCommand.CreateProductVariantCommand.builder()
@@ -112,13 +112,13 @@ public class CreateProductRequest {
                         .optionIds(v.getOptionIds())
                         .build()
                 ).toList())
-                .options(options.stream().map(o -> 
+                .options( options != null ? options.stream().map(o -> 
                     CreateProductCommand.CreateProductOptionCommand.builder()
                         .tempId(o.getTempId())
                         .name(o.getName())
                         .value(o.getValue())
                         .build()
-                ).toList())
+                ).toList() : List.of())
                 .build();
     }
 }

@@ -1,300 +1,56 @@
-// src/pages/product/ProductDetailPage.jsx
-import { useEffect, useState, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { AuthContext } from '../../contexts/AuthContext';
 import ProductVariantPopup from '../../components/product/popup/ProductVariantPopup';
 import defaultProductImage from '../../assets/product.png';
 import './ProductDetailPage.css';
-import { CartContext } from '../../contexts/CartContext';
+
+const imageValue = (image) => typeof image === 'string' ? image : image?.url;
+const money = (value) => `${Number(value || 0).toLocaleString('vi-VN')} đ`;
 
 export default function ProductDetailPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
-  const { setCart } = useContext(CartContext);
+  const { id } = useParams(); const navigate = useNavigate(); const { user } = useContext(AuthContext);
+  const [product, setProduct] = useState(null); const [selectedVariant, setSelectedVariant] = useState(null);
+  const [activeImage, setActiveImage] = useState(0); const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(''); const [showPopup, setShowPopup] = useState(false);
 
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showVariantPopup, setShowVariantPopup] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState(null);
-  const [selectedOptions, setSelectedOptions] = useState({});
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        const res = await productService.getById(id);
-        if (res.ok && res.data && res.data.data) {
-          setProduct(res.data.data);
-        } else {
-          setError('Product not found');
-        }
-      } catch {
-        setError('Failed to load product');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
+  useEffect(() => { let mounted = true;
+    productService.getById(id).then((res) => { if (!mounted) return;
+      if (res.ok && res.data?.data) { setProduct(res.data.data); setSelectedVariant(res.data.data.variants?.[0] || null); }
+      else setError('Product not found.');
+    }).catch(() => mounted && setError('Unable to load product details.')).finally(() => mounted && setLoading(false));
+    return () => { mounted = false; };
   }, [id]);
 
-  // Initialize selectedVariant when product loads
-  useEffect(() => {
-    if (product && product.variants && product.variants.length > 0) {
-      setSelectedVariant(product.variants[0]);
-      setCurrentImageIndex(0);
-    }
-  }, [product]);
+  const variants = product?.variants || [];
+  const images = useMemo(() => [...new Set((selectedVariant?.images || variants.flatMap(v => v.images || [])).map(imageValue).filter(Boolean))], [selectedVariant, variants]);
+  const currentImage = images[activeImage] || defaultProductImage;
+  const totalStock = variants.reduce((sum, v) => sum + Number(v.stock || 0), 0);
+  const prices = variants.map(v => Number(v.price)).filter(Number.isFinite);
+  const minPrice = prices.length ? Math.min(...prices) : 0;
+  useEffect(() => setActiveImage(0), [selectedVariant]);
 
-  // Reset image index when variant changes
-  useEffect(() => {
-    setCurrentImageIndex(0);
-  }, [selectedVariant]);
+  if (loading) return <div className="product-detail-page"><div className="product-detail-state"><span className="product-detail-spinner" /><p>Loading product...</p></div></div>;
+  if (error || !product) return <div className="product-detail-page"><div className="product-detail-state"><i className="fa-solid fa-box-open" /><h2>{error || 'Product not found'}</h2><button onClick={() => navigate('/home')}>Back to home</button></div></div>;
 
-  // Group options by name
-  const groupedOptions = product?.options ? product.options.reduce((acc, option) => {
-    if (!acc[option.name]) {
-      acc[option.name] = [];
-    }
-    acc[option.name].push(option);
-    return acc;
-  }, {}) : {};
-
-  // Find variant based on selected options
-  const findVariantByOptions = (options) => {
-    if (!product?.variants || product.variants.length === 0) return null;
-    
-    // If no options selected, return first variant
-    if (Object.keys(options).length === 0) {
-      return product.variants[0];
-    }
-    
-    const optionIds = Object.values(options).map(id => parseInt(id)).sort((a, b) => a - b);
-    const optionListString = optionIds.join(', ');
-    
-    const matchingVariant = product.variants.find(variant => {
-      // Handle different formats: "31, 32", "31,32", "31 32"
-      const variantOptionList = variant.optionList || '';
-      const variantOptionIds = variantOptionList
-        .split(/[, ]+/) // Split by comma or space
-        .map(id => parseInt(id.trim()))
-        .filter(id => !isNaN(id))
-        .sort((a, b) => a - b);
-      const variantOptionListString = variantOptionIds.join(', ');
-      return variantOptionListString === optionListString;
-    });
-    
-    return matchingVariant || product.variants[0];
-  };
-
-  const handleOptionChange = (optionName, optionId) => {
-    // Toggle: if clicking the same option, unselect it
-    const newSelectedOptions = { ...selectedOptions };
-    const currentSelected = newSelectedOptions[optionName];
-    
-    if (currentSelected == optionId) { // Use == for loose comparison to handle string/number mismatch
-      delete newSelectedOptions[optionName];
-    } else {
-      newSelectedOptions[optionName] = optionId;
-    }
-    setSelectedOptions(newSelectedOptions);
-    
-    const matchingVariant = findVariantByOptions(newSelectedOptions);
-    if (matchingVariant) {
-      setSelectedVariant(matchingVariant);
-    } else {
-      setSelectedVariant(product.variants[0]);
-    }
-  };
-
-  const handlePreviousImage = () => {
-    if (images.length > 0) {
-      setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1);
-    }
-  };
-
-  const handleNextImage = () => {
-    if (images.length > 0) {
-      setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1);
-    }
-  };
-
-  const handleAddToCart = () => {
-    if (!user) {
-      navigate('/auth?action=login');
-      return;
-    }
-    setShowVariantPopup(true);
-  };
-
-  const handleCloseVariantPopup = () => {
-    setShowVariantPopup(false);
-  };
-
-  if (loading) {
-    return (
-      <div className="product-detail-page">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading product...</p>
-        </div>
+  return <main className="product-detail-page">
+    <div className="product-detail-breadcrumb"><button onClick={() => navigate(-1)}><i className="fa-solid fa-arrow-left" /> Back</button><span>/</span><span>{product.name}</span></div>
+    <section className="product-detail-card">
+      <div className="product-detail-gallery"><div className="product-detail-main-image"><img src={currentImage} alt={product.name} onError={e => { e.currentTarget.src = defaultProductImage; }} />{product.status === 'PUBLISHED' && <span className="product-detail-badge">Published</span>}</div>
+        {images.length > 1 && <div className="product-detail-thumbnails">{images.map((image, index) => <button key={image} className={index === activeImage ? 'active' : ''} onClick={() => setActiveImage(index)}><img src={image} alt={`${product.name} ${index + 1}`} /></button>)}</div>}</div>
+      <div className="product-detail-content"><div className="product-detail-eyebrow">{product.brand?.name || 'Sản phẩm'} {product.categories?.length > 0 && ` · ${product.categories[0].name}`}</div>
+        <h1>{product.name}</h1><div className="product-detail-rating"><i className="fa-solid fa-star" /> Authentic product <span>•</span> {variants.length} variant{variants.length === 1 ? '' : 's'}</div>
+        <div className="product-detail-price">{money(selectedVariant?.price ?? minPrice)}</div>
+        <div className="product-detail-stock"><span className={totalStock > 0 ? 'in-stock' : 'out-stock'}><i className="fa-solid fa-circle" /> {totalStock > 0 ? `${totalStock} in stock` : 'Out of stock'}</span><span>SKU: {selectedVariant?.sku || '—'}</span></div>
+        {variants.length > 1 && <div className="product-detail-variants"><h3>Select variant</h3><div>{variants.map(v => <button key={v.id} className={selectedVariant?.id === v.id ? 'active' : ''} onClick={() => setSelectedVariant(v)}><strong>{v.name}</strong><small>{money(v.price)} · {v.stock} available</small></button>)}</div></div>}
+        <button className="product-detail-add" disabled={!selectedVariant || selectedVariant.stock <= 0} onClick={() => { if (!user) navigate('/auth?action=login'); else setShowPopup(true); }}><i className="fa-solid fa-bag-shopping" /> {selectedVariant?.stock > 0 ? 'Add to cart' : 'Out of stock'}</button>
+        <div className="product-detail-benefits"><span><i className="fa-solid fa-shield-halved" /><b>Authentic</b><small>Quality guaranteed</small></span><span><i className="fa-solid fa-truck-fast" /><b>Fast delivery</b><small>Carefully packaged</small></span></div>
       </div>
-    );
-  }
-
-  if (error || !product) {
-    return (
-      <div className="product-detail-page">
-        <div className="error-state">
-          <p>{error || 'Product not found'}</p>
-          <button className="btn-back" onClick={() => navigate('/home')}>
-            Back to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const images = selectedVariant?.images || (product.images || []);
-  const currentImage = images[currentImageIndex] || defaultProductImage;
-
-  const price = selectedVariant?.price || product.price || 0;
-  const stock = selectedVariant?.stock || product.stock || 0;
-  const amount = price * stock;
-
-  return (
-    <div className="product-detail-page">
-      <button className="btn-back" onClick={() => navigate(-1)}>
-        ← Back
-      </button>
-
-      <div className="product-detail-container">
-        <div className="product-image-section">
-          <div className="main-image">
-            <img
-              src={currentImage}
-              alt={product.name}
-              onError={(e) => { e.target.src = defaultProductImage; }}
-            />
-            {images.length > 1 && (
-              <>
-                <button className="image-nav-btn prev" onClick={handlePreviousImage}>‹</button>
-                <button className="image-nav-btn next" onClick={handleNextImage}>›</button>
-              </>
-            )}
-          </div>
-          {images.length > 1 && (
-            <div className="thumbnail-gallery">
-              {images.map((img, idx) => (
-                <div
-                  key={idx}
-                  className={`thumbnail ${idx === currentImageIndex ? 'active' : ''}`}
-                  onClick={() => setCurrentImageIndex(idx)}
-                >
-                  <img src={img} alt={`${product.name} ${idx + 1}`} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="product-info-section">
-          <h1 className="product-title">{product.name}</h1>
-          {product.description && (
-            <div className="product-description">
-              <h3>Description</h3>
-              <p>{product.description}</p>
-            </div>
-          )}
-
-          {product.brand && (
-            <div className="product-brand">
-              <span className="label">Brand: </span>
-              <span className="value">{product.brand.name}</span>
-            </div>
-          )}
-
-          {product.categories && product.categories.length > 0 && (
-            <div className="product-categories">
-              <span className="label">Categories:</span>
-              <div className="category-tags">
-                {product.categories.map((cat) => (
-                  <span key={cat.id} className="category-tag">
-                    {cat.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="product-price-section">
-            <p className="product-detail-price">${Number(price).toLocaleString('en-US')}</p>
-          </div>
-
-          <div className="product-stock-section">
-            <span className="stock-label">Stock:</span>
-            <span className={`stock-value ${stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
-              {stock > 0 ? `${stock} available` : 'Out of stock'}
-            </span>
-          </div>
-
-          {Object.keys(groupedOptions).length > 0 && (
-            <div className="product-options-section">
-              {Object.entries(groupedOptions).map(([optionName, options]) => (
-                <div key={optionName} className="option-group">
-                  <h4 className="option-label">{optionName}</h4>
-                  <div className="option-values">
-                    {options.map(option => {
-                      return (
-                        <button
-                          key={option.id}
-                          className={`option-value-btn ${selectedOptions[optionName] == option.id ? 'selected' : ''}`}
-                          onClick={() => handleOptionChange(optionName, option.id)}
-                        >
-                          {option.value}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="product-amount-section">
-            <span className="amount-label">Total Amount (Price × Stock):</span>
-            <span className="amount-value">${Number(amount).toLocaleString('en-US')}</span>
-          </div>
-
-          <div className="product-actions">
-            <button
-              className="btn-add-to-cart"
-              onClick={handleAddToCart}
-              disabled={stock === 0}
-            >
-              {stock === 0 ? (
-                'Out of Stock'
-              ) : (
-                <>
-                  <i className="fas fa-cart-plus"></i>
-                  Add to Cart
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {showVariantPopup && product && (
-        <ProductVariantPopup
-          product={product}
-          onClose={handleCloseVariantPopup}
-        />
-      )}
-    </div>
-  );
+    </section>
+    <section className="product-detail-lower"><article><h2>Product information</h2><p>{product.description || 'No detailed description available.'}</p>{product.categories?.length > 0 && <div className="product-detail-tags">{product.categories.map(c => <span key={c.id}>{c.name}</span>)}</div>}</article>
+      <aside><h2>Store information</h2><div className="product-detail-vendor"><img src={product.vendor?.logo || defaultProductImage} alt={product.vendor?.name || 'Vendor'} onError={e => { e.currentTarget.src = defaultProductImage; }} /><div><strong>{product.vendor?.name || 'Seller'}</strong><small>{product.vendor?.email || 'Email unavailable'}</small></div></div><p>{product.vendor?.description || 'A trusted seller on Marketplace.'}</p></aside></section>
+    {showPopup && <ProductVariantPopup product={product} onClose={() => setShowPopup(false)} />}
+  </main>;
 }
+

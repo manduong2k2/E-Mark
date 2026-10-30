@@ -2,7 +2,9 @@ package com.Marketplace_Management.Catalog.Services;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,7 @@ import com.Marketplace_Management.Catalog.DTOs.Response.ProductShortResponse;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductVariantResponse;
 import com.Marketplace_Management.Catalog.Events.ProductArchivedEvent;
 import com.Marketplace_Management.Catalog.Events.ProductDeletedEvent;
+import com.Marketplace_Management.Catalog.Models.File;
 import com.Marketplace_Management.Catalog.Models.Product;
 import com.Marketplace_Management.Catalog.Models.ProductOption;
 import com.Marketplace_Management.Catalog.Models.ProductVariant;
@@ -31,7 +34,6 @@ import com.Marketplace_Management.Shared.Contracts.IFileService;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
 import com.Marketplace_Management.Shared.Events.EventOptions;
-import com.Marketplace_Management.Catalog.Models.File;
 import com.Marketplace_Management.Shared.Security.SecurityUtils;
 import com.Marketplace_Management.Vendor.Contracts.IVendorService;
 import com.Marketplace_Management.Vendor.DTOs.Response.VendorResponse;
@@ -57,11 +59,13 @@ public class ProductService implements IProductService {
     }
 
     //@Cacheable(value = "products", key = "#command.page + '_' + #command.size + '_' + #command.search + '_' + #command.categoryIds + '_' + #command.brandId")
+    @Override
     public PaginatedResponse<ProductShortResponse> getAll(GetListProductCommand command) {
 
         return productRepository.findAll(command).map(product -> product.withUrl(baseUrl));
     }
 
+    @Override
     @Cacheable(value = "product", key = "#productId")
     public ProductResponse getById(UUID productId) {
         Product product = productRepository.findById(productId);
@@ -70,9 +74,14 @@ public class ProductService implements IProductService {
             throw new ResourceNotFoundException("Product not found");
         }
 
-        return new ProductResponse(product).withUrl(baseUrl);
+        ProductResponse response = new ProductResponse(product).withUrl(baseUrl);
+        VendorResponse vendor = vendorService.getById(product.getVendorId());
+        response.setVendor(vendor);
+
+        return response;
     }
 
+    @Override
     @Transactional
     public ProductResponse createProduct(CreateProductCommand command) throws IOException {
         List<ProductOption> productOptions = command.getOptions().stream().map(option ->
@@ -132,6 +141,7 @@ public class ProductService implements IProductService {
         return new ProductResponse(savedProduct).withUrl(baseUrl).withVendor(vendor);
     }
 
+    @Override
     @Transactional
     @CacheEvict(value = "product", key = "#productId")
     public ProductResponse updateProduct(UUID productId, UpdateProductCommand command) throws IOException {
@@ -140,15 +150,44 @@ public class ProductService implements IProductService {
             throw new ResourceNotFoundException("Product not found");
         }
 
-        if(command.getName() != null) product.setName(command.getName());
-        if(command.getDescription() != null) product.setDescription(command.getDescription());
-        if(command.getStatus() != null) product.setStatus(command.getStatus());
-        if(command.getBrandId() != null) product.setBrandId(command.getBrandId());
-        if(command.getCategoryIds() != null) product.setCategoryIds(command.getCategoryIds());
+        // Map.of rejects null values. Optional update fields such as description,
+        // categoryIds and options are allowed to be null by the request DTO.
+        Map<String, Object> updates = new LinkedHashMap<>();
+        updates.put("id", productId);
+        updates.put("name", command.getName());
+        updates.put("description", command.getDescription());
+        updates.put("status", command.getStatus());
+        updates.put("categoryIds", command.getCategoryIds());
+        updates.put("brandId", command.getBrandId());
+        updates.put("variants", command.getVariants() != null ? command.getVariants().stream().map(vc -> 
+            ProductVariant.builder()
+                    .id(vc.getId())
+                    .name(vc.getName())
+                    .sku(vc.getSku())
+                    .price(vc.getPrice())
+                    .stock(vc.getStock())
+                    .images(vc.getImages() != null ? vc.getImages().stream().map(img -> {
+                        try {
+                            String imageUrl = fileService.uploadFile(img, "catalog/product_variants");
+                            File file = new File(null, imageUrl);
+                            return file;
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to upload file", e);
+                        }
+                    }).toList() : null)
+                    .options((product.getOptions() != null && vc.getOptionIds() != null)
+                            ? product.getOptions().stream()
+                                .filter(po -> vc.getOptionIds().contains(po.getId()))
+                                .collect(java.util.stream.Collectors.toSet())
+                            : new java.util.HashSet<>())
+                    .build()
+        ).collect(java.util.stream.Collectors.toSet()) : null);
+        //updates.put("options", command.getOptions());
+        product.update(updates);
 
         Product savedProduct = productRepository.update(product);
 
-        if (product.isArchived()) {
+        if ("ARCHIVED".equals(product.getStatus())) {
             eventPublisher.publish(
                     new ProductArchivedEvent(product.getId()),
                     new EventOptions(ProductQueueConfig.PRODUCT_ARCHIVED_QUEUE, false));
@@ -157,6 +196,7 @@ public class ProductService implements IProductService {
         return new ProductResponse(savedProduct).withUrl(baseUrl);
     }
 
+    @Override
     @Transactional
     @CacheEvict(value = "product", key = "#productId")
     public void deleteProduct(UUID productId) {
@@ -165,10 +205,12 @@ public class ProductService implements IProductService {
         eventPublisher.publish(event, new EventOptions(ProductQueueConfig.PRODUCT_DELETED_QUEUE, false));
     }
 
+    @Override
     public List<String> getAllStatus() {
         return Arrays.stream(ProductStatusEnum.values()).map(ProductStatusEnum::name).collect(Collectors.toList());
     }
 
+    @Override
     public ProductVariantResponse getProductVariant(UUID productVariantId) {
         ProductVariant productVariant = productRepository.findVariantById(productVariantId);
         return productVariant != null ? new ProductVariantResponse(productVariant).withUrl(baseUrl) : null;
