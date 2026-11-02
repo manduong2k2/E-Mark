@@ -56,7 +56,7 @@ public class ProductResponse {
                 .optionList(variant.getOptionList())
                 .images(variant.getImages() != null
                         ? variant.getImages().stream()
-                                .map(image -> image.getUrl())
+                                .map(image -> Variant.Image.builder().id(image.getId()).url(image.getUrl()).build())
                                 .collect(java.util.stream.Collectors.toSet())
                         : null)
                 .options(variant.getOptions() != null
@@ -94,12 +94,19 @@ public class ProductResponse {
         private int stock;
         private double price;
         private String optionList;
-        private Set<String> images;
+        private Set<Image> images;
         private Set<ProductOptionResponse> options;
+
+        @Data
+        @Builder
+        private static class Image {
+            private UUID id;
+            private String url;
+        }
 
         public Variant withUrl(String url) {
             if (this.images != null) {
-                this.images = this.images.stream().map(image -> UrlHelper.toPublicUrl(url, image)).collect(java.util.stream.Collectors.toSet());
+                this.images.forEach(image -> image.setUrl(UrlHelper.toPublicUrl(url, image.getUrl())));
             }
             return this;
         }

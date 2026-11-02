@@ -134,6 +134,20 @@ public class ProductRepository implements IProductRepository {
     public Product update(Product Product) {
         ProductEntity productEntity = productMapper.toEntity(Product);
         ProductEntity updated = jpaRepository.save(productEntity);
+        if (updated != null && updated.getVariants() != null && !updated.getVariants().isEmpty()) {
+            updated.getVariants().forEach(
+                    variant -> {
+                        if (variant != null && variant.getImages() != null && !variant.getImages().isEmpty()) {
+                            variant.getImages().forEach(image -> image.setEntity(variant));
+                        }
+
+                        if (variant != null && variant.getOptions() != null && !variant.getOptions().isEmpty()) {
+                            variant.setOptionList(variant.getOptions().stream()
+                                    .map(option -> String.valueOf(option.getId())).collect(Collectors.joining(", ")));
+                        }
+                    });
+            updated = jpaRepository.save(updated);
+        }
         return productMapper.toDomain(updated);
     }
 

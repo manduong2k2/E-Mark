@@ -34,7 +34,7 @@ public class UpdateProductCommand extends BaseCommand {
         private double price;
         private int stock;
 
-        private List<MultipartFile> images;
+        private List<UpdateFileCommand> images;
         private List<Long> optionIds;
     }
 
@@ -47,5 +47,14 @@ public class UpdateProductCommand extends BaseCommand {
         private Long tempId;
         private String name;
         private String value;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Builder
+    @EqualsAndHashCode(callSuper = false)
+    public static class UpdateFileCommand extends BaseCommand {
+        private UUID id;
+        private MultipartFile file;
     }
 }

@@ -80,7 +80,7 @@ public class ChatService implements IChatService {
                 return null;
             }
 
-            return answerNode.asText();
+            return answerNode.asString();
 
         } catch (Exception e) {
             throw new IllegalStateException(

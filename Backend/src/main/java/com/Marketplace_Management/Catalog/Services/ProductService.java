@@ -1,11 +1,16 @@
 package com.Marketplace_Management.Catalog.Services;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -51,14 +56,15 @@ public class ProductService implements IProductService {
     private String baseUrl;
 
     public ProductService(IProductRepository productRepository, IEventPublisher eventPublisher,
-                          IFileService fileService, IVendorService vendorService) {
+            IFileService fileService, IVendorService vendorService) {
         this.productRepository = productRepository;
         this.eventPublisher = eventPublisher;
         this.fileService = fileService;
         this.vendorService = vendorService;
     }
 
-    //@Cacheable(value = "products", key = "#command.page + '_' + #command.size + '_' + #command.search + '_' + #command.categoryIds + '_' + #command.brandId")
+    // @Cacheable(value = "products", key = "#command.page + '_' + #command.size +
+    // '_' + #command.search + '_' + #command.categoryIds + '_' + #command.brandId")
     @Override
     public PaginatedResponse<ProductShortResponse> getAll(GetListProductCommand command) {
 
@@ -84,16 +90,16 @@ public class ProductService implements IProductService {
     @Override
     @Transactional
     public ProductResponse createProduct(CreateProductCommand command) throws IOException {
-        List<ProductOption> productOptions = command.getOptions().stream().map(option ->
-            ProductOption.builder()
-                    .id(option.getTempId())
-                    .name(option.getName())
-                    .value(option.getValue())
-                    .build()
-        ).collect(java.util.stream.Collectors.toList());
+        List<ProductOption> productOptions = command.getOptions().stream().map(option -> ProductOption.builder()
+                .id(option.getTempId())
+                .name(option.getName())
+                .value(option.getValue())
+                .build()).collect(java.util.stream.Collectors.toList());
 
-        // Admins may create a product for any vendor; a vendor always creates for its own store.
-        // No vendor given: the product belongs to the current user's vendor (getById throws 404 for an unknown id)
+        // Admins may create a product for any vendor; a vendor always creates for its
+        // own store.
+        // No vendor given: the product belongs to the current user's vendor (getById
+        // throws 404 for an unknown id)
         VendorResponse vendor = command.getVendorId() != null && SecurityUtils.isAdmin()
                 ? vendorService.getById(command.getVendorId())
                 : vendorService.getByUser(SecurityUtils.currentUserId());
@@ -111,24 +117,23 @@ public class ProductService implements IProductService {
                 .options(new java.util.HashSet<>(productOptions))
                 .status(command.getStatus() != null ? command.getStatus() : ProductStatusEnum.PUBLISHED.name())
                 .vendorId(command.getVendorId())
-                .variants(command.getVariants().stream().map(variant ->
-                    ProductVariant.builder()
-                            .name(variant.getName())
-                            .sku(variant.getSku())
-                            .price(variant.getPrice())
-                            .stock(variant.getStock())
-                            .images(variant.getImages() != null ? variant.getImages().stream().map(img -> {
-                                try {
-                                    String imageUrl = fileService.uploadFile(img, "catalog/product_variants");
-                                    File file = new File(null, imageUrl);
-                                    return file;
-                                } catch (IOException e) {
-                                    throw new RuntimeException("Failed to upload file", e);
-                                }
-                            }).toList() : null)
-                            .options(productOptions.stream().filter(po -> variant.getOptionIds().contains(po.getId())).collect(java.util.stream.Collectors.toSet()))
-                            .build()
-                ).collect(java.util.stream.Collectors.toSet()))
+                .variants(command.getVariants().stream().map(variant -> ProductVariant.builder()
+                        .name(variant.getName())
+                        .sku(variant.getSku())
+                        .price(variant.getPrice())
+                        .stock(variant.getStock())
+                        .images(variant.getImages() != null ? variant.getImages().stream().map(img -> {
+                            try {
+                                String imageUrl = fileService.uploadFile(img, "catalog/product_variants");
+                                File file = new File(null, imageUrl);
+                                return file;
+                            } catch (IOException e) {
+                                throw new RuntimeException("Failed to upload file", e);
+                            }
+                        }).toList() : null)
+                        .options(productOptions.stream().filter(po -> variant.getOptionIds().contains(po.getId()))
+                                .collect(java.util.stream.Collectors.toSet()))
+                        .build()).collect(java.util.stream.Collectors.toSet()))
                 .build();
 
         productOptions.forEach(option -> {
@@ -159,30 +164,72 @@ public class ProductService implements IProductService {
         updates.put("status", command.getStatus());
         updates.put("categoryIds", command.getCategoryIds());
         updates.put("brandId", command.getBrandId());
-        updates.put("variants", command.getVariants() != null ? command.getVariants().stream().map(vc -> 
-            ProductVariant.builder()
-                    .id(vc.getId())
-                    .name(vc.getName())
-                    .sku(vc.getSku())
-                    .price(vc.getPrice())
-                    .stock(vc.getStock())
-                    .images(vc.getImages() != null ? vc.getImages().stream().map(img -> {
-                        try {
-                            String imageUrl = fileService.uploadFile(img, "catalog/product_variants");
-                            File file = new File(null, imageUrl);
-                            return file;
-                        } catch (IOException e) {
-                            throw new RuntimeException("Failed to upload file", e);
+        updates.put("variants", command.getVariants() != null
+                ? command.getVariants().stream().map(vc -> {
+
+                    var variant = product.getVariants().stream()
+                            .filter(v -> Objects.equals(v.getId(), vc.getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (vc.getId() != null && variant == null) {
+                        throw new IllegalArgumentException("Variant not found");
+                    }
+
+                    List<File> images = new ArrayList<>(
+                            variant != null && variant.getImages() != null
+                                    ? variant.getImages()
+                                    : List.of());
+
+                    if (vc.getImages() != null) {
+                        Set<UUID> retainedIds = vc.getImages().stream()
+                                .map(img -> img.getId())
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet());
+
+                        // Remove images omitted from request
+                        images.removeIf(img -> !retainedIds.contains(img.getId()));
+
+                        for (var img : vc.getImages()) {
+                            if (img.getId() == null) {
+                                try {
+                                    String url = fileService.uploadFile(
+                                            img.getFile(),
+                                            "catalog/product_variants");
+
+                                    images.add(new File(null, url));
+                                } catch (IOException e) {
+                                    throw new UncheckedIOException(e);
+                                }
+                            } else {
+                                boolean exists = images.stream()
+                                        .anyMatch(existing -> Objects.equals(existing.getId(), img.getId()));
+
+                                if (!exists) {
+                                    throw new IllegalArgumentException(
+                                            "Image not found in variant: " + img.getId());
+                                }
+                            }
                         }
-                    }).toList() : null)
-                    .options((product.getOptions() != null && vc.getOptionIds() != null)
-                            ? product.getOptions().stream()
-                                .filter(po -> vc.getOptionIds().contains(po.getId()))
-                                .collect(java.util.stream.Collectors.toSet())
-                            : new java.util.HashSet<>())
-                    .build()
-        ).collect(java.util.stream.Collectors.toSet()) : null);
-        //updates.put("options", command.getOptions());
+                    }
+
+                    return ProductVariant.builder()
+                            .id(vc.getId())
+                            .name(vc.getName())
+                            .sku(vc.getSku())
+                            .price(vc.getPrice())
+                            .stock(vc.getStock())
+                            .images(images)
+                            .options(product.getOptions() != null && vc.getOptionIds() != null
+                                    ? product.getOptions().stream()
+                                            .filter(po -> vc.getOptionIds().contains(po.getId()))
+                                            .collect(Collectors.toSet())
+                                    : new HashSet<>())
+                            .build();
+
+                }).collect(Collectors.toSet())
+                : null);
+        // updates.put("options", command.getOptions());
         product.update(updates);
 
         Product savedProduct = productRepository.update(product);

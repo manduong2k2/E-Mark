@@ -72,9 +72,10 @@ export default function ProductForm({
           sku: v.sku || '',
           optionIds: variantOptionIds,
           images: Array.isArray(v.images)
-            ? v.images.map((url) => ({
+          ? v.images.map((image) => ({
               type: 'existing',
-              url: typeof url === 'string' ? url : url.url
+              id: typeof image === 'string' ? null : image.id,
+              url: typeof image === 'string' ? image : image.url
             }))
             : [],
         };

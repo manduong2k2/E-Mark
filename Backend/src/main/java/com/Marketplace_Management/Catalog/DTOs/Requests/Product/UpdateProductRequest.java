@@ -72,7 +72,16 @@ public class UpdateProductRequest {
         @Min(value = 0, message = "Stock must be positive")
         private int stock;
 
-        private List<MultipartFile> images;
+        private List<@Valid UpdateFileRequest> images;
+    }
+
+    @Data
+    public static class UpdateFileRequest {
+        @Nullable
+        private UUID id;
+
+        @Nullable
+        private MultipartFile file;
     }
 
     @Data
@@ -103,16 +112,21 @@ public class UpdateProductRequest {
                         .sku(v.getSku())
                         .price(v.getPrice())
                         .stock(v.getStock())
-                        .images(v.getImages())
+                        .images(v.getImages() != null ? v.getImages().stream().map(img -> 
+                            UpdateProductCommand.UpdateFileCommand.builder()
+                                .id(img.getId())
+                                .file(img.getFile())
+                                .build()
+                        ).toList() : List.of())
                         .build()
-                ).toList() : null)
+                ).toList() : List.of())
                 .options(options != null ? options.stream().map(o -> 
                     UpdateProductCommand.UpdateProductOptionCommand.builder()
                         .tempId(o.getTempId())
                         .name(o.getName())
                         .value(o.getValue())
                         .build()
-                ).toList() : null)
+                ).toList() : List.of())
                 .build();
     }
 }

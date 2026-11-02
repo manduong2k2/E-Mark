@@ -23,15 +23,18 @@ export function buildProductFormData(formData, { keepExistingImages = false } = 
       fd.append(`variants[${idx}].optionIds[${optionIdx}]`, optionId);
     });
 
-    // Edit: images already stored are sent back by URL so they are kept
     if (keepExistingImages) {
       variant.images?.forEach((img, imgIdx) => {
-        if (img.type === 'existing' && img.url) fd.append(`variants[${idx}].imageUrls[${imgIdx}]`, img.url);
+        fd.append(`variants[${idx}].images[${imgIdx}].id`, img.type === 'existing' ? (img.id ?? '') : '');
+        if (img.type === 'new' && img.file) {
+          fd.append(`variants[${idx}].images[${imgIdx}].file`, img.file);
+        }
+      });
+    } else {
+      variant.images?.forEach(img => {
+        if (img.type === 'new' && img.file) fd.append(`variants[${idx}].images`, img.file);
       });
     }
-    variant.images?.forEach(img => {
-      if (img.type === 'new' && img.file) fd.append(`variants[${idx}].images`, img.file);
-    });
   });
 
   return fd;
