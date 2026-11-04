@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import SearchableSelect from '../../master/input/select/SearchableSelect';
 import { vendorService } from '../../../services/vendorService';
 
@@ -11,6 +12,30 @@ export default function SearchableVendorSelect({
   error,
   disabled = false,
 }) {
+  const [selectedVendor, setSelectedVendor] = useState(null);
+
+  // The vendor list is loaded lazily by SearchableSelect. Load the current
+  // vendor separately so an existing product can display its selected label
+  // before the dropdown is opened.
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!value) {
+      setSelectedVendor(null);
+      return undefined;
+    }
+
+    vendorService.getById(value)
+      .then((res) => {
+        if (!cancelled) setSelectedVendor(res.data?.data || res.data || null);
+      })
+      .catch(() => {
+        if (!cancelled) setSelectedVendor(null);
+      });
+
+    return () => { cancelled = true; };
+  }, [value]);
+
   const handleSearch = async (searchTerm) => {
     try {
       const res = await vendorService.getAll(
@@ -47,6 +72,7 @@ export default function SearchableVendorSelect({
   return (
     <SearchableSelect
       value={value}
+      initialSelectedItem={selectedVendor}
       onChange={handleChange}
       onSearch={handleSearch}
       itemValueKey="id"

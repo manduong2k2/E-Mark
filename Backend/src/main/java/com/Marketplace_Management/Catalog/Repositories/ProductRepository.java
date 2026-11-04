@@ -73,7 +73,7 @@ public class ProductRepository implements IProductRepository {
                             });
                 })
                 .when(command.getBrandId() != null, query -> {
-                    query.where("brand.id", "=",command.getBrandId());
+                    query.where("brand.id", "=", command.getBrandId());
                 })
                 .when(command.getCategoryIds() != null && !command.getCategoryIds().isEmpty(), query -> {
                     query.where("categories.id", "in", command.getCategoryIds());
@@ -83,8 +83,8 @@ public class ProductRepository implements IProductRepository {
                 })
                 .when(command.getSearch() != null, query -> {
                     query.where("name", "like", "%" + command.getSearch() + "%")
-                        .orWhere("variants.name", "like", "%" + command.getSearch() + "%")
-                        .orWhere("brand.name", "like", "%" + command.getSearch() + "%");
+                            .orWhere("variants.name", "like", "%" + command.getSearch() + "%")
+                            .orWhere("brand.name", "like", "%" + command.getSearch() + "%");
                 })
                 .when(command.getSortBy() != null && command.getSortOrder() != null, query -> {
                     query.orderBy(command.getSortBy(), command.getSortOrder());

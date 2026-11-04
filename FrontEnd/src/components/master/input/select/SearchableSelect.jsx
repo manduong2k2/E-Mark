@@ -30,6 +30,7 @@ export default function SearchableSelect({
   disabled = false,
   debounceMs = 800,
   clearable = true,
+  initialSelectedItem = null,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +40,18 @@ export default function SearchableSelect({
   const debounceTimerRef = useRef(null);
   const containerRef = useRef(null);
   const hasInitialLoadRef = useRef(false); // Track initial load
+
+  // Keep the currently selected item available even when options are loaded
+  // lazily through onSearch.
+  useEffect(() => {
+    if (!initialSelectedItem) return;
+    setDisplayItems((current) => {
+      const exists = current.some(
+        (item) => item[itemValueKey] === initialSelectedItem[itemValueKey]
+      );
+      return exists ? current : [initialSelectedItem, ...current];
+    });
+  }, [initialSelectedItem, itemValueKey]);
 
   // Load initial items once when dropdown opens (if using onSearch)
   useEffect(() => {

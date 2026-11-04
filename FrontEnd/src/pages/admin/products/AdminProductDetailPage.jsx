@@ -175,7 +175,7 @@ export default function AdminProductDetailPage() {
   const images = product.images && product.images.length > 0
     ? product.images
     : [...new Set(variants.flatMap(v => v.images || []))];
-  const heroImage = images[activeImage] || images[0] || defaultProductImage;
+  const heroImage = images[activeImage]?.url || images[0]?.url || defaultProductImage;
 
   const totalStock = variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
   const prices = variants.map(v => Number(v.price)).filter(p => !Number.isNaN(p));

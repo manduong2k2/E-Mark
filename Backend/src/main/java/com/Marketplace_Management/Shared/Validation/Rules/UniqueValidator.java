@@ -66,8 +66,6 @@ public class UniqueValidator implements ConstraintValidator<Unique, Object> {
                 if (ignore != null && !ignore.isBlank()) {
                     Field ignoredField = findField(bean.getClass(), ignore);
 
-                    System.out.println("Ignored field: " + ignoredField);
-
                     if (ignoredField != null) {
                         ignoredField.setAccessible(true);
                         ignoredId = ignoredField.get(bean);

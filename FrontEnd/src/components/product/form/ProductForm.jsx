@@ -88,6 +88,7 @@ export default function ProductForm({
         categoryIds: product.categoryIds || product.categories?.map((c) => c.id) || [],
         status: product.status || defaultStatus,
         options: mappedOptions,
+        vendorId: product.vendorId || product.vendor?.id || '',
         variants: mappedVariants.length > 0 ? mappedVariants : [
           {
             tempId: Date.now(),

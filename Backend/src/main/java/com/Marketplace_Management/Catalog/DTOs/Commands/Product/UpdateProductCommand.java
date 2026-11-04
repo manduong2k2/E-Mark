@@ -39,6 +39,14 @@ public class UpdateProductCommand extends BaseCommand {
     }
 
     @Data
+    @Builder
+    @EqualsAndHashCode(callSuper = true)
+    public static class UploadFilesCommand extends BaseCommand {
+        private UUID id;
+        private MultipartFile file;
+    }
+
+    @Data
     @AllArgsConstructor
     @Builder
     @EqualsAndHashCode(callSuper = false)

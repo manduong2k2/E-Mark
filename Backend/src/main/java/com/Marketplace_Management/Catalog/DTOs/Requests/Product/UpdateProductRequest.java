@@ -98,6 +98,15 @@ public class UpdateProductRequest {
         private String value;
     }
 
+    @Data 
+    public static class UploadFilesRequest {
+        @Nullable 
+        private UUID id;
+
+        @NotNull(message = "Files are required")
+        private MultipartFile files;
+    }
+
     public UpdateProductCommand validated() {
         return UpdateProductCommand.builder()
                 .name(name)
