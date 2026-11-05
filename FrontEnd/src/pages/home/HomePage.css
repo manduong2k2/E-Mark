@@ -86,7 +86,6 @@
 }
 
 .homepage .sort-bar,
-.homepage .option-value,
 .homepage .img-container,
 .homepage .pagination-number:hover {
   background: var(--master-surface-alt);
@@ -95,9 +94,7 @@
 .homepage .sort-bar,
 .homepage .sort-btn,
 .homepage .pagination-btn,
-.homepage .pagination-number,
-.homepage .product-options,
-.homepage .option-value {
+.homepage .pagination-number {
   border-color: var(--master-border);
 }
 
@@ -111,11 +108,6 @@
 
 .homepage .product-card {
   border-color: var(--master-border);
-}
-
-.homepage .product-card .option-value,
-.homepage .product-card .color-text {
-  color: var(--master-text-muted);
 }
 
 .homepage .sort-btn:hover,

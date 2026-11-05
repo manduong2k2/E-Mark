@@ -7,11 +7,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.Marketplace_Management.Catalog.Constants.ProductStatusEnum;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.UpdateProductCommand;
-import com.Marketplace_Management.Shared.Annotation.Rules.Uuid;
 import com.Marketplace_Management.Shared.Annotation.Rules.Distinct;
 import com.Marketplace_Management.Shared.Annotation.Rules.Exist;
 import com.Marketplace_Management.Shared.Annotation.Rules.In;
 import com.Marketplace_Management.Shared.Annotation.Rules.Unique;
+import com.Marketplace_Management.Shared.Annotation.Rules.Uuid;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
@@ -49,8 +49,6 @@ public class UpdateProductRequest {
 
     private List<@Valid UpdateProductVariantRequest> variants;
 
-    private List<@Valid UpdateProductOptionRequest> options;
-
     @Data
     @Unique(table = "product_variants", column = "sku", message = "Product SKU already exists", ignore = "id")
     public static class UpdateProductVariantRequest {
@@ -84,20 +82,6 @@ public class UpdateProductRequest {
         private MultipartFile file;
     }
 
-    @Data
-    public static class UpdateProductOptionRequest {
-        @NotNull(message = "Temporary ID is required")
-        private Long tempId;
-
-        @NotBlank(message = "Option name is required")
-        @Size(min = 1, max = 100, message = "Option name must be between 1 and 100 characters")
-        private String name;
-
-        @NotBlank(message = "Option value is required")
-        @Size(min = 1, max = 100, message = "Option value must be between 1 and 100 characters")
-        private String value;
-    }
-
     @Data 
     public static class UploadFilesRequest {
         @Nullable 
@@ -127,13 +111,6 @@ public class UpdateProductRequest {
                                 .file(img.getFile())
                                 .build()
                         ).toList() : List.of())
-                        .build()
-                ).toList() : List.of())
-                .options(options != null ? options.stream().map(o -> 
-                    UpdateProductCommand.UpdateProductOptionCommand.builder()
-                        .tempId(o.getTempId())
-                        .name(o.getName())
-                        .value(o.getValue())
                         .build()
                 ).toList() : List.of())
                 .build();

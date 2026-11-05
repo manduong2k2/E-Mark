@@ -320,8 +320,7 @@
             "vendorId": "String (UUID)",
             "categoryIds": "List<String> (UUIDs)",
             "status": "String",
-            "variants": "List<CreateProductVariantRequest>",
-            "options": "List<CreateProductOptionRequest>"
+            "variants": "List<CreateProductVariantRequest>"
           }
         },
         {
@@ -575,21 +574,14 @@
         "sku": "String",
         "price": "Double",
         "stock": "Integer",
-        "images": "List<MultipartFile>",
-        "optionIds": "List<Integer>"
-      },
-      "CreateProductOptionRequest": {
-        "tempId": "Integer",
-        "name": "String",
-        "value": "String"
+        "images": "List<MultipartFile>"
       },
       "UpdateProductVariantRequest": {
         "name": "String",
         "sku": "String",
         "price": "Double",
         "stock": "Integer",
-        "images": "List<MultipartFile>",
-        "optionIds": "List<Integer>"
+        "images": "List<MultipartFile>"
       }
     }
   }

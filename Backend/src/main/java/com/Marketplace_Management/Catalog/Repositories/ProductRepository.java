@@ -60,14 +60,8 @@ public class ProductRepository implements IProductRepository {
                 .with("categories", categories -> {
                     categories.select("id", "name");
                 })
-                .with("options", options -> {
-                    options.select("id", "name", "value");
-                })
                 .with("variants", variant -> {
                     variant
-                            .with("options", option -> {
-                                option.select("id", "name", "value");
-                            })
                             .with("images", image -> {
                                 image.select("id", "url");
                             });
@@ -115,11 +109,6 @@ public class ProductRepository implements IProductRepository {
                         if (variant != null && variant.getImages() != null && !variant.getImages().isEmpty()) {
                             variant.getImages().forEach(image -> image.setEntity(variant));
                         }
-
-                        if (variant != null && variant.getOptions() != null && !variant.getOptions().isEmpty()) {
-                            variant.setOptionList(variant.getOptions().stream()
-                                    .map(option -> String.valueOf(option.getId())).collect(Collectors.joining(", ")));
-                        }
                     });
             saved = jpaRepository.save(saved);
         }
@@ -139,11 +128,6 @@ public class ProductRepository implements IProductRepository {
                     variant -> {
                         if (variant != null && variant.getImages() != null && !variant.getImages().isEmpty()) {
                             variant.getImages().forEach(image -> image.setEntity(variant));
-                        }
-
-                        if (variant != null && variant.getOptions() != null && !variant.getOptions().isEmpty()) {
-                            variant.setOptionList(variant.getOptions().stream()
-                                    .map(option -> String.valueOf(option.getId())).collect(Collectors.joining(", ")));
                         }
                     });
             updated = jpaRepository.save(updated);

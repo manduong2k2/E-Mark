@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.Marketplace_Management.Shared.DTOs.Commands.BaseCommand;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Builder;
@@ -22,7 +21,6 @@ public class CreateProductCommand extends BaseCommand {
     private List<UUID> categoryIds;
     private String status;
     private List<CreateProductVariantCommand> variants;
-    private List<CreateProductOptionCommand> options;
     private UUID vendorId;
 
     @Data
@@ -35,16 +33,5 @@ public class CreateProductCommand extends BaseCommand {
         private int stock;
 
         private List<MultipartFile> images;
-        private List<Long> optionIds;
-    }
-
-    @Data
-    @AllArgsConstructor
-    @Builder
-    @EqualsAndHashCode(callSuper = false)
-    public static class CreateProductOptionCommand extends BaseCommand {
-        private Long tempId;
-        private String name;
-        private String value;
     }
 }

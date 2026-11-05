@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.Marketplace_Management.Cart.Models.Cart.CartItem;
-import com.Marketplace_Management.Catalog.DTOs.Response.ProductOptionResponse;
 
 import lombok.Data;
 
@@ -19,7 +18,6 @@ public class CartItemResponse {
     private String productName;
     private double productPrice;
     private List<String> productImages;
-    private List<ProductOptionResponse> productOptions;
 
     public static CartItemResponse from(CartItem item) {
         CartItemResponse response = new CartItemResponse();
@@ -32,7 +30,6 @@ public class CartItemResponse {
         response.setProductSku(item.getProductSku());
         response.setProductDescription(item.getProductDescription());
         response.setSubTotal(item.getQuantity()*item.getProductPrice());
-        response.setProductOptions(item.getProductOptions());
         return response;
     }
 }

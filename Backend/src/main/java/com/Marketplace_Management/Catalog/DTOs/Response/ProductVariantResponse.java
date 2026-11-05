@@ -14,7 +14,7 @@ import com.Marketplace_Management.Shared.Utils.Helpers.UrlHelper;
 @Data
 @NoArgsConstructor // For Jackson deserialization
 @AllArgsConstructor
-@JsonPropertyOrder({"id", "name", "sku", "stock", "price", "images", "options"})
+@JsonPropertyOrder({"id", "name", "sku", "stock", "price", "images"})
 public class ProductVariantResponse {
     private UUID id;
     private String name;
@@ -22,9 +22,7 @@ public class ProductVariantResponse {
     private int stock;
     private double price;
     private List<String> images;
-    private String optionList;
     private ProductResponse product;
-    private List<ProductOptionResponse> options;
 
     public ProductVariantResponse(ProductVariant variant) {
         if (variant == null) {
@@ -36,9 +34,7 @@ public class ProductVariantResponse {
         this.stock = variant.getStock();
         this.price = variant.getPrice() != null ? variant.getPrice().getValue() : 0.0;
         this.images = variant.getImages() != null ? variant.getImages().stream().map(image -> image.getUrl()).toList() : null;
-        this.optionList = variant.getOptionList();
         this.product = variant.getProduct() != null ? new ProductResponse(variant.getProduct()) : null;
-        this.options = variant.getOptions() != null ? variant.getOptions().stream().map(option -> new ProductOptionResponse(option)).toList() : null;
     }
 
     public ProductVariantResponse withUrl(String url) {

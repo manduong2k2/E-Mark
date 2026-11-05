@@ -21,7 +21,6 @@ public class UpdateProductCommand extends BaseCommand {
     private String description;
     private List<UUID> categoryIds;
     private List<UpdateProductVariantCommand> variants;
-    private List<UpdateProductOptionCommand> options;
     private String status;
 
     @Data
@@ -35,7 +34,6 @@ public class UpdateProductCommand extends BaseCommand {
         private int stock;
 
         private List<UpdateFileCommand> images;
-        private List<Long> optionIds;
     }
 
     @Data
@@ -44,17 +42,6 @@ public class UpdateProductCommand extends BaseCommand {
     public static class UploadFilesCommand extends BaseCommand {
         private UUID id;
         private MultipartFile file;
-    }
-
-    @Data
-    @AllArgsConstructor
-    @Builder
-    @EqualsAndHashCode(callSuper = false)
-    public static class UpdateProductOptionCommand extends BaseCommand {
-        private UUID id;
-        private Long tempId;
-        private String name;
-        private String value;
     }
 
     @Data

@@ -42,14 +42,6 @@ function StockPill({ stock }) {
   return <Pill tone="success">{value} in stock</Pill>;
 }
 
-// "Color" -> ["Red", "Blue"], keeping first-seen order
-const groupOptionsByName = (options = []) => options.reduce((groups, opt) => {
-  if (!opt?.name) return groups;
-  if (!groups[opt.name]) groups[opt.name] = [];
-  if (!groups[opt.name].includes(opt.value)) groups[opt.name].push(opt.value);
-  return groups;
-}, {});
-
 export default function AdminProductDetailPage() {
   useEffect(() => { document.title = 'Admin - Product Detail'; }, []);
 
@@ -167,7 +159,6 @@ export default function AdminProductDetailPage() {
   }
 
   const variants = product.variants || [];
-  const optionGroups = Object.entries(groupOptionsByName(product.options || []));
   const brandName = getBrandName(product);
   const categoryNames = getCategoryNames(product);
 
@@ -311,7 +302,6 @@ export default function AdminProductDetailPage() {
               <thead>
                 <tr>
                   <th>Variant</th>
-                  <th>Options</th>
                   <th>Price</th>
                   <th>Stock</th>
                   <th>Images</th>
@@ -325,19 +315,6 @@ export default function AdminProductDetailPage() {
                         <strong>{v.name || `Variant ${idx + 1}`}</strong>
                         <span className="admin-ui-mono">{v.sku || 'No SKU'}</span>
                       </div>
-                    </td>
-                    <td>
-                      {v.options && v.options.length > 0 ? (
-                        <div className="admin-ui-chips">
-                          {v.options.map((o, oIdx) => (
-                            <span key={o.id || oIdx} className="admin-ui-tag">{o.name}: {o.value}</span>
-                          ))}
-                        </div>
-                      ) : v.optionList ? (
-                        <span className="admin-ui-mono admin-product-detail-optionlist">{v.optionList}</span>
-                      ) : (
-                        <span className="admin-ui-muted">—</span>
-                      )}
                     </td>
                     <td className="admin-product-detail-money">{formatCurrency(v.price)}</td>
                     <td><StockPill stock={v.stock} /></td>
@@ -364,28 +341,6 @@ export default function AdminProductDetailPage() {
       </section>
 
       <div className="admin-product-detail-grid">
-        {/* Options */}
-        <section className="admin-ui-card admin-product-detail-section">
-          <header className="admin-product-detail-section-head">
-            <h3><i className="bi bi-sliders"></i> Options</h3>
-            <span className="admin-ui-tag">{optionGroups.length}</span>
-          </header>
-          {optionGroups.length > 0 ? (
-            <ul className="admin-product-detail-options">
-              {optionGroups.map(([name, values]) => (
-                <li key={name}>
-                  <span className="admin-product-detail-label">{name}</span>
-                  <div className="admin-ui-chips">
-                    {values.map(val => <span key={val} className="admin-ui-chip">{val}</span>)}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState icon="bi-sliders" title="No options configured" />
-          )}
-        </section>
-
         {/* Record details */}
         <section className="admin-ui-card admin-product-detail-section">
           <header className="admin-product-detail-section-head">

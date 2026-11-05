@@ -3,7 +3,6 @@ package com.Marketplace_Management.Cart.Models.Cart;
 import java.util.List;
 import java.util.UUID;
 
-import com.Marketplace_Management.Catalog.DTOs.Response.ProductOptionResponse;
 import com.Marketplace_Management.Shared.Models.Entity;
 
 import lombok.Data;
@@ -22,7 +21,6 @@ public class CartItem extends Entity<UUID> {
     private String productDescription;
     private String productName;
     private double productPrice;
-    private List<ProductOptionResponse> productOptions;
     private List<String> productImage;
 
 

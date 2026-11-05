@@ -260,50 +260,17 @@
   font-size: 0.85rem;
 }
 
-/* ── Options ────────────────────────────────────────────── */
+/* ── Variants ───────────────────────────────────────────── */
 
-.admin-product-form-scope .product-form .options-list,
 .admin-product-form-scope .product-form .variants-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.admin-product-form-scope .product-form .option-item {
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--adm-border);
-  border-radius: var(--adm-radius-sm);
-  background: var(--adm-surface-2);
-}
-
-.admin-product-form-scope .product-form .option-item:hover,
 .admin-product-form-scope .product-form .variant-item:hover {
   border-color: color-mix(in srgb, var(--adm-accent) 35%, var(--adm-border));
 }
-
-.admin-product-form-scope .product-form .option-tempid {
-  width: auto;
-  min-width: 32px;
-  height: 26px;
-  padding: 0 8px;
-  border-radius: 6px;
-  background: var(--adm-accent-soft);
-  color: var(--adm-accent);
-  font-family: var(--adm-font-mono);
-  font-size: 0.72rem;
-}
-
-.admin-product-form-scope .product-form .option-fields {
-  gap: 0.75rem;
-}
-
-.admin-product-form-scope .product-form .option-fields .form-label {
-  font-size: 0.76rem;
-}
-
-/* ── Variants ───────────────────────────────────────────── */
 
 .admin-product-form-scope .product-form .variant-item {
   padding: 1rem 1.1rem 1.1rem;
@@ -334,52 +301,12 @@
   text-transform: capitalize;
 }
 
-.admin-product-form-scope .product-form .variant-options,
 .admin-product-form-scope .product-form .variant-images {
   display: grid;
   gap: 0.5rem;
   margin-top: 0.9rem;
   padding-top: 0.9rem;
   border-top: 1px solid var(--adm-border);
-}
-
-.admin-product-form-scope .product-form .options-checkboxes {
-  gap: 0.45rem;
-}
-
-.admin-product-form-scope .product-form .option-checkbox {
-  gap: 0.4rem;
-  height: 32px;
-  padding: 0 0.8rem;
-  border: 1px dashed var(--adm-border);
-  border-radius: 999px;
-  background: var(--adm-surface);
-  color: var(--adm-muted);
-  font-size: 0.82rem;
-  font-weight: 650;
-}
-
-.admin-product-form-scope .product-form .option-checkbox:hover {
-  border-color: var(--adm-accent);
-  background: var(--adm-surface);
-  color: var(--adm-text);
-}
-
-.admin-product-form-scope .product-form .option-checkbox:has(input:checked) {
-  border-style: solid;
-  border-color: var(--adm-accent);
-  background: var(--adm-accent-soft);
-  color: var(--adm-accent);
-}
-
-.admin-product-form-scope .product-form .option-checkbox input {
-  width: 14px;
-  height: 14px;
-  accent-color: var(--adm-accent);
-}
-
-.admin-product-form-scope .product-form .option-checkbox input:checked ~ span {
-  color: var(--adm-accent);
 }
 
 /* Images */
@@ -552,7 +479,7 @@
   box-shadow: 0 6px 16px -6px var(--adm-accent);
 }
 
-/* Danger -> soft danger (remove option / variant) */
+/* Danger -> soft danger (remove variant) */
 .admin-product-form-scope .product-form .btn-danger {
   background: var(--adm-danger-soft);
   border-color: transparent;
@@ -582,10 +509,6 @@
 @media (max-width: 768px) {
   .admin-product-form-scope .product-form .form-section {
     padding: 1.1rem 1rem;
-  }
-
-  .admin-product-form-scope .product-form .option-fields {
-    grid-template-columns: 1fr;
   }
 
   .admin-product-form-scope .product-form .form-actions {

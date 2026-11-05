@@ -26,18 +26,6 @@ function ProductVariantPopup({ product, onClose }) {
   const [adding, setAdding] = useState(false);
   const [isWishlist, setIsWishlist] = useState(false);
   
-  // Group options by name
-  const groupedOptions = product.options ? product.options.reduce((acc, option) => {
-    if (!acc[option.name]) {
-      acc[option.name] = [];
-    }
-    acc[option.name].push(option);
-    return acc;
-  }, {}) : {};
-
-  // Initialize selected options
-  const [selectedOptions, setSelectedOptions] = useState({});
-
   // Get images with fallback handling
   const getValidImageUrl = (url) => {
     if (!url) return FALLBACK_IMAGES[0];
@@ -62,47 +50,10 @@ function ProductVariantPopup({ product, onClose }) {
   const price = selectedVariant?.price || 0;
   const stock = selectedVariant?.stock || 0;
 
-  // Find variant based on selected options
-  const findVariantByOptions = (options) => {
-    if (!product.variants || product.variants.length === 0) return null;
-    
-    if (Object.keys(options).length === 0) {
-      return product.variants[0];
-    }
-    
-    const optionIds = Object.values(options).map(id => parseInt(id)).sort((a, b) => a - b);
-    const optionListString = optionIds.join(', ');
-    
-    const matchingVariant = product.variants.find(variant => {
-      const variantOptionList = variant.optionList || '';
-      const variantOptionIds = variantOptionList
-        .split(/[, ]+/)
-        .map(id => parseInt(id.trim()))
-        .filter(id => !isNaN(id))
-        .sort((a, b) => a - b);
-      const variantOptionListString = variantOptionIds.join(', ');
-      return variantOptionListString === optionListString;
-    });
-    
-    return matchingVariant || product.variants[0];
-  };
-
-  const handleOptionChange = (optionName, optionId) => {
-    const newSelectedOptions = { ...selectedOptions };
-    const currentSelected = newSelectedOptions[optionName];
-    
-    if (currentSelected == optionId) {
-      delete newSelectedOptions[optionName];
-    } else {
-      newSelectedOptions[optionName] = optionId;
-    }
-    setSelectedOptions(newSelectedOptions);
-    
-    const matchingVariant = findVariantByOptions(newSelectedOptions);
-    if (matchingVariant) {
-      setSelectedVariant(matchingVariant);
-      setCurrentImageIndex(0);
-    }
+  const handleVariantChange = (variant) => {
+    setSelectedVariant(variant);
+    setCurrentImageIndex(0);
+    setQuantity(1);
   };
 
   const handleQuantityDecrease = () => {
@@ -124,7 +75,7 @@ function ProductVariantPopup({ product, onClose }) {
     }
 
     if (!selectedVariant) {
-      showError('Please select product options');
+      showError('Please select a product variant');
       return;
     }
 
@@ -218,38 +169,22 @@ function ProductVariantPopup({ product, onClose }) {
               </div>
             </div>
 
-            {/* Options Section */}
-            {Object.keys(groupedOptions).length > 0 && (
-              <div className="popup-options-wrapper">
-                {Object.entries(groupedOptions).map(([optionName, options]) => (
-                  <div key={optionName} className="popup-option-group">
-                    <div className="popup-option-title">
-                      <span>{optionName}</span>
-                      <span className="popup-option-selected-val">
-                        {selectedOptions[optionName]
-                          ? options.find(o => o.id === selectedOptions[optionName])?.value || 'Select'
-                          : 'Select'}
-                      </span>
-                    </div>
-                    <div className="popup-option-pills">
-                      {options.map(option => (
-                        <button
-                          key={option.id}
-                          className={`popup-option-pill ${selectedOptions[optionName] === option.id ? 'active' : ''}`}
-                          onClick={() => handleOptionChange(optionName, option.id)}
-                        >
-                          {optionName.toLowerCase() === 'color' && (
-                            <span
-                              className="popup-color-dot"
-                              style={{ backgroundColor: option.value.toLowerCase() }}
-                            ></span>
-                          )}
-                          <span>{option.value}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+            {/* Variant selection */}
+            {product.variants?.length > 0 && (
+              <div className="popup-variants-wrapper">
+                <div className="popup-variant-title">Select variant</div>
+                <div className="popup-variant-pills">
+                  {product.variants.map(variant => (
+                    <button
+                      key={variant.id}
+                      className={`popup-variant-pill ${selectedVariant?.id === variant.id ? 'active' : ''}`}
+                      onClick={() => handleVariantChange(variant)}
+                      disabled={adding}
+                    >
+                      {variant.name}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 

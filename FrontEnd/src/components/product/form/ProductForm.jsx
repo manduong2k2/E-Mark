@@ -23,12 +23,10 @@ export default function ProductForm({
     vendorId: product?.vendorId || product?.vendor?.id || '',
     categoryIds: product?.categoryIds || product?.categories?.map((c) => c.id) || [],
     status: product?.status || defaultStatus,
-    options: product?.options?.map((opt, idx) => ({ ...opt, tempId: idx })) || [],
     variants: product?.variants?.map((v) => ({
       ...v,
       tempId: v.tempId || Date.now() + Math.random(),
       images: v.images || [],
-      optionIds: v.optionIds || [],
     })) || [
         {
           tempId: Date.now(),
@@ -36,15 +34,10 @@ export default function ProductForm({
           price: '',
           stock: '',
           sku: '',
-          optionIds: [],
           images: [],
         },
       ],
   });
-
-  const [nextOptionTempId, setNextOptionTempId] = useState(
-    product?.options?.length || 0
-  );
 
   const [errors, setErrors] = useState({});
   const variantFileInputRefs = useRef({});
@@ -52,17 +45,7 @@ export default function ProductForm({
   // Update form data when product prop changes
   useEffect(() => {
     if (product) {
-      const mappedOptions = product.options?.map((opt, idx) => ({
-        tempId: idx,
-        name: opt.name || '',
-        value: opt.value || '',
-      })) || [];
-
       const mappedVariants = product.variants?.map((v) => {
-        const variantOptionIds = v.options?.map((varOpt) =>
-          mappedOptions.findIndex(o => o.name === varOpt.name)
-        ).filter(idx => idx !== -1) || [];
-
         return {
           id: v.id || null,
           tempId: v.id || Date.now() + Math.random(),
@@ -70,7 +53,6 @@ export default function ProductForm({
           price: v.price ?? '',
           stock: v.stock ?? '',
           sku: v.sku || '',
-          optionIds: variantOptionIds,
           images: Array.isArray(v.images)
           ? v.images.map((image) => ({
               type: 'existing',
@@ -87,7 +69,6 @@ export default function ProductForm({
         brandId: product.brandId || product.brand?.id || '',
         categoryIds: product.categoryIds || product.categories?.map((c) => c.id) || [],
         status: product.status || defaultStatus,
-        options: mappedOptions,
         vendorId: product.vendorId || product.vendor?.id || '',
         variants: mappedVariants.length > 0 ? mappedVariants : [
           {
@@ -96,14 +77,12 @@ export default function ProductForm({
             price: '',
             stock: '',
             sku: '',
-            optionIds: [],
             images: [],
           },
         ],
       };
 
       setFormData(newFormData);
-      setNextOptionTempId(product.options?.length || 0);
     }
   }, [product, defaultStatus]);
 
@@ -178,7 +157,6 @@ export default function ProductForm({
 
     const serverErrors = await onSubmit({
       ...formData,
-      options: formData.options,
       variants: formData.variants,
     });
 
@@ -194,7 +172,6 @@ export default function ProductForm({
           // Convert variants[0].sku -> variant_0_sku
           let mappedKey = key;
           mappedKey = mappedKey.replace(/variants\[(\d+)\]\./, 'variant_$1_');
-          mappedKey = mappedKey.replace(/options\[(\d+)\]\./, 'option_$1_');
           mappedErrors[mappedKey] = value;
         });
         // Bind field errors
@@ -214,42 +191,6 @@ export default function ProductForm({
     }
   };
 
-  const handleAddOption = () => {
-    const newOption = {
-      tempId: nextOptionTempId,
-      name: '',
-      value: '',
-    };
-    setFormData((prev) => ({
-      ...prev,
-      options: [...prev.options, newOption],
-    }));
-    setNextOptionTempId((prev) => prev + 1);
-  };
-
-  const handleRemoveOption = (index) => {
-    setFormData((prev) => {
-      const removedOptionTempId = prev.options[index].tempId;
-      const updatedOptions = prev.options.filter((_, i) => i !== index);
-      const updatedVariants = prev.variants.map((variant) => ({
-        ...variant,
-        optionIds: variant.optionIds.filter((id) => id !== removedOptionTempId),
-      }));
-      return { ...prev, options: updatedOptions, variants: updatedVariants };
-    });
-  };
-
-  const handleOptionChange = (index, field, value) => {
-    setFormData((prev) => {
-      const updatedOptions = [...prev.options];
-      updatedOptions[index] = { ...updatedOptions[index], [field]: value };
-      return { ...prev, options: updatedOptions };
-    });
-    if (errors[`option_${index}_${field}`]) {
-      setErrors((prev) => ({ ...prev, [`option_${index}_${field}`]: '' }));
-    }
-  };
-
   const handleAddVariant = () => {
     const newVariant = {
       tempId: Date.now() + Math.random(),
@@ -257,7 +198,6 @@ export default function ProductForm({
       price: '',
       stock: '',
       sku: '',
-      optionIds: [],
       images: [],
     };
     setFormData((prev) => ({
@@ -284,21 +224,6 @@ export default function ProductForm({
     if (errors[`variant_${index}_${field}`]) {
       setErrors((prev) => ({ ...prev, [`variant_${index}_${field}`]: '' }));
     }
-  };
-
-  const handleVariantOptionToggle = (variantIndex, optionTempId) => {
-    setFormData((prev) => {
-      const updatedVariants = [...prev.variants];
-      const variant = updatedVariants[variantIndex];
-
-      if (variant.optionIds.includes(optionTempId)) {
-        variant.optionIds = variant.optionIds.filter((id) => id !== optionTempId);
-      } else {
-        variant.optionIds = [...variant.optionIds, optionTempId];
-      }
-
-      return { ...prev, variants: updatedVariants };
-    });
   };
 
   const handleDragOver = (e) => {
@@ -446,83 +371,17 @@ export default function ProductForm({
                 </div>
               )}
             </div>
-
-            <br />
-
-            {/* Section 2: Product Options */}
-            <div className="form-section">
-              <div className="section-header">
-                <div>
-                  <h3 className="section-title">
-                    <i className="fa-solid fa-sliders"></i> Product Options
-                  </h3>
-                  <p className="section-subtitle">e.g. Color, Size, RAM with automatic tempId mapping</p>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={handleAddOption}
-                >
-                  <i className="fa-solid fa-plus"></i> Add Option
-                </button>
-              </div>
-
-              {formData.options.length === 0 ? (
-                <p className="empty-message">No options added yet. Click "+ Add Option" to create one.</p>
-              ) : (
-                <div className="options-list">
-                  {formData.options.map((option, idx) => (
-                    <div key={option.tempId || idx} className="option-item">
-                      <div className='w-100 d-flex justify-content-between'>
-                        <div className="option-tempid">#{option.tempId}</div>
-                        <button type="button" className="btn btn-danger btn-sm" onClick={() => handleRemoveOption(idx)}>
-                          <i className="fa-solid fa-trash-can"></i>
-                        </button>
-                      </div>
-                      <div className="w-100 option-fields">
-                        <div className="form-group">
-                          <label className="form-label">Option Name</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. color, size"
-                            value={option.name}
-                            onChange={(e) => handleOptionChange(idx, 'name', e.target.value)}
-                            className={`form-input form-input-sm ${errors[`option_${idx}_name`] ? 'error' : ''}`}
-                          />
-                          {errors[`option_${idx}_name`] && (
-                            <span className="error-message">{errors[`option_${idx}_name`]}</span>
-                          )}
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">Option Value</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. S, Blue"
-                            value={option.value}
-                            onChange={(e) => handleOptionChange(idx, 'value', e.target.value)}
-                            className={`form-input form-input-sm ${errors[`option_${idx}_value`] ? 'error' : ''}`}
-                          />
-                          {errors[`option_${idx}_value`] && (
-                            <span className="error-message">{errors[`option_${idx}_value`]}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </span>
 
           <span>
-            {/* Section 3: Product Variants */}
+            {/* Section 2: Product Variants */}
             <div className="form-section">
               <div className="section-header">
                 <div>
                   <h3 className="section-title">
                     <i className="fa-solid fa-cubes"></i> Product Variants
                   </h3>
-                  <p className="section-subtitle">Manage stock items, associate options, and upload multiple variant photos</p>
+                  <p className="section-subtitle">Manage stock items and upload multiple variant photos</p>
                 </div>
                 <button
                   type="button"
@@ -615,28 +474,6 @@ export default function ProductForm({
                           )}
                         </div>
                       </div>
-
-                      {/* Selected Options Mapping */}
-                      {formData.options.length > 0 && (
-                        <div className="variant-options">
-                          <label className="form-label">Selected Options</label>
-                          <div className="options-checkboxes">
-                            {formData.options.map((option) => (
-                              <label key={option.tempId} className="option-checkbox">
-                                <input
-                                  type="checkbox"
-                                  checked={(variant.optionIds || []).includes(option.tempId)}
-                                  onChange={() => handleVariantOptionToggle(idx, option.tempId)}
-                                />
-                                <span>
-                                  <i className="fa-solid fa-check"></i>
-                                  ID {option.tempId}: <strong>{option.name}</strong> ({option.value})
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      )}
 
                       {/* Variant Images */}
                       <div className="variant-images">

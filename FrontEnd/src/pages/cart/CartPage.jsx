@@ -106,13 +106,6 @@ export default function CartPage() {
                   <Thumb src={item.productImages?.[0]} />
                   <div className="ui-row-main">
                     <p className="ui-row-title">{item.productName}</p>
-                    {item.productOptions?.length > 0 && (
-                      <div className="cart-options">
-                        {item.productOptions.map(option => (
-                          <span key={option.id} className="ui-chip">{option.name}: {option.value}</span>
-                        ))}
-                      </div>
-                    )}
                     <p className="ui-row-sub">{formatMoney(item.productPrice)} each</p>
                   </div>
                   <div className="cart-row-actions">

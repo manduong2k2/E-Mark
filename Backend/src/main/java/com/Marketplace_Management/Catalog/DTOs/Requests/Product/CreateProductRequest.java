@@ -7,11 +7,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.Marketplace_Management.Catalog.Constants.ProductStatusEnum;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.CreateProductCommand;
-import com.Marketplace_Management.Shared.Annotation.Rules.Uuid;
 import com.Marketplace_Management.Shared.Annotation.Rules.Distinct;
 import com.Marketplace_Management.Shared.Annotation.Rules.Exist;
 import com.Marketplace_Management.Shared.Annotation.Rules.In;
 import com.Marketplace_Management.Shared.Annotation.Rules.Unique;
+import com.Marketplace_Management.Shared.Annotation.Rules.Uuid;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
@@ -51,10 +51,7 @@ public class CreateProductRequest {
     @In(enumClass = ProductStatusEnum.class, message = "Invalid product status")
     private String status;
 
-    @Distinct(field = "optionIds", message = "Variants must have unique option list")
     private List<@Valid CreateProductVariantRequest> variants;
-
-    private List<@Valid CreateProductOptionRequest> options;
 
     @Data
     public static class CreateProductVariantRequest {
@@ -75,23 +72,6 @@ public class CreateProductRequest {
         private int stock;
 
         private List<MultipartFile> images;
-
-        @Distinct
-        private List<Long> optionIds;
-    }
-
-    @Data
-    public static class CreateProductOptionRequest {
-        @NotNull(message = "Temporary ID is required")
-        private Long tempId;
-
-        @NotBlank(message = "Option name is required")
-        @Size(min = 1, max = 100, message = "Option name must be between 1 and 100 characters")
-        private String name;
-
-        @NotBlank(message = "Option value is required")
-        @Size(min = 1, max = 100, message = "Option value must be between 1 and 100 characters")
-        private String value;
     }
 
     public CreateProductCommand validated() {
@@ -99,7 +79,7 @@ public class CreateProductRequest {
                 .name(name)
                 .brandId(UUID.fromString(brandId))
                 .description(description)
-                .vendorId(UUID.fromString(vendorId))
+                .vendorId(vendorId != null ? UUID.fromString(vendorId) : null)
                 .categoryIds(categoryIds != null ? categoryIds.stream().map(UUID::fromString).toList() : List.of())
                 .status(status)
                 .variants(variants.stream().map(v -> 
@@ -109,16 +89,8 @@ public class CreateProductRequest {
                         .price(v.getPrice())
                         .stock(v.getStock())
                         .images(v.getImages())
-                        .optionIds(v.getOptionIds())
                         .build()
                 ).toList())
-                .options( options != null ? options.stream().map(o -> 
-                    CreateProductCommand.CreateProductOptionCommand.builder()
-                        .tempId(o.getTempId())
-                        .name(o.getName())
-                        .value(o.getValue())
-                        .build()
-                ).toList() : List.of())
                 .build();
     }
 }

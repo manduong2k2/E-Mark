@@ -16,7 +16,7 @@ import com.Marketplace_Management.Shared.Utils.Helpers.UrlHelper;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor // For Jackson deserialization
-@JsonPropertyOrder({ "id", "name", "brand", "categories", "description", "status", "vendorId", "options", "variants" })
+@JsonPropertyOrder({ "id", "name", "brand", "categories", "description", "status", "vendorId", "variants" })
 public class ProductResponse {
     private UUID id;
     private String name;
@@ -25,7 +25,6 @@ public class ProductResponse {
     private String description;
     private String status;
     private List<Variant> variants;
-    private List<ProductOptionResponse> options;
     /** Owning store; vendor (details) is only filled in on create */
     private UUID vendorId;
     private VendorResponse vendor;
@@ -44,23 +43,16 @@ public class ProductResponse {
         this.description = product.getDescription();
         this.status = product.getStatus();
         this.vendorId = product.getVendorId();
-        this.options = product.getOptions() != null
-                ? product.getOptions().stream().map(option -> new ProductOptionResponse(option)).toList()
-                : null;
         this.variants = product.getVariants() != null ? product.getVariants().stream().map(variant -> Variant.builder()
                 .id(variant.getId())
                 .name(variant.getName())
                 .sku(variant.getSku())
                 .stock(variant.getStock())
                 .price(variant.getPrice() != null ? variant.getPrice().getValue() : 0.0)
-                .optionList(variant.getOptionList())
                 .images(variant.getImages() != null
                         ? variant.getImages().stream()
                                 .map(image -> Variant.Image.builder().id(image.getId()).url(image.getUrl()).build())
                                 .collect(java.util.stream.Collectors.toSet())
-                        : null)
-                .options(variant.getOptions() != null
-                        ? variant.getOptions().stream().map(option -> new ProductOptionResponse(option)).collect(java.util.stream.Collectors.toSet())
                         : null)
                 .build()).toList() : null;
     }
@@ -93,9 +85,7 @@ public class ProductResponse {
         private String sku;
         private int stock;
         private double price;
-        private String optionList;
         private Set<Image> images;
-        private Set<ProductOptionResponse> options;
 
         @Data
         @Builder

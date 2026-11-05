@@ -60,9 +60,6 @@ public class ProductEntity extends UuidEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProductVariantEntity> variants;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ProductOptionEntity> options;
-
     @Column(nullable = true)
     private UUID vendorId;
 

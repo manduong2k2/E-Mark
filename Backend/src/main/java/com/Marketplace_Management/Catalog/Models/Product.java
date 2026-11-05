@@ -27,7 +27,6 @@ public class Product extends AggregateRoot<UUID> {
     private Set<Category> categories;
     private String status;
     private Set<ProductVariant> variants;
-    private Set<ProductOption> options;
     private UUID vendorId;
 
     public boolean isArchived() {

@@ -15,7 +15,7 @@ import com.Marketplace_Management.Shared.Utils.Helpers.UrlHelper;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor // For Jackson deserialization
-@JsonPropertyOrder({ "id", "name", "brand", "status", "options", "variants" })
+@JsonPropertyOrder({ "id", "name", "brand", "status", "variants" })
 @Builder
 public class ProductShortResponse {
     private UUID id;
@@ -23,7 +23,6 @@ public class ProductShortResponse {
     private Brand brand;
     private String status;
     private List<ProductVariantShortResponse> variants;
-    private Set<ProductOptionResponse> options;
 
     @Data
     @AllArgsConstructor
@@ -39,15 +38,13 @@ public class ProductShortResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
-    @JsonPropertyOrder({ "id", "name", "stock", "price", "images", "options" })
+    @JsonPropertyOrder({ "id", "name", "stock", "price", "images" })
     public static class ProductVariantShortResponse {
         private UUID id;
         private String name;
         private int stock;
         private double price;
-        private String optionList;
         private Set<Image> images;
-        private Set<ProductOptionResponse> options;
 
         @Data
         @AllArgsConstructor

@@ -7,7 +7,7 @@ import { AuthContext } from '../../../contexts/AuthContext';
 function ProductCard({ product, onOpenVariantPopup }) {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const { name, brand, variants, options } = product;
+  const { name, brand, variants } = product;
   const [isFavorite, setIsFavorite] = useState(false);
 
   // Get first variant image
@@ -25,10 +25,6 @@ function ProductCard({ product, onOpenVariantPopup }) {
   const minPrice = prices.length ? Math.min(...prices) : 0;
   const maxPrice = prices.length ? Math.max(...prices) : 0;
   const priceDisplay = minPrice === maxPrice ? `$${minPrice.toFixed(2)}` : `$${minPrice.toFixed(2)} ~ $${maxPrice.toFixed(2)}`;
-
-  // Get first option values
-  const sizeOption = options?.find(o => o.name?.toLowerCase() === 'size');
-  const colorOption = options?.find(o => o.name?.toLowerCase() === 'color');
 
   const handleImageError = (e) => {
     e.target.onerror = null;

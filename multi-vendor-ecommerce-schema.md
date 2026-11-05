@@ -79,7 +79,6 @@ Hệ thống được chia thành **11 bounded context**, mỗi context có th�
 | `product_variants` | Biến thể / SKU | id, product_id, sku, price, compare_at_price, weight, dimensions |
 | `product_attributes` | Thuộc tính (màu, size...) | id, product_id, attribute_name |
 | `product_attribute_values` | Giá trị thuộc tính | id, attribute_id, value |
-| `product_variant_options` | Map variant ↔ giá trị thuộc tính | variant_id, attribute_value_id |
 | `product_images` | Hình ảnh | id, product_id, variant_id (nullable), url, sort_order |
 | `product_tags` | Gắn thẻ (tìm kiếm/SEO) | product_id, tag |
 | `product_moderation_logs` | Lịch sử duyệt sản phẩm | id, product_id, action, reviewer_id, note |

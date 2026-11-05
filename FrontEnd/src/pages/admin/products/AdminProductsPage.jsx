@@ -13,15 +13,6 @@ const LOW_STOCK = 10;
 // Variant images come either as plain URLs or as { url } objects
 const imageUrl = (img) => (typeof img === 'string' ? img : img?.url);
 
-const groupOptionsByName = (options = []) => {
-  const result = {};
-  options.forEach(opt => {
-    if (!result[opt.name]) result[opt.name] = [];
-    if (!result[opt.name].includes(opt.value)) result[opt.name].push(opt.value);
-  });
-  return result;
-};
-
 const priceRange = (variants = []) => {
   const prices = variants.map(v => Number(v.price)).filter(p => !Number.isNaN(p));
   if (prices.length === 0) return '—';
@@ -180,7 +171,7 @@ export default function AdminProductsPage() {
         eyebrow="Catalog"
         eyebrowIcon="bi-box-seam"
         title="Products"
-        description="Manage the catalog, variant options, inventory and pricing."
+        description="Manage the catalog, variants, inventory and pricing."
         actions={
           <button type="button" className="admin-ui-btn admin-ui-btn--primary" onClick={() => navigate('/admin/products/create')}>
             <i className="bi bi-plus-lg"></i> New product
@@ -267,7 +258,6 @@ export default function AdminProductsPage() {
                 <th>Product</th>
                 <th>Brand</th>
                 <th>Categories</th>
-                <th>Options</th>
                 <th>Variants &amp; price</th>
                 <th>Stock</th>
                 <th>Status</th>
@@ -276,11 +266,10 @@ export default function AdminProductsPage() {
             </thead>
             <tbody>
               {loading && allProducts.length === 0 && [...Array(5)].map((_, i) => (
-                <tr key={i} className="admin-ui-skeleton-row"><td colSpan={9}><span></span></td></tr>
+                <tr key={i} className="admin-ui-skeleton-row"><td colSpan={8}><span></span></td></tr>
               ))}
               {paginatedData.map(prod => {
                 const isSelected = selectedIds.has(prod.id);
-                const groupedOptions = Object.entries(groupOptionsByName(prod.options || []));
                 const thumb = imageUrl(prod.variants?.[0]?.images?.[0]);
                 const variantCount = prod.variants?.length || 0;
 
@@ -317,17 +306,6 @@ export default function AdminProductsPage() {
                           {prod.categories.map(cat => <span key={cat.id || cat.name} className="admin-ui-chip">{cat.name}</span>)}
                         </div>
                       ) : <span className="admin-ui-muted">—</span>}
-                    </td>
-                    <td>
-                      {groupedOptions.length > 0 ? (
-                        <div className="admin-products-options">
-                          {groupedOptions.map(([key, vals]) => (
-                            <span key={key} className="admin-products-option">
-                              <strong>{key}</strong> {vals.join(', ')}
-                            </span>
-                          ))}
-                        </div>
-                      ) : <span className="admin-ui-muted admin-products-small">Not configured</span>}
                     </td>
                     <td>
                       <div className="admin-products-price">
@@ -387,10 +365,8 @@ export default function AdminProductsPage() {
   );
 }
 
-// ── Product details (options, variants, brand, categories) ──────────────────
+// ── Product details (variants, brand, categories) ───────────────────────────
 function ProductDetailsModal({ product, fallback, loading, onClose, onEdit }) {
-  const options = Object.entries(groupOptionsByName(product?.options || []));
-
   return (
     <Modal
       title={product?.name || fallback.name}
@@ -488,22 +464,6 @@ function ProductDetailsModal({ product, fallback, loading, onClose, onEdit }) {
           )}
 
           <section className="admin-products-section">
-            <h4>Option configurations</h4>
-            {options.length > 0 ? (
-              <div className="admin-products-option-grid">
-                {options.map(([key, vals]) => (
-                  <div key={key} className="admin-products-option-card">
-                    <span className="admin-products-label">{key}</span>
-                    <div className="admin-ui-chips">
-                      {vals.map(v => <span key={v} className="admin-ui-tag admin-products-value">{v}</span>)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : <p className="admin-ui-muted admin-products-small">No options configured</p>}
-          </section>
-
-          <section className="admin-products-section">
             <h4>Variant details</h4>
             {product.variants?.length > 0 ? (
               <div className="admin-products-variants">
@@ -514,7 +474,6 @@ function ProductDetailsModal({ product, fallback, loading, onClose, onEdit }) {
                       <th>SKU</th>
                       <th>Stock</th>
                       <th>Unit price</th>
-                      <th>Options</th>
                       <th>Images</th>
                     </tr>
                   </thead>
@@ -527,7 +486,6 @@ function ProductDetailsModal({ product, fallback, loading, onClose, onEdit }) {
                           <span className={`admin-products-stock${v.stock > 0 ? '' : ' is-out'}`}>{v.stock} pcs</span>
                         </td>
                         <td>{formatCurrency(v.price)}</td>
-                        <td className="admin-ui-mono admin-products-small">{v.optionList || 'N/A'}</td>
                         <td>
                           {v.images?.length > 0 ? (
                             <div className="admin-products-variant-images">

@@ -86,7 +86,7 @@ export default function AdminProductCreatePage() {
       eyebrow="Catalog"
       eyebrowIcon="bi-box-seam"
       title="New product"
-      description="Fill in the basics, define options, then add variants with price, stock and images."
+      description="Fill in the basics, then add variants with price, stock and images."
       actions={
         <button type="button" className="admin-ui-btn admin-ui-btn--ghost" onClick={handleCancel}>
           <i className="bi bi-arrow-left"></i> Back to list

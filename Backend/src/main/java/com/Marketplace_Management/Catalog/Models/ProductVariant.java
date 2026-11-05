@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import com.Marketplace_Management.Shared.Models.Entity;
@@ -25,8 +24,6 @@ public class ProductVariant extends Entity<UUID> {
     private int stock;
     private List<File> images;
     private Product product;
-    private Set<ProductOption> options;
-    private String optionList;
 
     /** An unset price reads as 0. */
     public Money getPrice() {

@@ -257,11 +257,6 @@
   font-size: 0.76rem;
 }
 
-.admin-product-detail-optionlist {
-  color: var(--adm-muted);
-  font-size: 0.8rem;
-}
-
 .admin-product-detail-money {
   font-weight: 650;
   white-space: nowrap;
@@ -285,20 +280,6 @@
   color: var(--adm-muted);
   font-size: 0.76rem;
   font-weight: 650;
-}
-
-/* Options */
-.admin-product-detail-options {
-  display: grid;
-  gap: 0.9rem;
-  margin: 0;
-  padding: 1.1rem 1.4rem;
-  list-style: none;
-}
-
-.admin-product-detail-options li {
-  display: grid;
-  gap: 0.4rem;
 }
 
 /* Details */

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,6 @@ import com.Marketplace_Management.Catalog.Events.ProductArchivedEvent;
 import com.Marketplace_Management.Catalog.Events.ProductDeletedEvent;
 import com.Marketplace_Management.Catalog.Models.File;
 import com.Marketplace_Management.Catalog.Models.Product;
-import com.Marketplace_Management.Catalog.Models.ProductOption;
 import com.Marketplace_Management.Catalog.Models.ProductVariant;
 import com.Marketplace_Management.Shared.Configuration.RabbitMqQueues.ProductQueueConfig;
 import com.Marketplace_Management.Shared.Contracts.IEventPublisher;
@@ -90,12 +88,6 @@ public class ProductService implements IProductService {
     @Override
     @Transactional
     public ProductResponse createProduct(CreateProductCommand command) throws IOException {
-        List<ProductOption> productOptions = command.getOptions().stream().map(option -> ProductOption.builder()
-                .id(option.getTempId())
-                .name(option.getName())
-                .value(option.getValue())
-                .build()).collect(java.util.stream.Collectors.toList());
-
         // Admins may create a product for any vendor; a vendor always creates for its
         // own store.
         // No vendor given: the product belongs to the current user's vendor (getById
@@ -114,7 +106,6 @@ public class ProductService implements IProductService {
                 .brandId(command.getBrandId())
                 .status(command.getStatus())
                 .categoryIds(command.getCategoryIds())
-                .options(new java.util.HashSet<>(productOptions))
                 .status(command.getStatus() != null ? command.getStatus() : ProductStatusEnum.PUBLISHED.name())
                 .vendorId(command.getVendorId())
                 .variants(command.getVariants().stream().map(variant -> ProductVariant.builder()
@@ -131,15 +122,8 @@ public class ProductService implements IProductService {
                                 throw new RuntimeException("Failed to upload file", e);
                             }
                         }).toList() : null)
-                        .options(productOptions.stream().filter(po -> variant.getOptionIds().contains(po.getId()))
-                                .collect(java.util.stream.Collectors.toSet()))
                         .build()).collect(java.util.stream.Collectors.toSet()))
                 .build();
-
-        productOptions.forEach(option -> {
-            option.setProduct(product);
-            option.setId(null);
-        });
 
         Product savedProduct = productRepository.save(product);
 
@@ -155,8 +139,8 @@ public class ProductService implements IProductService {
             throw new ResourceNotFoundException("Product not found");
         }
 
-        // Map.of rejects null values. Optional update fields such as description,
-        // categoryIds and options are allowed to be null by the request DTO.
+        // Map.of rejects null values. Optional update fields such as description
+        // and categoryIds are allowed to be null by the request DTO.
         Map<String, Object> updates = new LinkedHashMap<>();
         updates.put("id", productId);
         updates.put("name", command.getName());
@@ -220,16 +204,10 @@ public class ProductService implements IProductService {
                             .price(vc.getPrice())
                             .stock(vc.getStock())
                             .images(images)
-                            .options(product.getOptions() != null && vc.getOptionIds() != null
-                                    ? product.getOptions().stream()
-                                            .filter(po -> vc.getOptionIds().contains(po.getId()))
-                                            .collect(Collectors.toSet())
-                                    : new HashSet<>())
                             .build();
 
                 }).collect(Collectors.toSet())
                 : null);
-        // updates.put("options", command.getOptions());
         product.update(updates);
 
         Product savedProduct = productRepository.update(product);

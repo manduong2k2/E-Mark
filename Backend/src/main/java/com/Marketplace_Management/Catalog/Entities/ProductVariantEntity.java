@@ -1,22 +1,16 @@
 package com.Marketplace_Management.Catalog.Entities;
 
 import java.util.List;
-import java.util.Set;
 
 import org.hibernate.annotations.Nationalized;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -53,21 +47,8 @@ public class ProductVariantEntity extends UuidEntity{
     @SQLRestriction("entity_type = 'com.Marketplace_Management.Catalog.Entities.ProductVariantEntity'")
     private List<FileEntity> images;
 
-    @Column(nullable = true)
-    private String optionList;
-
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private ProductEntity product;
-
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-        name = "product_variant_option",
-        joinColumns = @JoinColumn(name = "variant_id"),
-        inverseJoinColumns = @JoinColumn(name = "option_id"),
-        uniqueConstraints = @UniqueConstraint(columnNames = {"variant_id", "option_id"})
-    )
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<ProductOptionEntity> options;
 
 }

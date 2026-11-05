@@ -1,17 +1,11 @@
 // Multipart body for POST /api/products and PUT /api/products/:id from ProductForm's values.
 // Field names follow the Spring binding of CreateProductRequest / UpdateProductRequest
-// (variants[0].name, variants[0].optionIds[1], ...).
+// (variants[0].name, variants[0].images[0].id, ...).
 
 export function buildProductFormData(formData, { keepExistingImages = false } = {}) {
   const fd = new FormData();
   ['name', 'description', 'brandId', 'vendorId', 'status'].forEach(key => fd.append(key, formData[key] ?? ''));
   formData.categoryIds?.forEach(id => fd.append('categoryIds', id));
-
-  formData.options?.forEach((option, idx) => {
-    fd.append(`options[${idx}].tempId`, option.tempId);
-    fd.append(`options[${idx}].name`, option.name);
-    fd.append(`options[${idx}].value`, option.value);
-  });
 
   formData.variants?.forEach((variant, idx) => {
     fd.append(`variants[${idx}].id`, variant.id ?? '');
@@ -19,9 +13,6 @@ export function buildProductFormData(formData, { keepExistingImages = false } = 
     fd.append(`variants[${idx}].price`, variant.price);
     fd.append(`variants[${idx}].stock`, variant.stock);
     fd.append(`variants[${idx}].sku`, variant.sku);
-    variant.optionIds?.forEach((optionId, optionIdx) => {
-      fd.append(`variants[${idx}].optionIds[${optionIdx}]`, optionId);
-    });
 
     if (keepExistingImages) {
       variant.images?.forEach((img, imgIdx) => {

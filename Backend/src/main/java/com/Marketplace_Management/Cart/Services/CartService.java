@@ -108,7 +108,7 @@ public class CartService implements ICartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
     }
 
-    /** Fills each item with the current name / price / images / options of its product variant. */
+    /** Fills each item with the current name / price / images of its product variant. */
     private Cart withProductDetails(Cart cart) {
         for (CartItem item : cart.getItems()) {
             ProductVariantResponse variant = productService.getProductVariant(item.getProductVariantId());
@@ -119,7 +119,6 @@ public class CartService implements ICartService {
             item.setProductPrice(variant.getPrice());
             item.setProductImage(variant.getImages());
             item.setProductSku(variant.getSku());
-            item.setProductOptions(variant.getOptions());
         }
         return cart;
     }

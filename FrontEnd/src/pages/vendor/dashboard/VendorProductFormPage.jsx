@@ -84,7 +84,7 @@ export default function VendorProductFormPage() {
       eyebrow="Products"
       eyebrowIcon="bi-box-seam"
       title={isEdit ? (state.product?.name || 'Edit product') : 'New product'}
-      description="Fill in the basics, define options (size, color…), then add variants with price, stock and images."
+      description="Fill in the basics, then add variants with price, stock and images."
       actions={back}
     />
   );

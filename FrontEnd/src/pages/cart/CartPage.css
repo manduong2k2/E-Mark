@@ -1,11 +1,5 @@
 /* CartPage.css — cart-specific pieces. Generic components: components/ui/ui.css (ui-*) */
 
-.cart-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
 .cart-row-actions {
   display: flex;
   align-items: center;

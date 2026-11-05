@@ -102,7 +102,7 @@ export default function AdminProductEditPage() {
       eyebrow="Catalog"
       eyebrowIcon="bi-box-seam"
       title="Edit product"
-      description={product?.name ? `Editing “${product.name}”. Changes are saved when you submit the form.` : 'Update product details, options and variants.'}
+      description={product?.name ? `Editing “${product.name}”. Changes are saved when you submit the form.` : 'Update product details and variants.'}
       actions={
         <button type="button" className="admin-ui-btn admin-ui-btn--ghost" onClick={handleCancel}>
           <i className="bi bi-arrow-left"></i> Back to list
