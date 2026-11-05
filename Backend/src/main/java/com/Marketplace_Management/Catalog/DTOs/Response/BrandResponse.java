@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.Marketplace_Management.Catalog.Models.Brand;
+import com.Marketplace_Management.Catalog.Entities.BrandEntity;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.Marketplace_Management.Shared.Utils.Helpers.UrlHelper;
 
@@ -21,7 +21,7 @@ public class BrandResponse {
     private String description;
     private long productsCount = 0;
 
-    public BrandResponse(Brand brand) {
+    public BrandResponse(BrandEntity brand) {
         this.id = brand.getId();
         this.name = brand.getName();
         this.image = brand.getImage() != null ? brand.getImage() : null;

@@ -4,19 +4,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.Marketplace_Management.Catalog.DTOs.Commands.Category.GetListCategoryCommand;
-import com.Marketplace_Management.Catalog.Models.Category;
+import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 public interface ICategoryRepository {
-    Category save(Category Category);
+    CategoryEntity save(CategoryEntity category);
 
-    PaginatedResponse<Category> findAll(GetListCategoryCommand command);
+    PaginatedResponse<CategoryEntity> findAll(GetListCategoryCommand command);
 
-    Optional<Category> findById(UUID id);
+    Optional<CategoryEntity> findById(UUID id);
 
-    Optional<Category> findByName(String name);
+    Optional<CategoryEntity> findByName(String name);
 
-    Category update(Category Category);
+    CategoryEntity update(CategoryEntity category);
 
     void delete(UUID id);
 }

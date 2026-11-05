@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.Marketplace_Management.Catalog.Models.Product;
+import com.Marketplace_Management.Catalog.Entities.ProductEntity;
 import com.Marketplace_Management.Vendor.DTOs.Response.VendorResponse;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.Marketplace_Management.Shared.Utils.Helpers.UrlHelper;
@@ -29,7 +29,11 @@ public class ProductResponse {
     private UUID vendorId;
     private VendorResponse vendor;
 
-    public ProductResponse(Product product) {
+    public ProductResponse(ProductEntity product) {
+        this(product, true);
+    }
+
+    public ProductResponse(ProductEntity product, boolean includeVariants) {
         if (product == null) {
             return;
         }
@@ -43,12 +47,12 @@ public class ProductResponse {
         this.description = product.getDescription();
         this.status = product.getStatus();
         this.vendorId = product.getVendorId();
-        this.variants = product.getVariants() != null ? product.getVariants().stream().map(variant -> Variant.builder()
+        this.variants = includeVariants && product.getVariants() != null ? product.getVariants().stream().map(variant -> Variant.builder()
                 .id(variant.getId())
                 .name(variant.getName())
                 .sku(variant.getSku())
                 .stock(variant.getStock())
-                .price(variant.getPrice() != null ? variant.getPrice().getValue() : 0.0)
+                .price(variant.getPrice())
                 .images(variant.getImages() != null
                         ? variant.getImages().stream()
                                 .map(image -> Variant.Image.builder().id(image.getId()).url(image.getUrl()).build())

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.Marketplace_Management.Catalog.Contracts.ICategoryRepository;
 import com.Marketplace_Management.Catalog.Contracts.ICategoryService;
@@ -14,47 +15,44 @@ import com.Marketplace_Management.Catalog.DTOs.Commands.Category.CreateCategoryC
 import com.Marketplace_Management.Catalog.DTOs.Commands.Category.GetListCategoryCommand;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Category.UpdateCategoryCommand;
 import com.Marketplace_Management.Catalog.DTOs.Response.CategoryResponse;
-import com.Marketplace_Management.Catalog.Models.Category;
+import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
-import com.Marketplace_Management.Shared.Events.DomainEventDispatcher;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class CategoryService implements ICategoryService {
     private static final String CATEGORY_NOT_FOUND = "Category not found";
 
     private final ICategoryRepository categoryRepository;
-    private final DomainEventDispatcher domainEvents;
     private final IFileService fileService;
 
     @Value("${spring.application.base-url:http://localhost:8080}")
     private String baseUrl;
 
-    public CategoryService(ICategoryRepository categoryRepository, DomainEventDispatcher domainEvents, IFileService fileService) {
+    public CategoryService(ICategoryRepository categoryRepository, IFileService fileService) {
         this.categoryRepository = categoryRepository;
-        this.domainEvents = domainEvents;
         this.fileService = fileService;
     }
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "categories", key = "#command.page + '_' + #command.size + '_' + #command.search")
     public PaginatedResponse<CategoryResponse> getAll(GetListCategoryCommand command) {
         return categoryRepository.findAll(command).map(category -> new CategoryResponse(category).withUrl(baseUrl));
     }
 
+    @Transactional(readOnly = true)
     public CategoryResponse getById(UUID CategoryId) {
         return categoryRepository.findById(CategoryId)
                 .map(category -> new CategoryResponse(category).withUrl(baseUrl))
                 .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse createCategory(CreateCategoryCommand command) throws IOException {
-        Category category = Category.builder()
+        CategoryEntity category = CategoryEntity.builder()
                 .name(command.getName())
                 .description(command.getDescription())
                 .build();
@@ -64,15 +62,13 @@ public class CategoryService implements ICategoryService {
         category.setImage(fileService.replaceFile(command.getImage(), null, "catalog/categories/"));
         category = categoryRepository.save(category);
 
-        domainEvents.dispatch(category, "Category.created");
-
         return new CategoryResponse(category).withUrl(baseUrl);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse updateCategory(UUID categoryId, UpdateCategoryCommand command) throws IOException {
-        Category category = categoryRepository.findById(categoryId)
+        CategoryEntity category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND));
 
         category.setName(command.getName());
@@ -84,12 +80,10 @@ public class CategoryService implements ICategoryService {
 
         category = categoryRepository.save(category);
 
-        domainEvents.dispatch(category, "Category.updated");
-
         return new CategoryResponse(category).withUrl(baseUrl);
     }
 
-    private Category findParent(UUID parentId) {
+    private CategoryEntity findParent(UUID parentId) {
         if (parentId == null) {
             return null;
         }
@@ -104,8 +98,8 @@ public class CategoryService implements ICategoryService {
                 throw new BadRequestException("Cannot set parent to its descendants");
             }
             ancestorId = categoryRepository.findById(ancestorId)
-                    .map(Category::getParent)
-                    .map(Category::getId)
+                    .map(CategoryEntity::getParent)
+                    .map(CategoryEntity::getId)
                     .orElse(null);
         }
     }

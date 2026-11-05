@@ -1,10 +1,9 @@
 package com.Marketplace_Management.Catalog.Services;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -16,8 +15,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.Marketplace_Management.Catalog.Constants.ProductStatusEnum;
+import com.Marketplace_Management.Catalog.Contracts.IBrandRepository;
+import com.Marketplace_Management.Catalog.Contracts.ICategoryRepository;
 import com.Marketplace_Management.Catalog.Contracts.IProductRepository;
 import com.Marketplace_Management.Catalog.Contracts.IProductService;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.CreateProductCommand;
@@ -28,9 +30,11 @@ import com.Marketplace_Management.Catalog.DTOs.Response.ProductShortResponse;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductVariantResponse;
 import com.Marketplace_Management.Catalog.Events.ProductArchivedEvent;
 import com.Marketplace_Management.Catalog.Events.ProductDeletedEvent;
-import com.Marketplace_Management.Catalog.Models.File;
-import com.Marketplace_Management.Catalog.Models.Product;
-import com.Marketplace_Management.Catalog.Models.ProductVariant;
+import com.Marketplace_Management.Catalog.Entities.BrandEntity;
+import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
+import com.Marketplace_Management.Catalog.Entities.FileEntity;
+import com.Marketplace_Management.Catalog.Entities.ProductEntity;
+import com.Marketplace_Management.Catalog.Entities.ProductVariantEntity;
 import com.Marketplace_Management.Shared.Configuration.RabbitMqQueues.ProductQueueConfig;
 import com.Marketplace_Management.Shared.Contracts.IEventPublisher;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
@@ -41,11 +45,11 @@ import com.Marketplace_Management.Shared.Security.SecurityUtils;
 import com.Marketplace_Management.Vendor.Contracts.IVendorService;
 import com.Marketplace_Management.Vendor.DTOs.Response.VendorResponse;
 
-import jakarta.transaction.Transactional;
-
 @Service
 public class ProductService implements IProductService {
     private final IProductRepository productRepository;
+    private final IBrandRepository brandRepository;
+    private final ICategoryRepository categoryRepository;
     private final IEventPublisher eventPublisher;
     private final IFileService fileService;
     private final IVendorService vendorService;
@@ -54,8 +58,11 @@ public class ProductService implements IProductService {
     private String baseUrl;
 
     public ProductService(IProductRepository productRepository, IEventPublisher eventPublisher,
-            IFileService fileService, IVendorService vendorService) {
+            IFileService fileService, IVendorService vendorService,
+            IBrandRepository brandRepository, ICategoryRepository categoryRepository) {
         this.productRepository = productRepository;
+        this.brandRepository = brandRepository;
+        this.categoryRepository = categoryRepository;
         this.eventPublisher = eventPublisher;
         this.fileService = fileService;
         this.vendorService = vendorService;
@@ -64,15 +71,17 @@ public class ProductService implements IProductService {
     // @Cacheable(value = "products", key = "#command.page + '_' + #command.size +
     // '_' + #command.search + '_' + #command.categoryIds + '_' + #command.brandId")
     @Override
+    @Transactional(readOnly = true)
     public PaginatedResponse<ProductShortResponse> getAll(GetListProductCommand command) {
 
         return productRepository.findAll(command).map(product -> product.withUrl(baseUrl));
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "product", key = "#productId")
     public ProductResponse getById(UUID productId) {
-        Product product = productRepository.findById(productId);
+        ProductEntity product = productRepository.findById(productId);
 
         if (product == null) {
             throw new ResourceNotFoundException("Product not found");
@@ -86,7 +95,7 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     public ProductResponse createProduct(CreateProductCommand command) throws IOException {
         // Admins may create a product for any vendor; a vendor always creates for its
         // own store.
@@ -98,119 +107,66 @@ public class ProductService implements IProductService {
         if (vendor == null) {
             throw new ResourceNotFoundException("Vendor not found");
         }
-        command.setVendorId(vendor.getId());
+        ProductEntity product = new ProductEntity();
+        product.setName(command.getName());
+        product.setDescription(command.getDescription());
+        product.setBrand(findBrand(command.getBrandId()));
+        product.setCategories(findCategories(command.getCategoryIds()));
+        product.setStatus(command.getStatus() != null ? command.getStatus() : ProductStatusEnum.PUBLISHED.name());
+        product.setVendorId(vendor.getId());
+        product.setVariants(new HashSet<>());
 
-        Product product = Product.builder()
-                .name(command.getName())
-                .description(command.getDescription())
-                .brandId(command.getBrandId())
-                .status(command.getStatus())
-                .categoryIds(command.getCategoryIds())
-                .status(command.getStatus() != null ? command.getStatus() : ProductStatusEnum.PUBLISHED.name())
-                .vendorId(command.getVendorId())
-                .variants(command.getVariants().stream().map(variant -> ProductVariant.builder()
-                        .name(variant.getName())
-                        .sku(variant.getSku())
-                        .price(variant.getPrice())
-                        .stock(variant.getStock())
-                        .images(variant.getImages() != null ? variant.getImages().stream().map(img -> {
-                            try {
-                                String imageUrl = fileService.uploadFile(img, "catalog/product_variants");
-                                File file = new File(null, imageUrl);
-                                return file;
-                            } catch (IOException e) {
-                                throw new RuntimeException("Failed to upload file", e);
-                            }
-                        }).toList() : null)
-                        .build()).collect(java.util.stream.Collectors.toSet()))
-                .build();
+        for (var variantCommand : command.getVariants()) {
+            ProductVariantEntity variant = ProductVariantEntity.builder()
+                    .name(variantCommand.getName())
+                    .sku(variantCommand.getSku())
+                    .price(variantCommand.getPrice())
+                    .stock(variantCommand.getStock())
+                    .product(product)
+                    .images(new ArrayList<>())
+                    .build();
+            if (variantCommand.getImages() != null) {
+                for (var image : variantCommand.getImages()) {
+                    String url = fileService.uploadFile(image, "catalog/product_variants");
+                    variant.getImages().add(new FileEntity(null, url, variant));
+                }
+            }
+            product.getVariants().add(variant);
+        }
 
-        Product savedProduct = productRepository.save(product);
+        ProductEntity savedProduct = productRepository.save(product);
 
         return new ProductResponse(savedProduct).withUrl(baseUrl).withVendor(vendor);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     @CacheEvict(value = "product", key = "#productId")
     public ProductResponse updateProduct(UUID productId, UpdateProductCommand command) throws IOException {
-        Product product = productRepository.findById(productId);
+        ProductEntity product = productRepository.findById(productId);
         if (product == null) {
             throw new ResourceNotFoundException("Product not found");
         }
 
-        // Map.of rejects null values. Optional update fields such as description
-        // and categoryIds are allowed to be null by the request DTO.
-        Map<String, Object> updates = new LinkedHashMap<>();
-        updates.put("id", productId);
-        updates.put("name", command.getName());
-        updates.put("description", command.getDescription());
-        updates.put("status", command.getStatus());
-        updates.put("categoryIds", command.getCategoryIds());
-        updates.put("brandId", command.getBrandId());
-        updates.put("variants", command.getVariants() != null
-                ? command.getVariants().stream().map(vc -> {
+        product.setName(command.getName());
+        product.setDescription(command.getDescription());
+        product.setBrand(findBrand(command.getBrandId()));
+        if (command.getStatus() != null) {
+            product.setStatus(command.getStatus());
+        }
 
-                    var variant = product.getVariants().stream()
-                            .filter(v -> Objects.equals(v.getId(), vc.getId()))
-                            .findFirst()
-                            .orElse(null);
+        Set<CategoryEntity> categories = findCategories(command.getCategoryIds());
+        if (product.getCategories() == null) {
+            product.setCategories(categories);
+        } else {
+            product.getCategories().clear();
+            product.getCategories().addAll(categories);
+        }
+        if (command.getVariants() != null) {
+            updateVariants(product, command.getVariants());
+        }
 
-                    if (vc.getId() != null && variant == null) {
-                        throw new IllegalArgumentException("Variant not found");
-                    }
-
-                    List<File> images = new ArrayList<>(
-                            variant != null && variant.getImages() != null
-                                    ? variant.getImages()
-                                    : List.of());
-
-                    if (vc.getImages() != null) {
-                        Set<UUID> retainedIds = vc.getImages().stream()
-                                .map(img -> img.getId())
-                                .filter(Objects::nonNull)
-                                .collect(Collectors.toSet());
-
-                        // Remove images omitted from request
-                        images.removeIf(img -> !retainedIds.contains(img.getId()));
-
-                        for (var img : vc.getImages()) {
-                            if (img.getId() == null) {
-                                try {
-                                    String url = fileService.uploadFile(
-                                            img.getFile(),
-                                            "catalog/product_variants");
-
-                                    images.add(new File(null, url));
-                                } catch (IOException e) {
-                                    throw new UncheckedIOException(e);
-                                }
-                            } else {
-                                boolean exists = images.stream()
-                                        .anyMatch(existing -> Objects.equals(existing.getId(), img.getId()));
-
-                                if (!exists) {
-                                    throw new IllegalArgumentException(
-                                            "Image not found in variant: " + img.getId());
-                                }
-                            }
-                        }
-                    }
-
-                    return ProductVariant.builder()
-                            .id(vc.getId())
-                            .name(vc.getName())
-                            .sku(vc.getSku())
-                            .price(vc.getPrice())
-                            .stock(vc.getStock())
-                            .images(images)
-                            .build();
-
-                }).collect(Collectors.toSet())
-                : null);
-        product.update(updates);
-
-        Product savedProduct = productRepository.update(product);
+        ProductEntity savedProduct = productRepository.update(product);
 
         if ("ARCHIVED".equals(product.getStatus())) {
             eventPublisher.publish(
@@ -236,9 +192,85 @@ public class ProductService implements IProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductVariantResponse getProductVariant(UUID productVariantId) {
-        ProductVariant productVariant = productRepository.findVariantById(productVariantId);
+        ProductVariantEntity productVariant = productRepository.findVariantById(productVariantId);
         return productVariant != null ? new ProductVariantResponse(productVariant).withUrl(baseUrl) : null;
+    }
+
+    private BrandEntity findBrand(UUID brandId) {
+        return brandRepository.findById(brandId)
+                .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+    }
+
+    private Set<CategoryEntity> findCategories(List<UUID> categoryIds) {
+        Set<CategoryEntity> categories = new HashSet<>();
+        if (categoryIds != null) {
+            for (UUID categoryId : categoryIds) {
+                categories.add(categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Category not found")));
+            }
+        }
+        return categories;
+    }
+
+    private void updateVariants(ProductEntity product,
+            List<UpdateProductCommand.UpdateProductVariantCommand> commands) throws IOException {
+        if (product.getVariants() == null) {
+            product.setVariants(new HashSet<>());
+        }
+        Map<UUID, ProductVariantEntity> existingVariants = product.getVariants().stream()
+                .filter(variant -> variant.getId() != null)
+                .collect(Collectors.toMap(ProductVariantEntity::getId, variant -> variant));
+        Set<UUID> retainedIds = new HashSet<>();
+        List<ProductVariantEntity> newVariants = new ArrayList<>();
+
+        for (var command : commands) {
+            ProductVariantEntity variant;
+            if (command.getId() == null) {
+                variant = ProductVariantEntity.builder().product(product).images(new ArrayList<>()).build();
+                newVariants.add(variant);
+            } else {
+                variant = existingVariants.get(command.getId());
+                if (variant == null) {
+                    throw new IllegalArgumentException("Variant not found");
+                }
+                if (!retainedIds.add(command.getId())) {
+                    throw new IllegalArgumentException("Duplicate variant ID");
+                }
+            }
+            variant.setName(command.getName());
+            variant.setSku(command.getSku());
+            variant.setPrice(command.getPrice());
+            variant.setStock(command.getStock());
+            updateImages(variant, command.getImages());
+        }
+
+        // Keep existing entities and their attribute selections; remove only omitted variants.
+        product.getVariants().removeIf(variant -> !retainedIds.contains(variant.getId()));
+        product.getVariants().addAll(newVariants);
+    }
+
+    private void updateImages(ProductVariantEntity variant,
+            List<UpdateProductCommand.UpdateFileCommand> commands) throws IOException {
+        if (commands == null) {
+            return;
+        }
+        if (variant.getImages() == null) {
+            variant.setImages(new ArrayList<>());
+        }
+        Set<UUID> retainedIds = commands.stream().map(UpdateProductCommand.UpdateFileCommand::getId)
+                .filter(Objects::nonNull).collect(Collectors.toSet());
+        variant.getImages().removeIf(image -> !retainedIds.contains(image.getId()));
+
+        for (var command : commands) {
+            if (command.getId() == null) {
+                String url = fileService.uploadFile(command.getFile(), "catalog/product_variants");
+                variant.getImages().add(new FileEntity(null, url, variant));
+            } else if (variant.getImages().stream().noneMatch(image -> command.getId().equals(image.getId()))) {
+                throw new IllegalArgumentException("Image not found in variant: " + command.getId());
+            }
+        }
     }
 
 }

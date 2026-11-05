@@ -10,8 +10,6 @@ import java.util.UUID;
 import com.Marketplace_Management.Catalog.Contracts.ICategoryRepository;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Category.GetListCategoryCommand;
 import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
-import com.Marketplace_Management.Catalog.Models.Category;
-import com.Marketplace_Management.Shared.Contracts.EntityDomainMapper;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -25,17 +23,15 @@ import jakarta.persistence.EntityManager;
 public class CategoryRepository implements ICategoryRepository {
 
     private final CategoryJpaRepository jpaRepository;
-    private final EntityDomainMapper<Category, CategoryEntity> mapper;
     private final EntityManager entityManager;
 
-    public CategoryRepository(CategoryJpaRepository jpaRepository, EntityDomainMapper<Category, CategoryEntity> mapper, EntityManager entityManager) {
+    public CategoryRepository(CategoryJpaRepository jpaRepository, EntityManager entityManager) {
         this.jpaRepository = jpaRepository;
-        this.mapper = mapper;
         this.entityManager = entityManager;
     }
 
     @Override
-    public PaginatedResponse<Category> findAll(GetListCategoryCommand command) {
+    public PaginatedResponse<CategoryEntity> findAll(GetListCategoryCommand command) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<CategoryEntity> query = builder.createQuery(CategoryEntity.class);
 
@@ -95,37 +91,27 @@ public class CategoryRepository implements ICategoryRepository {
                 .setMaxResults(maxResults)
                 .getResultList();
 
-        List<Category> categories = entities.stream()
-                .map(mapper::toDomain)
-                .toList();
-
-        return PaginatedResponse.of(categories, command.getPage(), command.getSize(), totalElements);
+        return PaginatedResponse.of(entities, command.getPage(), command.getSize(), totalElements);
     }
 
     @Override
-    public Category save(Category category) {
-        CategoryEntity entity = mapper.toEntity(category);
-        CategoryEntity saved = jpaRepository.save(entity);
-        return mapper.toDomain(saved);
+    public CategoryEntity save(CategoryEntity category) {
+        return jpaRepository.save(category);
     }
 
     @Override
-    public Optional<Category> findById(UUID id) {
-        return jpaRepository.findById(id)
-                .map(mapper::toDomain);
+    public Optional<CategoryEntity> findById(UUID id) {
+        return jpaRepository.findById(id);
     }
 
     @Override
-    public Optional<Category> findByName(String name) {
-        return jpaRepository.findByName(name)
-                .map(mapper::toDomain);
+    public Optional<CategoryEntity> findByName(String name) {
+        return jpaRepository.findByName(name);
     }
     
     @Override
-    public Category update(Category Category) {
-        CategoryEntity entity = mapper.toEntity(Category);
-        CategoryEntity updated = jpaRepository.save(entity);
-        return mapper.toDomain(updated);
+    public CategoryEntity update(CategoryEntity category) {
+        return save(category);
     }
     
     @Override

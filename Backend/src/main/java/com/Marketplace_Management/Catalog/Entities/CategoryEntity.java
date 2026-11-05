@@ -12,13 +12,15 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import lombok.Builder;
 
 @Entity
 @Table(name = "categories")
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = false, exclude = {"parent", "children"})
+@ToString(exclude = {"parent", "children"})
 @NoArgsConstructor
 @SuperBuilder
 public class CategoryEntity extends UuidEntity {

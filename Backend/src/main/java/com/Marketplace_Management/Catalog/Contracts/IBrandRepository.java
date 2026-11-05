@@ -5,19 +5,19 @@ import java.util.UUID;
 
 import com.Marketplace_Management.Catalog.DTOs.Commands.Brand.GetListBrandCommand;
 import com.Marketplace_Management.Catalog.DTOs.Response.BrandResponse;
-import com.Marketplace_Management.Catalog.Models.Brand;
+import com.Marketplace_Management.Catalog.Entities.BrandEntity;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 public interface IBrandRepository {
-    Brand save(Brand brand);
+    BrandEntity save(BrandEntity brand);
 
     PaginatedResponse<BrandResponse> findAll(GetListBrandCommand command);
 
-    Optional<Brand> findById(UUID id);
+    Optional<BrandEntity> findById(UUID id);
 
-    Optional<Brand> findByName(String name);
+    Optional<BrandEntity> findByName(String name);
 
-    Brand update(Brand brand);
+    BrandEntity update(BrandEntity brand);
 
     void delete(UUID id);
 }

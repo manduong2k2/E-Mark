@@ -10,9 +10,6 @@ import com.Marketplace_Management.Catalog.DTOs.Commands.Product.GetListProductCo
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductShortResponse;
 import com.Marketplace_Management.Catalog.Entities.ProductEntity;
 import com.Marketplace_Management.Catalog.Entities.ProductVariantEntity;
-import com.Marketplace_Management.Catalog.Models.Product;
-import com.Marketplace_Management.Catalog.Models.ProductVariant;
-import com.Marketplace_Management.Shared.Contracts.EntityDomainMapper;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
@@ -24,8 +21,6 @@ import tools.jackson.databind.ObjectMapper;
 public class ProductRepository implements IProductRepository {
 
     private final ProductJpaRepository jpaRepository;
-    private final EntityDomainMapper<Product, ProductEntity> productMapper;
-    private final EntityDomainMapper<ProductVariant, ProductVariantEntity> variantMapper;
     private final ProductVariantJpaRepository productVariantJpaRepository;
     private final DSLContext dslContext;
     private final EntityMetadataRegistry metadataRegistry;
@@ -33,16 +28,12 @@ public class ProductRepository implements IProductRepository {
 
 
     public ProductRepository(ProductJpaRepository jpaRepository,
-            EntityDomainMapper<Product, ProductEntity> productMapper,
             ProductVariantJpaRepository productVariantJpaRepository,
-            EntityDomainMapper<ProductVariant, ProductVariantEntity> variantMapper,
             DSLContext dslContext,
             EntityMetadataRegistry metadataRegistry,
             ObjectMapper objectMapper) {
         this.jpaRepository = jpaRepository;
-        this.productMapper = productMapper;
         this.productVariantJpaRepository = productVariantJpaRepository;
-        this.variantMapper = variantMapper;
         this.dslContext = dslContext;
         this.metadataRegistry = metadataRegistry;
         this.objectMapper = objectMapper;
@@ -100,47 +91,28 @@ public class ProductRepository implements IProductRepository {
                 total);
     }
 
-    public Product save(Product Product) {
-        ProductEntity productEntity = productMapper.toEntity(Product);
-        ProductEntity saved = jpaRepository.save(productEntity);
-        if (saved != null && saved.getVariants() != null && !saved.getVariants().isEmpty()) {
-            saved.getVariants().forEach(
-                    variant -> {
-                        if (variant != null && variant.getImages() != null && !variant.getImages().isEmpty()) {
-                            variant.getImages().forEach(image -> image.setEntity(variant));
-                        }
-                    });
-            saved = jpaRepository.save(saved);
-        }
-
-        return productMapper.toDomain(saved);
+    @Override
+    public ProductEntity save(ProductEntity product) {
+        return jpaRepository.save(product);
     }
 
-    public Product findById(UUID id) {
-        return jpaRepository.findById(id).map(productMapper::toDomain).orElse(null);
+    @Override
+    public ProductEntity findById(UUID id) {
+        return jpaRepository.findById(id).orElse(null);
     }
 
-    public Product update(Product Product) {
-        ProductEntity productEntity = productMapper.toEntity(Product);
-        ProductEntity updated = jpaRepository.save(productEntity);
-        if (updated != null && updated.getVariants() != null && !updated.getVariants().isEmpty()) {
-            updated.getVariants().forEach(
-                    variant -> {
-                        if (variant != null && variant.getImages() != null && !variant.getImages().isEmpty()) {
-                            variant.getImages().forEach(image -> image.setEntity(variant));
-                        }
-                    });
-            updated = jpaRepository.save(updated);
-        }
-        return productMapper.toDomain(updated);
+    @Override
+    public ProductEntity update(ProductEntity product) {
+        return save(product);
     }
 
+    @Override
     public void delete(UUID id) {
         jpaRepository.deleteById(id);
     }
 
-    public ProductVariant findVariantById(UUID variantId) {
-        ProductVariantEntity entity = productVariantJpaRepository.findById(variantId).orElse(null);
-        return entity != null ? variantMapper.toDomain(entity) : null;
+    @Override
+    public ProductVariantEntity findVariantById(UUID variantId) {
+        return productVariantJpaRepository.findById(variantId).orElse(null);
     }
 }

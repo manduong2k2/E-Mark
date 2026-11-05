@@ -11,8 +11,6 @@ import com.Marketplace_Management.Catalog.Contracts.IBrandRepository;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Brand.GetListBrandCommand;
 import com.Marketplace_Management.Catalog.DTOs.Response.BrandResponse;
 import com.Marketplace_Management.Catalog.Entities.BrandEntity;
-import com.Marketplace_Management.Catalog.Mappers.BrandMapper;
-import com.Marketplace_Management.Catalog.Models.Brand;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
@@ -26,15 +24,13 @@ public class BrandRepository implements IBrandRepository {
     private final DSLContext dslContext;
     private final EntityMetadataRegistry metadataRegistry;
     private final ObjectMapper objectMapper;
-    private final BrandMapper brandMapper;
 
     public BrandRepository(BrandJpaRepository jpaRepository, DSLContext dslContext,
-            EntityMetadataRegistry metadataRegistry, ObjectMapper objectMapper, BrandMapper brandMapper) {
+            EntityMetadataRegistry metadataRegistry, ObjectMapper objectMapper) {
         this.jpaRepository = jpaRepository;
         this.dslContext = dslContext;
         this.metadataRegistry = metadataRegistry;
         this.objectMapper = objectMapper;
-        this.brandMapper = brandMapper;
     }
 
     @Override
@@ -65,29 +61,23 @@ public class BrandRepository implements IBrandRepository {
     }
 
     @Override
-    public Brand save(Brand brand) {
-        BrandEntity entity = brandMapper.toEntity(brand);
-        BrandEntity saved = jpaRepository.save(entity);
-        return brandMapper.toDomain(saved);
+    public BrandEntity save(BrandEntity brand) {
+        return jpaRepository.save(brand);
     }
 
     @Override
-    public Optional<Brand> findById(UUID id) {
-        return jpaRepository.findById(id)
-                .map(brandMapper::toDomain);
+    public Optional<BrandEntity> findById(UUID id) {
+        return jpaRepository.findById(id);
     }
 
     @Override
-    public Optional<Brand> findByName(String name) {
-        return jpaRepository.findByName(name)
-                .map(brandMapper::toDomain);
+    public Optional<BrandEntity> findByName(String name) {
+        return jpaRepository.findByName(name);
     }
 
     @Override
-    public Brand update(Brand brand) {
-        BrandEntity entity = brandMapper.toEntity(brand);
-        BrandEntity updated = jpaRepository.save(entity);
-        return brandMapper.toDomain(updated);
+    public BrandEntity update(BrandEntity brand) {
+        return save(brand);
     }
 
     @Override

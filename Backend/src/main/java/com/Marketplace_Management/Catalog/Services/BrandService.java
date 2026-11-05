@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.Marketplace_Management.Catalog.Contracts.IBrandRepository;
 import com.Marketplace_Management.Catalog.Contracts.IBrandService;
@@ -12,44 +13,41 @@ import com.Marketplace_Management.Catalog.DTOs.Commands.Brand.CreateBrandCommand
 import com.Marketplace_Management.Catalog.DTOs.Commands.Brand.GetListBrandCommand;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Brand.UpdateBrandCommand;
 import com.Marketplace_Management.Catalog.DTOs.Response.BrandResponse;
-import com.Marketplace_Management.Catalog.Models.Brand;
+import com.Marketplace_Management.Catalog.Entities.BrandEntity;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
-import com.Marketplace_Management.Shared.Events.DomainEventDispatcher;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class BrandService implements IBrandService {
     private static final String BRAND_NOT_FOUND = "Brand not found";
 
     private final IBrandRepository brandRepository;
-    private final DomainEventDispatcher domainEvents;
     private final IFileService fileService;
 
     @Value("${spring.application.base-url:http://localhost:8080}")
     private String baseUrl;
 
-    public BrandService(IBrandRepository brandRepository, DomainEventDispatcher domainEvents, IFileService fileService) {
+    public BrandService(IBrandRepository brandRepository, IFileService fileService) {
         this.brandRepository = brandRepository;
-        this.domainEvents = domainEvents;
         this.fileService = fileService;
     }
 
+    @Transactional(readOnly = true)
     public PaginatedResponse<BrandResponse> getAll(GetListBrandCommand command) {
         return brandRepository.findAll(command).map(brand -> brand.withUrl(baseUrl));
     }
 
+    @Transactional(readOnly = true)
     public BrandResponse getBrand(UUID brandId) {
         return brandRepository.findById(brandId)
                 .map(brand -> new BrandResponse(brand).withUrl(baseUrl))
                 .orElseThrow(() -> new ResourceNotFoundException(BRAND_NOT_FOUND));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     public BrandResponse createBrand(CreateBrandCommand command) throws java.io.IOException {
-        Brand brand = Brand.builder()
+        BrandEntity brand = BrandEntity.builder()
                 .name(command.getName())
                 .description(command.getDescription())
                 .build();
@@ -57,14 +55,12 @@ public class BrandService implements IBrandService {
         brand.setImage(fileService.replaceFile(command.getImage(), null, "catalog/brands/"));
         brand = brandRepository.save(brand);
 
-        domainEvents.dispatch(brand, "brand.created");
-
         return new BrandResponse(brand).withUrl(baseUrl);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     public BrandResponse updateBrand(UUID brandId, UpdateBrandCommand command) throws IOException {
-        Brand brand = brandRepository.findById(brandId)
+        BrandEntity brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new ResourceNotFoundException(BRAND_NOT_FOUND));
 
         brand.setName(command.getName());
@@ -73,8 +69,6 @@ public class BrandService implements IBrandService {
         brand.setImage(fileService.replaceFile(command.getImage(), brand.getImage(), "catalog/brands/"));
 
         brand = brandRepository.save(brand);
-
-        domainEvents.dispatch(brand, "brand.updated");
 
         return new BrandResponse(brand).withUrl(baseUrl);
     }
