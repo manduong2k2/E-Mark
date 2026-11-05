@@ -1,6 +1,7 @@
 package com.Marketplace_Management.Catalog.Services;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -97,42 +98,47 @@ public class ProductService implements IProductService {
     @Override
     @Transactional(rollbackFor = IOException.class)
     public ProductResponse createProduct(CreateProductCommand command) throws IOException {
-        // Admins may create a product for any vendor; a vendor always creates for its
-        // own store.
-        // No vendor given: the product belongs to the current user's vendor (getById
-        // throws 404 for an unknown id)
+
         VendorResponse vendor = command.getVendorId() != null && SecurityUtils.isAdmin()
                 ? vendorService.getById(command.getVendorId())
                 : vendorService.getByUser(SecurityUtils.currentUserId());
         if (vendor == null) {
             throw new ResourceNotFoundException("Vendor not found");
         }
-        ProductEntity product = new ProductEntity();
-        product.setName(command.getName());
-        product.setDescription(command.getDescription());
-        product.setBrand(findBrand(command.getBrandId()));
-        product.setCategories(findCategories(command.getCategoryIds()));
-        product.setStatus(command.getStatus() != null ? command.getStatus() : ProductStatusEnum.PUBLISHED.name());
-        product.setVendorId(vendor.getId());
-        product.setVariants(new HashSet<>());
-
-        for (var variantCommand : command.getVariants()) {
-            ProductVariantEntity variant = ProductVariantEntity.builder()
-                    .name(variantCommand.getName())
-                    .sku(variantCommand.getSku())
-                    .price(variantCommand.getPrice())
-                    .stock(variantCommand.getStock())
-                    .product(product)
-                    .images(new ArrayList<>())
+        ProductEntity product;
+        try {
+            product = ProductEntity.builder()
+                    .name(command.getName())
+                    .description(command.getDescription())
+                    .brand(findBrand(command.getBrandId()))
+                    .categories(findCategories(command.getCategoryIds()))
+                    .status(command.getStatus() != null ? command.getStatus() : ProductStatusEnum.PUBLISHED.name())
+                    .vendorId(vendor.getId())
+                    .variants(command.getVariants().stream().map(variantCommand -> {
+                        ProductVariantEntity variant = ProductVariantEntity.builder()
+                                .name(variantCommand.getName())
+                                .sku(variantCommand.getSku())
+                                .price(variantCommand.getPrice())
+                                .stock(variantCommand.getStock())
+                                .images(new ArrayList<>())
+                                .build();
+                        if (variantCommand.getImages() != null) {
+                            for (var image : variantCommand.getImages()) {
+                                try {
+                                    String url = fileService.uploadFile(image, "catalog/product_variants");
+                                    variant.getImages().add(new FileEntity(null, url, variant));
+                                } catch (IOException e) {
+                                    throw new UncheckedIOException(e);
+                                }
+                            }
+                        }
+                        return variant;
+                    }).collect(Collectors.toCollection(HashSet::new)))
                     .build();
-            if (variantCommand.getImages() != null) {
-                for (var image : variantCommand.getImages()) {
-                    String url = fileService.uploadFile(image, "catalog/product_variants");
-                    variant.getImages().add(new FileEntity(null, url, variant));
-                }
-            }
-            product.getVariants().add(variant);
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
         }
+        product.getVariants().forEach(variant -> variant.setProduct(product));
 
         ProductEntity savedProduct = productRepository.save(product);
 

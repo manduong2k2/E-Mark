@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(
@@ -26,6 +27,7 @@ import lombok.ToString;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
+@SuperBuilder
 public class ProductEntity extends UuidEntity {
     @EqualsAndHashCode.Include
     @Column(nullable = false)
