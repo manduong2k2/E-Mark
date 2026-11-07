@@ -38,16 +38,6 @@ public class UserObserver {
         tokenService.sendVerifyEmail(event.getEntity().getEmail(), token);
     }
 
-    /**
-     * Roles/status changed or user deleted: revoke every live access token of these users
-     * (blacklist until each token's own expiry) and drop their sessions. Their next request gets
-     * 401, the client refreshes and receives a token with the current roles (or is logged out if
-     * the user can no longer refresh).
-     *
-     * AFTER_COMMIT: revoking before commit would let the client refresh into the OLD roles.
-     * Synchronous on purpose: the tokens are revoked before the admin's request returns.
-     * fallbackExecution: also runs when the change was saved without a surrounding transaction.
-     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onAccessChanged(UserAccessChangedEvent event) {
         if (event.userIds() == null || event.userIds().isEmpty()) {

@@ -21,14 +21,17 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.Marketplace_Management.Marketplace_ManagementApplication;
 import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
 
 /**
- * Error bodies: { message } for expected errors; validation adds { errors: { field: message } }.
- * Unexpected errors are logged; their details (class, cause, stack trace) are only returned with app.debug=true.
+ * Error bodies: { message } for expected errors; validation adds { errors: {
+ * field: message } }.
+ * Unexpected errors are logged; their details (class, cause, stack trace) are
+ * only returned with app.debug=true.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,8 +48,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
-		// Not signed in (no token / expired token) on a @PreAuthorize endpoint -> 401, so the client
-		// can refresh its token. 403 is kept for signed-in users that lack the required role.
+
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (auth == null || auth instanceof AnonymousAuthenticationToken || !auth.isAuthenticated()) {
 			return message(HttpStatus.UNAUTHORIZED, "Unauthenticated");
@@ -64,7 +66,16 @@ public class GlobalExceptionHandler {
 		return message(HttpStatus.NOT_FOUND, ex.getMessage());
 	}
 
-	/** Bad input, and domain rules a request broke (e.g. "Item not found in cart", "Cannot checkout an empty cart"). */
+	@ExceptionHandler(NoResourceFoundException.class)
+	public ResponseEntity<Void> handleNotFound(NoResourceFoundException ex) {
+
+		return ResponseEntity.notFound().build();
+	}
+
+	/**
+	 * Bad input, and domain rules a request broke (e.g. "Item not found in cart",
+	 * "Cannot checkout an empty cart").
+	 */
 	@ExceptionHandler({ BadRequestException.class, IllegalArgumentException.class, IllegalStateException.class })
 	public ResponseEntity<Map<String, Object>> handleBadRequest(RuntimeException ex) {
 		return message(HttpStatus.BAD_REQUEST, ex.getMessage());
@@ -80,7 +91,8 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
 		Map<String, String> errors = new HashMap<>();
-		ex.getBindingResult().getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+		ex.getBindingResult().getFieldErrors()
+				.forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", "Validation failed");
