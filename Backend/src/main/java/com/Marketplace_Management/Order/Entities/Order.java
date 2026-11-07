@@ -26,7 +26,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true, exclude = "items")
 @ToString(exclude = "items")
-public class OrderEntity extends UuidEntity {
+public class Order extends UuidEntity {
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
@@ -56,13 +56,13 @@ public class OrderEntity extends UuidEntity {
         fetch = FetchType.EAGER
     )
     @Builder.Default
-    private List<OrderItemEntity> items = new ArrayList<>();
+    private List<OrderItem> items = new ArrayList<>();
 
     public void changeStatus(String status) {
         this.status = status;
     }
 
     public double calculateTotal() {
-        return items.stream().mapToDouble(OrderItemEntity::calculateTotal).sum();
+        return items.stream().mapToDouble(OrderItem::calculateTotal).sum();
     }
 }

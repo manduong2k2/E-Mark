@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 @Table(name = "delivery_methods")
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class DeliveryMethodEntity extends NumericEntity{
+public class DeliveryMethod extends NumericEntity{
     private String name;
     private String description;
     private double unitFee;

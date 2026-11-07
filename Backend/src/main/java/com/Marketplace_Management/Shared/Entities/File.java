@@ -18,7 +18,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false, exclude = "entity")
 @ToString(exclude = "entity")
 @Data
-public class FileEntity extends UuidEntity {
+public class File extends UuidEntity {
 
     @Column(nullable = false)
     private String url;
@@ -29,10 +29,10 @@ public class FileEntity extends UuidEntity {
     @AnyKeyJavaClass(UUID.class)
     private Object entity;
 
-    public FileEntity() {
+    public File() {
     }
 
-    public FileEntity(UUID id, String url, Object entity) {
+    public File(UUID id, String url, Object entity) {
         this.setId(id);
         this.url = url;
         this.entity = entity;

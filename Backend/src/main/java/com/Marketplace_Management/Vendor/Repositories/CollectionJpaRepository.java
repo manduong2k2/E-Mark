@@ -4,10 +4,10 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.Marketplace_Management.Vendor.Entities.CollectionEntity;
+import com.Marketplace_Management.Vendor.Entities.Collection;
 
 import java.util.Set;
 
-public interface CollectionJpaRepository extends JpaRepository<CollectionEntity, UUID> {
-    Set<CollectionEntity> findByVendorId(UUID vendorId);
+public interface CollectionJpaRepository extends JpaRepository<Collection, UUID> {
+    Set<Collection> findByVendorId(UUID vendorId);
 }

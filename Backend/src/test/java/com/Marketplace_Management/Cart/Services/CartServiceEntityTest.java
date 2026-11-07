@@ -23,8 +23,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import com.Marketplace_Management.Cart.Constants.CartStatusEnum;
 import com.Marketplace_Management.Cart.Contracts.ICartRepository;
 import com.Marketplace_Management.Cart.DTOs.Commands.AddToCartCommand;
-import com.Marketplace_Management.Cart.Entities.CartEntity;
-import com.Marketplace_Management.Cart.Entities.CartItemEntity;
+import com.Marketplace_Management.Cart.Entities.Cart;
+import com.Marketplace_Management.Cart.Entities.CartItem;
 import com.Marketplace_Management.Catalog.Contracts.IProductService;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductResponse;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductVariantResponse;
@@ -37,12 +37,12 @@ class CartServiceEntityTest {
 
     @Test
     void cartMergesQuantitiesAndRemovesItemsWithoutReplacingItsCollection() {
-        CartEntity cart = CartEntity.builder().userId(UUID.randomUUID()).build();
+        Cart cart = Cart.builder().userId(UUID.randomUUID()).build();
         var items = cart.getItems();
         UUID variantId = UUID.randomUUID();
-        CartItemEntity item = CartItemEntity.builder().productVariantId(variantId).quantity(2).build();
+        CartItem item = CartItem.builder().productVariantId(variantId).quantity(2).build();
         cart.addItem(item);
-        cart.addItem(CartItemEntity.builder().productVariantId(variantId).quantity(3).build());
+        cart.addItem(CartItem.builder().productVariantId(variantId).quantity(3).build());
 
         assertEquals(CartStatusEnum.NEW.name(), cart.getStatus());
         assertSame(items, cart.getItems());
@@ -57,9 +57,9 @@ class CartServiceEntityTest {
 
     @Test
     void cartKeepsCheckoutAndMutationRulesOnTheEntity() {
-        CartEntity cart = CartEntity.builder().build();
+        Cart cart = Cart.builder().build();
         assertThrows(IllegalStateException.class, cart::checkout);
-        CartItemEntity item = CartItemEntity.builder().productVariantId(UUID.randomUUID()).quantity(1).build();
+        CartItem item = CartItem.builder().productVariantId(UUID.randomUUID()).quantity(1).build();
         cart.addItem(item);
         cart.checkout();
 
@@ -72,11 +72,11 @@ class CartServiceEntityTest {
 
     @Test
     void readsEnrichDtosAndKeepDeletedVariantsWithoutWritingTheCart() {
-        CartEntity cart = CartEntity.builder().id(UUID.randomUUID()).userId(UUID.randomUUID()).build();
+        Cart cart = Cart.builder().id(UUID.randomUUID()).userId(UUID.randomUUID()).build();
         UUID variantId = UUID.randomUUID();
         UUID deletedVariantId = UUID.randomUUID();
-        cart.addItem(CartItemEntity.builder().productVariantId(variantId).quantity(2).build());
-        cart.addItem(CartItemEntity.builder().productVariantId(deletedVariantId).quantity(1).build());
+        cart.addItem(CartItem.builder().productVariantId(variantId).quantity(2).build());
+        cart.addItem(CartItem.builder().productVariantId(deletedVariantId).quantity(1).build());
         ProductResponse product = new ProductResponse();
         product.setName("Product");
         ProductVariantResponse variant = new ProductVariantResponse();
@@ -103,9 +103,9 @@ class CartServiceEntityTest {
     @Test
     void concurrentFirstCartCreationFallsBackToTheExistingCart() {
         UUID userId = UUID.randomUUID();
-        CartEntity cart = CartEntity.builder().id(UUID.randomUUID()).userId(userId).build();
+        Cart cart = Cart.builder().id(UUID.randomUUID()).userId(userId).build();
         UUID variantId = UUID.randomUUID();
-        CartItemEntity item = CartItemEntity.builder().id(UUID.randomUUID()).productVariantId(variantId).quantity(1).build();
+        CartItem item = CartItem.builder().id(UUID.randomUUID()).productVariantId(variantId).quantity(1).build();
         cart.addItem(item);
         when(repository.findByUserId(userId)).thenReturn(Optional.empty(), Optional.of(cart));
         when(repository.create(any())).thenThrow(new DataIntegrityViolationException("Concurrent cart insert"));
@@ -123,8 +123,8 @@ class CartServiceEntityTest {
 
     @Test
     void clearUsesTheExistingCollectionWithoutFetchingProductDetails() {
-        CartEntity cart = CartEntity.builder().userId(UUID.randomUUID()).build();
-        cart.addItem(CartItemEntity.builder().productVariantId(UUID.randomUUID()).quantity(1).build());
+        Cart cart = Cart.builder().userId(UUID.randomUUID()).build();
+        cart.addItem(CartItem.builder().productVariantId(UUID.randomUUID()).quantity(1).build());
         var items = cart.getItems();
         when(repository.findByUserId(cart.getUserId())).thenReturn(Optional.of(cart));
 

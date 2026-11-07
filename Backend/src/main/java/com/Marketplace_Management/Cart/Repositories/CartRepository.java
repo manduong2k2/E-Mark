@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.Marketplace_Management.Cart.Contracts.ICartRepository;
-import com.Marketplace_Management.Cart.Entities.CartEntity;
+import com.Marketplace_Management.Cart.Entities.Cart;
 
 @Repository
 public class CartRepository implements ICartRepository {
@@ -21,29 +21,29 @@ public class CartRepository implements ICartRepository {
     }
 
     @Override
-    public List<CartEntity> findAll() {
+    public List<Cart> findAll() {
         return jpa.findAll();
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CartEntity create(CartEntity cart) {
+    public Cart create(Cart cart) {
         // A concurrent first-cart insert must not mark the caller's transaction rollback-only.
         return jpa.saveAndFlush(cart);
     }
 
     @Override
-    public Optional<CartEntity> findById(UUID id) {
+    public Optional<Cart> findById(UUID id) {
         return jpa.findById(id);
     }
 
     @Override
-    public Optional<CartEntity> findByUserId(UUID userId) {
+    public Optional<Cart> findByUserId(UUID userId) {
         return jpa.findByUserId(userId);
     }
 
     @Override
-    public CartEntity update(CartEntity cart) {
+    public Cart update(Cart cart) {
         return jpa.save(cart);
     }
 
@@ -53,7 +53,7 @@ public class CartRepository implements ICartRepository {
     }
 
     @Override
-    public List<CartEntity> findByItemsProductVariantId(UUID productVariantId) {
+    public List<Cart> findByItemsProductVariantId(UUID productVariantId) {
         return jpa.findByItemsProductVariantId(productVariantId);
     }
 }

@@ -14,6 +14,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 /**
  * A delivery address of a user: ward (which belongs to a province) + free-text detail
@@ -22,11 +24,13 @@ import lombok.EqualsAndHashCode;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+@SuperBuilder
 @Table(name = "addresses", indexes = {
         @Index(name = "idx_address_ward", columnList = "wardId"),
         @Index(name = "idx_addresses_user_id", columnList = "user_id"),
 })
-public class AddressEntity extends NumericEntity {
+public class Address extends NumericEntity {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
@@ -39,5 +43,21 @@ public class AddressEntity extends NumericEntity {
 
     @ManyToOne
     @JoinColumn(name = "ward_id", nullable = false)
-    private WardEntity ward;
+    private Ward ward;
+
+    public boolean isDefaultAddress() {
+        return Boolean.TRUE.equals(isDefault);
+    }
+
+    /** Full address shown to the user and captured on an order. */
+    public String fullAddress() {
+        StringBuilder address = new StringBuilder(detail == null ? "" : detail);
+        if (ward != null) {
+            address.append(", ").append(ward.getFullName());
+            if (ward.getProvince() != null) {
+                address.append(", ").append(ward.getProvince().getFullName());
+            }
+        }
+        return address.toString();
+    }
 }

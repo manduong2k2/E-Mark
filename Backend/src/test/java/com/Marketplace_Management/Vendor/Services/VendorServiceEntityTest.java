@@ -28,8 +28,8 @@ import com.Marketplace_Management.Vendor.Constants.VendorStatus;
 import com.Marketplace_Management.Vendor.Contracts.IVendorRepository;
 import com.Marketplace_Management.Vendor.DTOs.Command.UpdateCollectionCommand;
 import com.Marketplace_Management.Vendor.DTOs.Command.VendorProfileCommand;
-import com.Marketplace_Management.Vendor.Entities.CollectionEntity;
-import com.Marketplace_Management.Vendor.Entities.VendorEntity;
+import com.Marketplace_Management.Vendor.Entities.Collection;
+import com.Marketplace_Management.Vendor.Entities.Vendor;
 import com.Marketplace_Management.Vendor.Events.VendorActivatedEvent;
 import com.Marketplace_Management.Vendor.Repositories.CollectionJpaRepository;
 
@@ -43,7 +43,7 @@ class VendorServiceEntityTest {
 
     @Test
     void activationKeepsItsRuleAndPublishesOnlyTheOwnerId() {
-        VendorEntity vendor = VendorEntity.builder().id(UUID.randomUUID()).userId(UUID.randomUUID()).build();
+        Vendor vendor = Vendor.builder().id(UUID.randomUUID()).userId(UUID.randomUUID()).build();
         assertEquals(VendorStatus.PENDING, vendor.getStatus());
         when(repository.findById(vendor.getId())).thenReturn(Optional.of(vendor));
         when(repository.save(vendor)).thenReturn(vendor);
@@ -58,7 +58,7 @@ class VendorServiceEntityTest {
 
     @Test
     void alreadyActiveVendorCannotBeActivatedAgain() {
-        VendorEntity vendor = VendorEntity.builder().id(UUID.randomUUID()).status(VendorStatus.ACTIVE).build();
+        Vendor vendor = Vendor.builder().id(UUID.randomUUID()).status(VendorStatus.ACTIVE).build();
         when(repository.findById(vendor.getId())).thenReturn(Optional.of(vendor));
 
         assertThrows(IllegalStateException.class, () -> service.active(vendor.getId()));
@@ -69,9 +69,9 @@ class VendorServiceEntityTest {
 
     @Test
     void collectionUpdateKeepsTheEntityOwnerAndCreationTimestamp() {
-        VendorEntity vendor = VendorEntity.builder().id(UUID.randomUUID()).build();
+        Vendor vendor = Vendor.builder().id(UUID.randomUUID()).build();
         LocalDateTime created = LocalDateTime.of(2026, 1, 1, 12, 0);
-        CollectionEntity collection = CollectionEntity.builder().id(UUID.randomUUID()).vendor(vendor)
+        Collection collection = Collection.builder().id(UUID.randomUUID()).vendor(vendor)
                 .name("Original").createdAt(created).displayOrder(1).build();
         when(collections.findById(collection.getId())).thenReturn(Optional.of(collection));
         when(collections.save(collection)).thenReturn(collection);
@@ -89,8 +89,8 @@ class VendorServiceEntityTest {
 
     @Test
     void collectionFromAnotherVendorIsRejected() {
-        CollectionEntity collection = CollectionEntity.builder().id(UUID.randomUUID())
-                .vendor(VendorEntity.builder().id(UUID.randomUUID()).build()).build();
+        Collection collection = Collection.builder().id(UUID.randomUUID())
+                .vendor(Vendor.builder().id(UUID.randomUUID()).build()).build();
         when(collections.findById(collection.getId())).thenReturn(Optional.of(collection));
 
         assertThrows(ResourceNotFoundException.class, () -> service.updateCollection(
@@ -101,7 +101,7 @@ class VendorServiceEntityTest {
 
     @Test
     void profileUpdatePreservesStatusOwnerAndImagesWhenNoFilesAreSent() throws Exception {
-        VendorEntity vendor = VendorEntity.builder().id(UUID.randomUUID()).userId(UUID.randomUUID())
+        Vendor vendor = Vendor.builder().id(UUID.randomUUID()).userId(UUID.randomUUID())
                 .status(VendorStatus.ACTIVE).logo("uploads/logo.png").banner("uploads/banner.png").build();
         when(repository.findById(vendor.getId())).thenReturn(Optional.of(vendor));
         when(repository.save(vendor)).thenReturn(vendor);

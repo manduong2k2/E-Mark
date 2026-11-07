@@ -6,16 +6,16 @@ import java.util.UUID;
 
 import com.Marketplace_Management.Vendor.DTOs.Command.GetListVendorCommand;
 import com.Marketplace_Management.Vendor.DTOs.Response.VendorResponse;
-import com.Marketplace_Management.Vendor.Entities.VendorEntity;
+import com.Marketplace_Management.Vendor.Entities.Vendor;
 
 public interface IVendorRepository {
-    VendorEntity save(VendorEntity vendor);
+    Vendor save(Vendor vendor);
 
     List<VendorResponse> findAll(GetListVendorCommand command);
 
-    Optional<VendorEntity> findById(UUID id);
+    Optional<Vendor> findById(UUID id);
 
-    Optional<VendorEntity> findByUserId(UUID userId);
+    Optional<Vendor> findByUserId(UUID userId);
 
     boolean existsByUserId(UUID userId);
 }

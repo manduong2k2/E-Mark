@@ -8,7 +8,9 @@ Overview rules:
 - Modules should be able to communicate with each other through contracts, implementations can be either business services or api client services.
 - Modules should be able to be scaled independently.
 - Each module should have its own database.
-- Models and Entities between different bounded contexts must not have direct relationships or foreign keys.
+- Entities between different bounded contexts must not have direct relationships or foreign keys.
+- Repositories and services use JPA entities directly; do not introduce a parallel Models layer.
+- Use `Shared.Utils.QueryBuilder.QueryBuilder` for dynamic read queries and pagination instead of Criteria or QueryDSL. Use JPA for entity loading and persistence.
 
 Authentication and Authorization rules:
 - Authentication concept should be stateless. 

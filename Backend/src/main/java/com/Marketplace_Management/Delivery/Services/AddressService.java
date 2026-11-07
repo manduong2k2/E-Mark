@@ -14,9 +14,9 @@ import com.Marketplace_Management.Delivery.Contracts.IAddressService;
 import com.Marketplace_Management.Delivery.DTOs.Commands.Address.SaveAddressCommand;
 import com.Marketplace_Management.Delivery.DTOs.Response.Address.AddressResponse;
 import com.Marketplace_Management.Delivery.DTOs.Response.Address.RegionResponse;
-import com.Marketplace_Management.Delivery.Models.Address;
-import com.Marketplace_Management.Delivery.Models.Province;
-import com.Marketplace_Management.Delivery.Models.Ward;
+import com.Marketplace_Management.Delivery.Entities.Address;
+import com.Marketplace_Management.Delivery.Entities.Province;
+import com.Marketplace_Management.Delivery.Entities.Ward;
 import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
 
@@ -76,7 +76,7 @@ public class AddressService implements IAddressService {
     @Override
     @Transactional
     public AddressResponse createAddress(UUID userId, SaveAddressCommand command) {
-        requireWard(command.getWardId());
+        Ward ward = requireWard(command.getWardId());
         boolean makeDefault = Boolean.TRUE.equals(command.getIsDefault()) || addressRepository.findDefault(userId).isEmpty();
         if (makeDefault) {
             addressRepository.clearDefault(userId);
@@ -84,7 +84,7 @@ public class AddressService implements IAddressService {
 
         Address address = Address.builder()
                 .userId(userId)
-                .wardId(command.getWardId())
+                .ward(ward)
                 .detail(command.getDetail())
                 .isDefault(makeDefault)
                 .build();
@@ -95,7 +95,7 @@ public class AddressService implements IAddressService {
     @Transactional
     public AddressResponse updateAddress(UUID userId, Long addressId, SaveAddressCommand command) {
         Address address = requireOwned(userId, addressId);
-        requireWard(command.getWardId());
+        Ward ward = requireWard(command.getWardId());
 
         // The default can only be replaced (by making another address the default), never just unset
         if (!address.isDefaultAddress() && Boolean.TRUE.equals(command.getIsDefault())) {
@@ -103,7 +103,7 @@ public class AddressService implements IAddressService {
             address.setIsDefault(true);
         }
 
-        address.setWardId(command.getWardId());
+        address.setWard(ward);
         address.setDetail(command.getDetail());
         return toResponse(addressRepository.save(address));
     }
@@ -140,10 +140,9 @@ public class AddressService implements IAddressService {
                 .orElseThrow(() -> new ResourceNotFoundException(ADDRESS_NOT_FOUND));
     }
 
-    private void requireWard(String wardId) {
-        if (!addressRepository.wardExists(wardId)) {
-            throw new BadRequestException(WARD_NOT_FOUND);
-        }
+    private Ward requireWard(String wardId) {
+        return addressRepository.findWardById(wardId)
+                .orElseThrow(() -> new BadRequestException(WARD_NOT_FOUND));
     }
 
     private RegionResponse toRegion(Province province) {

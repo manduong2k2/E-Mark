@@ -7,81 +7,61 @@ import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
 import com.Marketplace_Management.Delivery.Contracts.IAddressRepository;
-import com.Marketplace_Management.Delivery.Entities.AddressEntity;
-import com.Marketplace_Management.Delivery.Entities.WardEntity;
-import com.Marketplace_Management.Delivery.Mappers.AddressMapper;
-import com.Marketplace_Management.Delivery.Models.Address;
-import com.Marketplace_Management.Delivery.Models.Province;
-import com.Marketplace_Management.Delivery.Models.Ward;
-
-import jakarta.persistence.EntityManager;
+import com.Marketplace_Management.Delivery.Entities.Address;
+import com.Marketplace_Management.Delivery.Entities.Province;
+import com.Marketplace_Management.Delivery.Entities.Ward;
 
 @Repository
 public class AddressRepository implements IAddressRepository {
     private final JpaAddressRepository addressRepository;
     private final JpaProvinceRepository provinceRepository;
     private final JpaWardRepository wardRepository;
-    private final AddressMapper addressMapper;
-    private final EntityManager entityManager;
 
     public AddressRepository(JpaAddressRepository addressRepository, JpaProvinceRepository provinceRepository,
-            JpaWardRepository wardRepository, AddressMapper addressMapper, EntityManager entityManager) {
+            JpaWardRepository wardRepository) {
         this.addressRepository = addressRepository;
         this.provinceRepository = provinceRepository;
         this.wardRepository = wardRepository;
-        this.addressMapper = addressMapper;
-        this.entityManager = entityManager;
     }
 
     @Override
     public List<Province> findProvinces() {
-        return provinceRepository.findAll().stream()
-                .map(p -> Province.builder().id(p.getId()).name(p.getName()).fullName(p.getFullName()).build())
-                .toList();
+        return provinceRepository.findAll();
     }
 
     @Override
     public List<Ward> findWardsByProvince(String provinceId) {
-        return wardRepository.findByProvinceId(provinceId).stream()
-                .map(w -> Ward.builder().id(w.getId()).name(w.getName()).fullName(w.getFullName()).build())
-                .toList();
+        return wardRepository.findByProvinceId(provinceId);
     }
 
     @Override
-    public boolean wardExists(String wardId) {
-        return wardRepository.existsById(wardId);
+    public Optional<Ward> findWardById(String wardId) {
+        return wardRepository.findById(wardId);
     }
 
     @Override
     public List<Address> findByUser(UUID userId) {
-        return addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId).stream()
-                .map(addressMapper::toDomain)
-                .toList();
+        return addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId);
     }
 
     @Override
     public Optional<Address> findByIdAndUser(Long addressId, UUID userId) {
-        return addressRepository.findByIdAndUserId(addressId, userId).map(addressMapper::toDomain);
+        return addressRepository.findByIdAndUserId(addressId, userId);
     }
 
     @Override
     public Optional<Address> findDefault(UUID userId) {
-        return addressRepository.findFirstByUserIdAndIsDefaultTrue(userId).map(addressMapper::toDomain);
+        return addressRepository.findFirstByUserIdAndIsDefaultTrue(userId);
     }
 
     @Override
     public Optional<Address> findLatest(UUID userId) {
-        return addressRepository.findFirstByUserIdOrderByCreatedAtDesc(userId).map(addressMapper::toDomain);
+        return addressRepository.findFirstByUserIdOrderByCreatedAtDesc(userId);
     }
 
     @Override
     public Address save(Address address) {
-        AddressEntity entity = addressMapper.toEntity(address);
-        entity.setWard(entityManager.getReference(WardEntity.class, address.getWardId()));
-        AddressEntity saved = addressRepository.saveAndFlush(entity);
-        // Reload so the response has the ward/province names (the reference above is an empty proxy)
-        entityManager.refresh(saved);
-        return addressMapper.toDomain(saved);
+        return addressRepository.saveAndFlush(address);
     }
 
     @Override

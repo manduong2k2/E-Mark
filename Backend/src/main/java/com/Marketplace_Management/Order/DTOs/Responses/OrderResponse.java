@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import com.Marketplace_Management.Order.Entities.OrderEntity;
+import com.Marketplace_Management.Order.Entities.Order;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import lombok.Data;
@@ -24,7 +24,7 @@ public class OrderResponse {
     private String address;
     private String note;
 
-    public static OrderResponse from(OrderEntity order) {
+    public static OrderResponse from(Order order) {
         OrderResponse r = new OrderResponse();
         r.id        = order.getId();
         r.userId    = order.getUserId();

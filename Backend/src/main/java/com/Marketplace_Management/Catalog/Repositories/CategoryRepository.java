@@ -1,97 +1,68 @@
 package com.Marketplace_Management.Catalog.Repositories;
 
-import org.springframework.stereotype.Repository;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.jooq.DSLContext;
+import org.springframework.stereotype.Repository;
 
 import com.Marketplace_Management.Catalog.Contracts.ICategoryRepository;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Category.GetListCategoryCommand;
 import com.Marketplace_Management.Catalog.Entities.Category;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
+import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
+import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Order;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.EntityManager;
+import tools.jackson.databind.ObjectMapper;
 
 @Repository
 public class CategoryRepository implements ICategoryRepository {
-
     private final CategoryJpaRepository jpaRepository;
-    private final EntityManager entityManager;
+    private final DSLContext dslContext;
+    private final EntityMetadataRegistry metadataRegistry;
+    private final ObjectMapper objectMapper;
 
-    public CategoryRepository(CategoryJpaRepository jpaRepository, EntityManager entityManager) {
+    public CategoryRepository(CategoryJpaRepository jpaRepository, DSLContext dslContext,
+            EntityMetadataRegistry metadataRegistry, ObjectMapper objectMapper) {
         this.jpaRepository = jpaRepository;
-        this.entityManager = entityManager;
+        this.dslContext = dslContext;
+        this.metadataRegistry = metadataRegistry;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public PaginatedResponse<Category> findAll(GetListCategoryCommand command) {
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Category> query = builder.createQuery(Category.class);
+        QueryBuilder<Category> queryBuilder = new QueryBuilder<>(dslContext, metadataRegistry, objectMapper);
+        queryBuilder.query(Category.class)
+                .select("id")
+                .when(command.getSearch() != null && !command.getSearch().trim().isEmpty(), query -> {
+                    String pattern = "%" + command.getSearch() + "%";
+                    query.where("name", "ILIKE", pattern)
+                            .orWhere("description", "ILIKE", pattern);
+                })
+                .when(command.getSortBy() != null && !command.getSortBy().trim().isEmpty(), query -> {
+                    query.orderBy(command.getSortBy(), "desc".equalsIgnoreCase(command.getSortOrder()) ? "DESC" : "ASC");
+                });
 
-        Root<Category> root = query.from(Category.class);
+        long total = queryBuilder.count();
+        int offset = command.getPage() * command.getSize();
+        List<UUID> ids = queryBuilder.get(command.getSize(), offset).stream()
+                .map(row -> queryBuilder.to(row, Category.class).getId())
+                .toList();
 
-        List<Predicate> predicates = new ArrayList<>();
+        // Load managed entities so parent/children remain available at every depth.
+        // findAllById does not preserve the QueryBuilder sort order.
+        Map<UUID, Category> categoriesById = ids.isEmpty() ? Map.of()
+                : jpaRepository.findAllById(ids).stream()
+                        .collect(Collectors.toMap(Category::getId, Function.identity()));
+        List<Category> categories = ids.stream().map(categoriesById::get).filter(Objects::nonNull).toList();
 
-        if (command.getSearch() != null && !command.getSearch().trim().isEmpty()) {
-            String searchPattern = "%" + command.getSearch().toLowerCase() + "%";
-            predicates.add(
-                builder.or(
-                    builder.like(builder.lower(root.get("name")), searchPattern),
-                    builder.like(builder.lower(root.get("description")), searchPattern)
-                )
-            );
-        }
-
-        query.where(predicates.toArray(new Predicate[0]));
-
-        // Sorting
-        if (command.getSortBy() != null && !command.getSortBy().trim().isEmpty()) {
-            jakarta.persistence.criteria.Path<Object> sortPath = root.get(command.getSortBy());
-            Order order;
-            if ("desc".equalsIgnoreCase(command.getSortOrder())) {
-                order = builder.desc(sortPath);
-            } else {
-                order = builder.asc(sortPath);
-            }
-            query.orderBy(order);
-        }
-
-        // Get total count
-        CriteriaQuery<Long> countQuery = builder.createQuery(Long.class);
-        Root<Category> countRoot = countQuery.from(Category.class);
-        List<Predicate> countPredicates = new ArrayList<>();
-
-        if (command.getSearch() != null && !command.getSearch().trim().isEmpty()) {
-            String searchPattern = "%" + command.getSearch().toLowerCase() + "%";
-            countPredicates.add(
-                builder.or(
-                    builder.like(builder.lower(countRoot.get("name")), searchPattern),
-                    builder.like(builder.lower(countRoot.get("description")), searchPattern)
-                )
-            );
-        }
-
-        countQuery.where(countPredicates.toArray(new Predicate[0]));
-        countQuery.select(builder.count(countRoot));
-        Long totalElements = entityManager.createQuery(countQuery).getSingleResult();
-
-        // Pagination
-        int firstResult = command.getPage() * command.getSize();
-        int maxResults = command.getSize();
-
-        List<Category> entities = entityManager.createQuery(query)
-                .setFirstResult(firstResult)
-                .setMaxResults(maxResults)
-                .getResultList();
-
-        return PaginatedResponse.of(entities, command.getPage(), command.getSize(), totalElements);
+        return PaginatedResponse.of(categories, command.getPage(), command.getSize(), total);
     }
 
     @Override
@@ -108,12 +79,12 @@ public class CategoryRepository implements ICategoryRepository {
     public Optional<Category> findByName(String name) {
         return jpaRepository.findByName(name);
     }
-    
+
     @Override
     public Category update(Category category) {
         return save(category);
     }
-    
+
     @Override
     public void delete(UUID id) {
         jpaRepository.deleteById(id);

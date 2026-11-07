@@ -6,9 +6,18 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "summaries")
-public class SummaryEntity extends UuidEntity {
+@Data
+@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+@SuperBuilder
+public class Summary extends UuidEntity {
     
     @Column(nullable = false)
     private String content;

@@ -20,7 +20,7 @@ import com.Marketplace_Management.Shared.Entities.UuidEntity;
 })
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class DeliveryTrackingEntity extends UuidEntity {
+public class DeliveryTracking extends UuidEntity {
     
     @Nationalized
     private String status;
@@ -32,5 +32,5 @@ public class DeliveryTrackingEntity extends UuidEntity {
     
     @ManyToOne
     @JoinColumn(name = "delivery_id", nullable = false)
-    private DeliveryEntity delivery;
+    private Delivery delivery;
 }

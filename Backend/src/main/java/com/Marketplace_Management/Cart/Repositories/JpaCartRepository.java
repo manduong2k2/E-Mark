@@ -6,9 +6,9 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.Marketplace_Management.Cart.Entities.CartEntity;
+import com.Marketplace_Management.Cart.Entities.Cart;
 
-public interface JpaCartRepository extends JpaRepository<CartEntity, UUID> {
-    Optional<CartEntity> findByUserId(UUID userId);
-    List<CartEntity> findByItemsProductVariantId(UUID productId);
+public interface JpaCartRepository extends JpaRepository<Cart, UUID> {
+    Optional<Cart> findByUserId(UUID userId);
+    List<Cart> findByItemsProductVariantId(UUID productId);
 }

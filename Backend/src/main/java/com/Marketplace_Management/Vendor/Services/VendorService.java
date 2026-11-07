@@ -25,9 +25,9 @@ import com.Marketplace_Management.Vendor.DTOs.Command.UpdateCollectionCommand;
 import com.Marketplace_Management.Vendor.DTOs.Command.VendorProfileCommand;
 import com.Marketplace_Management.Vendor.DTOs.Response.CollectionResponse;
 import com.Marketplace_Management.Vendor.DTOs.Response.VendorResponse;
-import com.Marketplace_Management.Vendor.Entities.CollectionEntity;
+import com.Marketplace_Management.Vendor.Entities.Collection;
 import com.Marketplace_Management.Vendor.Events.VendorActivatedEvent;
-import com.Marketplace_Management.Vendor.Entities.VendorEntity;
+import com.Marketplace_Management.Vendor.Entities.Vendor;
 import com.Marketplace_Management.Vendor.Constants.VendorStatus;
 import com.Marketplace_Management.Vendor.Repositories.CollectionJpaRepository;
 
@@ -73,7 +73,7 @@ public class VendorService implements IVendorService {
 
     @Transactional
     public CollectionResponse createCollection(UUID vendorId, CreateCollectionCommand command) {
-        CollectionEntity collection = CollectionEntity.builder()
+        Collection collection = Collection.builder()
                 .vendor(requireVendor(vendorId))
                 .name(command.getName())
                 .displayOrder(command.getDisplayOrder())
@@ -83,7 +83,7 @@ public class VendorService implements IVendorService {
 
     @Transactional
     public CollectionResponse updateCollection(UUID vendorId, UUID collectionId, UpdateCollectionCommand command) {
-        CollectionEntity collection = requireCollectionOfVendor(vendorId, collectionId);
+        Collection collection = requireCollectionOfVendor(vendorId, collectionId);
         collection.setName(command.getName());
         collection.setDisplayOrder(command.getDisplayOrder());
         return new CollectionResponse(collectionJpaRepository.save(collection));
@@ -102,7 +102,7 @@ public class VendorService implements IVendorService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Vendor of this user already exists");
         }
 
-        VendorEntity vendor = VendorEntity.builder()
+        Vendor vendor = Vendor.builder()
                 .userId(userId)
                 .name(command.getName())
                 .status(VendorStatus.PENDING)
@@ -127,7 +127,7 @@ public class VendorService implements IVendorService {
 
     @Transactional
     public void active(UUID vendorId) {
-        VendorEntity vendor = requireVendor(vendorId);
+        Vendor vendor = requireVendor(vendorId);
         vendor.activate();
         vendor = vendorRepository.save(vendor);
         // Auth grants the VENDOR role to the owner
@@ -136,7 +136,7 @@ public class VendorService implements IVendorService {
 
     @Transactional
     public void ban(UUID vendorId) {
-        VendorEntity vendor = requireVendor(vendorId);
+        Vendor vendor = requireVendor(vendorId);
         vendor.ban();
         vendor = vendorRepository.save(vendor);
     }
@@ -144,7 +144,7 @@ public class VendorService implements IVendorService {
     /** Updates the profile; logo / banner are replaced only when a new file is uploaded. */
     @Transactional(rollbackFor = IOException.class)
     public void update(UUID vendorId, VendorProfileCommand command) throws IOException {
-        VendorEntity vendor = requireVendor(vendorId);
+        Vendor vendor = requireVendor(vendorId);
 
         vendor.setName(command.getName());
         vendor.setDescription(command.getDescription());
@@ -171,7 +171,7 @@ public class VendorService implements IVendorService {
                 .orElse(null);
     }
 
-    private VendorEntity requireVendor(UUID vendorId) {
+    private Vendor requireVendor(UUID vendorId) {
         return vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new ResourceNotFoundException(VENDOR_NOT_FOUND));
     }
@@ -181,7 +181,7 @@ public class VendorService implements IVendorService {
     }
 
     // A collection id from the URL must belong to the vendor in the URL (which the caller is allowed to manage)
-    private CollectionEntity requireCollectionOfVendor(UUID vendorId, UUID collectionId) {
+    private Collection requireCollectionOfVendor(UUID vendorId, UUID collectionId) {
         return collectionJpaRepository.findById(collectionId)
                 .filter(c -> c.getVendor() != null && vendorId.equals(c.getVendor().getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));

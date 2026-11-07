@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.Marketplace_Management.Delivery.Models.Address;
-import com.Marketplace_Management.Delivery.Models.Province;
-import com.Marketplace_Management.Delivery.Models.Ward;
+import com.Marketplace_Management.Delivery.Entities.Address;
+import com.Marketplace_Management.Delivery.Entities.Province;
+import com.Marketplace_Management.Delivery.Entities.Ward;
 
 public interface IAddressRepository {
     List<Province> findProvinces();
     List<Ward> findWardsByProvince(String provinceId);
-    boolean wardExists(String wardId);
+    Optional<Ward> findWardById(String wardId);
 
     List<Address> findByUser(UUID userId);
     /** Only returns the address when it belongs to the user. */

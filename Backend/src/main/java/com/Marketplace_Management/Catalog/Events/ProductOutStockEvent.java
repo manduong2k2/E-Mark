@@ -3,7 +3,7 @@ package com.Marketplace_Management.Catalog.Events;
 import java.io.Serializable;
 import java.util.UUID;
 
-import com.Marketplace_Management.Shared.Models.DomainEvent;
+import com.Marketplace_Management.Shared.Events.DomainEvent;
 
 public class ProductOutStockEvent extends DomainEvent implements Serializable{
     private UUID productId;

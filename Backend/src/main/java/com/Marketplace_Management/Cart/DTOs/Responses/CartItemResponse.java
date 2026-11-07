@@ -3,7 +3,7 @@ package com.Marketplace_Management.Cart.DTOs.Responses;
 import java.util.List;
 import java.util.UUID;
 
-import com.Marketplace_Management.Cart.Entities.CartItemEntity;
+import com.Marketplace_Management.Cart.Entities.CartItem;
 
 import lombok.Data;
 
@@ -19,7 +19,7 @@ public class CartItemResponse {
     private double productPrice;
     private List<String> productImages;
 
-    public static CartItemResponse from(CartItemEntity item) {
+    public static CartItemResponse from(CartItem item) {
         CartItemResponse response = new CartItemResponse();
         response.setId(item.getId());
         response.setProductVariantId(item.getProductVariantId());

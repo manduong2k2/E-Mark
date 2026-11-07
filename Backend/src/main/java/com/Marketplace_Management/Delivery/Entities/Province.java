@@ -8,7 +8,7 @@ import java.util.List;
 @Entity
 @Table(name = "provinces")
 @Data
-public class ProvinceEntity {
+public class Province {
 
     @Id
     @Column(length = 20)
@@ -27,7 +27,7 @@ public class ProvinceEntity {
     private String codeName;
 
     @OneToMany(mappedBy = "province", fetch = FetchType.LAZY)
-    private List<WardEntity> wards;
+    private List<Ward> wards;
 
     // getters/setters
 }

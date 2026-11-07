@@ -20,7 +20,7 @@ import lombok.Builder;
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
 @NoArgsConstructor
-public class VendorEntity extends UuidEntity {
+public class Vendor extends UuidEntity {
     @Column(nullable = false)
     private UUID userId;
 

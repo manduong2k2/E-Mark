@@ -27,7 +27,7 @@ import com.Marketplace_Management.Cart.DTOs.Responses.CartItemResponse;
 import com.Marketplace_Management.Cart.DTOs.Responses.CartResponse;
 import com.Marketplace_Management.Order.Contracts.IOrderRepository;
 import com.Marketplace_Management.Order.DTOs.Commands.PlaceOrderCommand;
-import com.Marketplace_Management.Order.Entities.OrderEntity;
+import com.Marketplace_Management.Order.Entities.Order;
 import com.Marketplace_Management.Order.Events.OrderPlacedEvent;
 import com.Marketplace_Management.Shared.Contracts.IEventPublisher;
 import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
@@ -53,7 +53,7 @@ class OrderServiceEntityTest {
         when(carts.getByUserId(userId)).thenReturn(cart);
         LocalDateTime created = LocalDateTime.of(2026, 1, 1, 12, 0);
         when(repository.create(any())).thenAnswer(invocation -> {
-            OrderEntity order = invocation.getArgument(0);
+            Order order = invocation.getArgument(0);
             assertEquals(31, order.getTotal());
             order.getItems().forEach(item -> {
                 assertSame(order, item.getOrder());

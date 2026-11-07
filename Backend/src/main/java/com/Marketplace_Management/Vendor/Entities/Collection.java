@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "collections")
 @SuperBuilder
 @NoArgsConstructor
-public class CollectionEntity extends UuidEntity {
+public class Collection extends UuidEntity {
     @Column(nullable = false)
     private String name;
 
@@ -27,7 +27,7 @@ public class CollectionEntity extends UuidEntity {
 
     @ManyToOne
     @JoinColumn(name = "vendor_id", nullable = false)
-    private VendorEntity vendor;
+    private Vendor vendor;
 
 
 }

@@ -1,4 +1,4 @@
-package com.Marketplace_Management.Shared.Models;
+package com.Marketplace_Management.Shared.Events;
 
 import java.time.LocalDateTime;
 import com.Marketplace_Management.Shared.Utils.Helpers.UuidV7;

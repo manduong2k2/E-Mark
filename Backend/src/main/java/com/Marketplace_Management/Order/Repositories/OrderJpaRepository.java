@@ -4,10 +4,10 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.Marketplace_Management.Order.Entities.OrderEntity;
+import com.Marketplace_Management.Order.Entities.Order;
 
 import java.util.List;
 
-public interface OrderJpaRepository extends JpaRepository<OrderEntity, UUID> {
-    List<OrderEntity> findByUserId(UUID userId);
+public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
+    List<Order> findByUserId(UUID userId);
 }

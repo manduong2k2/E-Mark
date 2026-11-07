@@ -16,8 +16,8 @@ import com.Marketplace_Management.Cart.DTOs.Commands.RemoveFromCartCommand;
 import com.Marketplace_Management.Cart.DTOs.Commands.UpdateCartItemCommand;
 import com.Marketplace_Management.Cart.DTOs.Responses.CartResponse;
 import com.Marketplace_Management.Cart.DTOs.Responses.CartItemResponse;
-import com.Marketplace_Management.Cart.Entities.CartEntity;
-import com.Marketplace_Management.Cart.Entities.CartItemEntity;
+import com.Marketplace_Management.Cart.Entities.Cart;
+import com.Marketplace_Management.Cart.Entities.CartItem;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
 
 @Service
@@ -34,16 +34,16 @@ public class CartService implements ICartService {
     @Override
     @Transactional
     public CartResponse addItem(AddToCartCommand command) {
-        CartEntity cart = repository.findByUserId(command.getUserId())
+        Cart cart = repository.findByUserId(command.getUserId())
                 .orElseGet(() -> {
                     try {
-                        return repository.create(CartEntity.builder().userId(command.getUserId()).build());
+                        return repository.create(Cart.builder().userId(command.getUserId()).build());
                     } catch (DataIntegrityViolationException e) {
                         return repository.findByUserId(command.getUserId()).orElseThrow();
                     }
                 });
 
-        cart.addItem(CartItemEntity.builder()
+        cart.addItem(CartItem.builder()
                 .productVariantId(command.getProductVariantId())
                 .quantity(command.getQuantity())
                 .build());
@@ -53,7 +53,7 @@ public class CartService implements ICartService {
     @Override
     @Transactional
     public CartResponse removeItem(RemoveFromCartCommand command) {
-        CartEntity cart = requireCart(command.getUserId());
+        Cart cart = requireCart(command.getUserId());
         cart.removeItem(command.getProductVariantId());
         return CartResponse.from(repository.update(cart));
     }
@@ -61,7 +61,7 @@ public class CartService implements ICartService {
     @Override
     @Transactional
     public CartResponse updateItem(UpdateCartItemCommand command) {
-        CartEntity cart = requireCart(command.getUserId());
+        Cart cart = requireCart(command.getUserId());
         cart.updateItemQuantity(command.getProductVariantId(), command.getQuantity());
         return withProductDetails(repository.update(cart));
     }
@@ -69,7 +69,7 @@ public class CartService implements ICartService {
     @Override
     @Transactional
     public CartResponse checkout(CheckoutCartCommand command) {
-        CartEntity cart = requireCart(command.getUserId());
+        Cart cart = requireCart(command.getUserId());
         cart.checkout();
         return withProductDetails(repository.update(cart));
     }
@@ -83,7 +83,7 @@ public class CartService implements ICartService {
     @Override
     @Transactional
     public void clearCart(UUID userId) {
-        CartEntity cart = repository.findByUserId(userId).orElse(null);
+        Cart cart = repository.findByUserId(userId).orElse(null);
 
         if(cart == null) {
             return;
@@ -111,13 +111,13 @@ public class CartService implements ICartService {
         });
     }
 
-    private CartEntity requireCart(UUID userId) {
+    private Cart requireCart(UUID userId) {
         return repository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
     }
 
     /** Fills each item with the current name / price / images of its product variant. */
-    private CartResponse withProductDetails(CartEntity cart) {
+    private CartResponse withProductDetails(Cart cart) {
         CartResponse response = CartResponse.from(cart);
         for (CartItemResponse item : response.getItems()) {
             ProductVariantResponse variant = productService.getProductVariant(item.getProductVariantId());

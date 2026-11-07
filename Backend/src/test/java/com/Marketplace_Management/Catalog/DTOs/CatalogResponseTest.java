@@ -16,7 +16,7 @@ import com.Marketplace_Management.Catalog.Entities.Brand;
 import com.Marketplace_Management.Catalog.Entities.Category;
 import com.Marketplace_Management.Catalog.Entities.Product;
 import com.Marketplace_Management.Catalog.Entities.ProductVariant;
-import com.Marketplace_Management.Shared.Entities.FileEntity;
+import com.Marketplace_Management.Shared.Entities.File;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -35,7 +35,7 @@ class CatalogResponseTest {
         product.setVariants(new HashSet<>());
         ProductVariant variant = ProductVariant.builder().id(UUID.randomUUID()).name("Variant")
                 .price(12.5).stock(3).product(product).images(new ArrayList<>()).build();
-        variant.getImages().add(new FileEntity(UUID.randomUUID(), "uploads/variant.png", variant));
+        variant.getImages().add(new File(UUID.randomUUID(), "uploads/variant.png", variant));
         product.getVariants().add(variant);
         JsonMapper mapper = JsonMapper.builder().build();
 

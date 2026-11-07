@@ -31,7 +31,7 @@ import lombok.EqualsAndHashCode;
 })
 @EqualsAndHashCode(callSuper = false)
 
-public class DeliveryEntity extends UuidEntity{
+public class Delivery extends UuidEntity{
 
     @Column(nullable = false)
     private UUID orderId;
@@ -59,17 +59,17 @@ public class DeliveryEntity extends UuidEntity{
     private String notes;
 
     @OneToMany(mappedBy = "delivery")
-    private List<DeliveryTrackingEntity> tracking;
+    private List<DeliveryTracking> tracking;
 
     @ManyToOne
     @JoinColumn(name = "shipping_address_id", nullable = false)
-    private AddressEntity shippingAddress;
+    private Address shippingAddress;
 
     @ManyToOne
     @JoinColumn(name = "delivery_method_id", nullable = false)
-    private DeliveryMethodEntity deliveryMethod;
+    private DeliveryMethod deliveryMethod;
 
     @OneToMany(mappedBy = "delivery", cascade = CascadeType.ALL, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<DeliveryItemEntity> items;
+    private List<DeliveryItem> items;
 }

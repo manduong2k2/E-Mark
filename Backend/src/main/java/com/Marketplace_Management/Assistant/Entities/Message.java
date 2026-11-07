@@ -6,9 +6,18 @@ import jakarta.persistence.Table;
 
 import com.Marketplace_Management.Shared.Entities.UuidEntity;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
 @Entity 
 @Table(name = "messages")
-public class MessageEntity extends UuidEntity {
+@Data
+@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+@SuperBuilder
+public class Message extends UuidEntity {
 
     @Column(nullable = false)
     private String content;

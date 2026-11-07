@@ -19,7 +19,7 @@ import com.Marketplace_Management.Shared.Entities.UuidEntity;
     @Index(name = "idx_delivery_item_order_item", columnList = "order_item_id")
 })
 @EqualsAndHashCode(callSuper = false)
-public class DeliveryItemEntity extends UuidEntity {
+public class DeliveryItem extends UuidEntity {
     private UUID orderItemId;
     private UUID productVariantId;
     private String productName;
@@ -29,5 +29,5 @@ public class DeliveryItemEntity extends UuidEntity {
     
     @ManyToOne
     @JoinColumn(name = "delivery_id", nullable = false)
-    private DeliveryEntity delivery;
+    private Delivery delivery;
 }

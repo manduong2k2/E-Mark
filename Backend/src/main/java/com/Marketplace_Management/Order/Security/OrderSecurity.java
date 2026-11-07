@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import com.Marketplace_Management.Order.Contracts.IOrderRepository;
-import com.Marketplace_Management.Order.Entities.OrderEntity;
+import com.Marketplace_Management.Order.Entities.Order;
 import com.Marketplace_Management.Shared.Security.SecurityUtils;
 
 /** Used in @PreAuthorize("@orderSecurity.canViewOrder(#id)"): the order's owner or an admin. */
@@ -23,7 +23,7 @@ public class OrderSecurity {
             return true;
         }
         return orderRepository.findById(orderId)
-                .map(OrderEntity::getUserId)
+                .map(Order::getUserId)
                 .map(SecurityUtils::isOwnerOrAdmin)
                 .orElse(false);
     }

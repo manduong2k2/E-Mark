@@ -8,9 +8,18 @@ import java.util.UUID;
 
 import com.Marketplace_Management.Shared.Entities.UuidEntity;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
 @Entity
 @Table(name = "conversations")
-public class ConversationEntity extends UuidEntity{
+@Data
+@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+@SuperBuilder
+public class Conversation extends UuidEntity{
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;

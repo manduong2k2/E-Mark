@@ -11,7 +11,7 @@ import lombok.Data;
     }
 )
 @Data
-public class WardEntity {
+public class Ward {
 
     @Id
     @Column(length = 20)
@@ -30,7 +30,7 @@ public class WardEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "province_id")
-    private ProvinceEntity province;
+    private Province province;
 
     // getters/setters
 }

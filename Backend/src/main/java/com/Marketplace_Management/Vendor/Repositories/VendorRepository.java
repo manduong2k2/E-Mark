@@ -3,7 +3,7 @@ package com.Marketplace_Management.Vendor.Repositories;
 import com.Marketplace_Management.Vendor.Contracts.IVendorRepository;
 import com.Marketplace_Management.Vendor.DTOs.Command.GetListVendorCommand;
 import com.Marketplace_Management.Vendor.DTOs.Response.VendorResponse;
-import com.Marketplace_Management.Vendor.Entities.VendorEntity;
+import com.Marketplace_Management.Vendor.Entities.Vendor;
 
 import tools.jackson.databind.ObjectMapper;
 
@@ -35,8 +35,8 @@ public class VendorRepository implements IVendorRepository {
 
     @Override
     public List<VendorResponse> findAll(GetListVendorCommand command) {
-        QueryBuilder<VendorEntity> qb = new QueryBuilder<>(dslContext, metadataRegistry, objectMapper);
-        qb.query(VendorEntity.class)
+        QueryBuilder<Vendor> qb = new QueryBuilder<>(dslContext, metadataRegistry, objectMapper);
+        qb.query(Vendor.class)
         .when(command.getSearch() != null, q -> {
                 q.where("name", "like", "%" + command.getSearch() + "%");
         });
@@ -50,17 +50,17 @@ public class VendorRepository implements IVendorRepository {
     }
 
     @Override
-    public VendorEntity save(VendorEntity vendor) {
+    public Vendor save(Vendor vendor) {
         return jpaRepository.save(vendor);
     }
 
     @Override
-    public Optional<VendorEntity> findById(UUID id) {
+    public Optional<Vendor> findById(UUID id) {
         return jpaRepository.findById(id);
     }
 
     @Override
-    public Optional<VendorEntity> findByUserId(UUID userId) {
+    public Optional<Vendor> findByUserId(UUID userId) {
         return jpaRepository.findByUserId(userId);
     }
 

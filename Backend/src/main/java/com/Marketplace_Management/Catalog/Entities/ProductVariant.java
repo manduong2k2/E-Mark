@@ -7,7 +7,7 @@ import java.util.Set;
 import org.hibernate.annotations.Nationalized;
 import org.hibernate.annotations.SQLRestriction;
 
-import com.Marketplace_Management.Shared.Entities.FileEntity;
+import com.Marketplace_Management.Shared.Entities.File;
 import com.Marketplace_Management.Shared.Entities.UuidEntity;
 
 import jakarta.persistence.CascadeType;
@@ -52,7 +52,7 @@ public class ProductVariant extends UuidEntity{
     @JoinColumn(name = "entity_id", referencedColumnName = "id", insertable = false, updatable = false)
     @SQLRestriction("entity_type = 'com.Marketplace_Management.Catalog.Entities.ProductVariantEntity'")
     @ToString.Exclude
-    private List<FileEntity> images;
+    private List<File> images;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)

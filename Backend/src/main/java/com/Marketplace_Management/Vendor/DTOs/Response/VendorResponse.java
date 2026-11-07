@@ -2,7 +2,7 @@ package com.Marketplace_Management.Vendor.DTOs.Response;
 
 import java.util.UUID;
 
-import com.Marketplace_Management.Vendor.Entities.VendorEntity;
+import com.Marketplace_Management.Vendor.Entities.Vendor;
 import com.Marketplace_Management.Vendor.Constants.VendorStatus;
 
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ public class VendorResponse {
     private UUID addressId;
     private String phone;
 
-    public VendorResponse(VendorEntity vendor) {
+    public VendorResponse(Vendor vendor) {
         if (vendor == null) {
             return;
         }

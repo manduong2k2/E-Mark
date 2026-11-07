@@ -30,7 +30,7 @@ import lombok.experimental.SuperBuilder;
 @ToString(exclude = "items")
 @NoArgsConstructor
 @SuperBuilder
-public class CartEntity extends UuidEntity {
+public class Cart extends UuidEntity {
     @Column(name = "user_id", nullable = false, unique = true)
     private UUID userId;
 
@@ -41,9 +41,9 @@ public class CartEntity extends UuidEntity {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @Builder.Default
-    private List<CartItemEntity> items = new ArrayList<>();
+    private List<CartItem> items = new ArrayList<>();
 
-    public void addItem(CartItemEntity newItem) {
+    public void addItem(CartItem newItem) {
         requireEditable("add items to");
         if (newItem.getQuantity() <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
@@ -66,7 +66,7 @@ public class CartEntity extends UuidEntity {
 
     public void updateItemQuantity(UUID productVariantId, int quantity) {
         requireEditable("update items in");
-        CartItemEntity item = items.stream().filter(candidate -> candidate.getProductVariantId().equals(productVariantId))
+        CartItem item = items.stream().filter(candidate -> candidate.getProductVariantId().equals(productVariantId))
                 .findFirst().orElseThrow(() -> new IllegalArgumentException("Item not found in cart: " + productVariantId));
         if (quantity <= 0) {
             items.remove(item);

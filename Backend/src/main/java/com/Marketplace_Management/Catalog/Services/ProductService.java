@@ -39,7 +39,7 @@ import com.Marketplace_Management.Shared.Configuration.RabbitMqQueues.ProductQue
 import com.Marketplace_Management.Shared.Contracts.IEventPublisher;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
-import com.Marketplace_Management.Shared.Entities.FileEntity;
+import com.Marketplace_Management.Shared.Entities.File;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
 import com.Marketplace_Management.Shared.Events.EventOptions;
 import com.Marketplace_Management.Shared.Security.SecurityUtils;
@@ -126,7 +126,7 @@ public class ProductService implements IProductService {
                             variantCommand.getImages().forEach(imageCommand -> {
                                 try {
                                     String url = fileService.uploadFile(imageCommand, "catalog/product_variants");
-                                    variant.getImages().add(new FileEntity(null, url, variant));
+                                    variant.getImages().add(new File(null, url, variant));
                                 } catch (IOException e) {
                                     throw new UncheckedIOException(e);
                                 }
@@ -272,7 +272,7 @@ public class ProductService implements IProductService {
         for (var command : commands) {
             if (command.getId() == null) {
                 String url = fileService.uploadFile(command.getFile(), "catalog/product_variants");
-                variant.getImages().add(new FileEntity(null, url, variant));
+                variant.getImages().add(new File(null, url, variant));
             } else if (variant.getImages().stream().noneMatch(image -> command.getId().equals(image.getId()))) {
                 throw new IllegalArgumentException("Image not found in variant: " + command.getId());
             }

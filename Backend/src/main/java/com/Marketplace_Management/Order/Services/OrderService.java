@@ -17,8 +17,8 @@ import com.Marketplace_Management.Order.DTOs.Commands.PlaceOrderCommand;
 import com.Marketplace_Management.Order.DTOs.Responses.HistoryResponse;
 import com.Marketplace_Management.Order.DTOs.Responses.OrderResponse;
 import com.Marketplace_Management.Order.Events.OrderPlacedEvent;
-import com.Marketplace_Management.Order.Entities.OrderEntity;
-import com.Marketplace_Management.Order.Entities.OrderItemEntity;
+import com.Marketplace_Management.Order.Entities.Order;
+import com.Marketplace_Management.Order.Entities.OrderItem;
 import com.Marketplace_Management.Shared.Configuration.RabbitMqQueues.OrderQueueConfig;
 import com.Marketplace_Management.Shared.Contracts.IEventPublisher;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
@@ -49,7 +49,7 @@ public class OrderService implements IOrderService{
     }
 
     public OrderResponse findById(UUID id) {
-        OrderEntity order = repository.findById(id)
+        Order order = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         return OrderResponse.from(order);
     }
@@ -62,10 +62,10 @@ public class OrderService implements IOrderService{
             throw new BadRequestException("Cart not found or empty");
         }
 
-        OrderEntity order = OrderEntity.builder()
+        Order order = Order.builder()
             .userId(SecurityUtils.currentUserId())
             .status(OrderStatusEnum.PENDING.getValue())
-            .items(cartResponse.getItems().stream().map(item -> OrderItemEntity.builder()
+            .items(cartResponse.getItems().stream().map(item -> OrderItem.builder()
                 .productId(item.getProductVariantId())
                 .quantity(item.getQuantity())
                 .total(item.getProductPrice() * item.getQuantity())
@@ -86,7 +86,7 @@ public class OrderService implements IOrderService{
         order.getItems().forEach(item -> item.setOrder(order));
         order.setTotal(order.calculateTotal());
 
-        OrderEntity created = repository.create(order);
+        Order created = repository.create(order);
 
         eventPublisher.publish(
             new OrderPlacedEvent(created.getUserId()),

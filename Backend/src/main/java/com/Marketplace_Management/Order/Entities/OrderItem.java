@@ -27,12 +27,12 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true, exclude = "order")
 @ToString(exclude = "order")
-public class OrderItemEntity extends UuidEntity {
+public class OrderItem extends UuidEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private OrderEntity order;
+    private Order order;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;

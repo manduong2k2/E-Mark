@@ -5,7 +5,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.Marketplace_Management.Shared.Contracts.IEventPublisher;
-import com.Marketplace_Management.Shared.Models.DomainEvent;
 
 @Component
 public class RabbitMQEventPublisher implements IEventPublisher {

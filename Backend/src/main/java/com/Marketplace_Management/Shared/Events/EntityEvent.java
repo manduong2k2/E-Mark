@@ -6,8 +6,8 @@ import org.springframework.core.ResolvableTypeProvider;
 /**
  * Generic entity lifecycle event.
  * Implements ResolvableTypeProvider so listeners can filter by the generic type,
- * e.g. onUserCreated(EntityEvent<UserEntity> event). Without it, type erasure makes
- * Spring unable to match EntityEvent<UserEntity> and the listener is never called.
+ * e.g. onUserCreated(EntityEvent<User> event). Without it, type erasure makes
+ * Spring unable to match EntityEvent<User> and the listener is never called.
  */
 public class EntityEvent<T> implements ResolvableTypeProvider {
     public static enum Type {

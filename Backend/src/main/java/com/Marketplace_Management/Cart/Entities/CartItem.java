@@ -23,11 +23,11 @@ import lombok.experimental.SuperBuilder;
 @ToString(exclude = "cart")
 @NoArgsConstructor
 @SuperBuilder
-public class CartItemEntity extends UuidEntity {
+public class CartItem extends UuidEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cart_id", nullable = false)
-    private CartEntity cart;
+    private Cart cart;
 
     @Column(name = "product_variant_id", nullable = false)
     private UUID productVariantId;
