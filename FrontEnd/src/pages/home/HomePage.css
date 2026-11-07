@@ -41,14 +41,12 @@
 }
 
 .category-section {
-  flex: 0 0 260px;
+  flex: 0 0 300px;
   min-width: 0;
-  padding: 1.25rem;
+  align-self: flex-start;
+  position: sticky;
+  top: 80px;
   box-sizing: border-box;
-  background-color: var(--master-surface);
-  border: 1px solid var(--master-border);
-  border-radius: 14px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.05);
 }
 
 .product-section {
@@ -119,7 +117,7 @@
   color: #ffffff;
 }
 
-html[data-theme="dark"] .homepage .category-section,
+html[data-theme="dark"] .homepage .category-sidebar,
 html[data-theme="dark"] .homepage .product-section {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.25);
 }
@@ -127,8 +125,7 @@ html[data-theme="dark"] .homepage .product-section {
 /* ── Tablet: 769px – 1024px ── */
 @media (max-width: 1024px) {
   .category-section {
-    flex: 0 0 210px;
-    padding: 16px;
+    flex: 0 0 270px;
   }
 
   .product-section {
@@ -150,13 +147,13 @@ html[data-theme="dark"] .homepage .product-section {
 
   .catalog-section {
     flex-direction: column;
-    gap: 0;
+    gap: 12px;
   }
 
   .category-section {
     flex: none;
     width: 100%;
-    padding: 12px 14px;
+    position: static;
   }
 
   .product-section {
@@ -172,7 +169,6 @@ html[data-theme="dark"] .homepage .product-section {
 
 /* ── Small mobile: ≤ 480px ── */
 @media (max-width: 480px) {
-  .category-section,
   .product-section {
     padding: 10px 10px;
   }
@@ -185,7 +181,6 @@ html[data-theme="dark"] .homepage .product-section {
 
 /* ── iPhone large (iPhone 16: 402px, iPhone 14 Pro Max: 428px, iPhone 14 Pro Max: 430px) ── */
 @media (max-width: 430px) {
-  .category-section,
   .product-section {
     padding: 8px 8px;
   }

@@ -41,14 +41,14 @@ class CatalogResponseTest {
 
         var detail = mapper.valueToTree(new ProductResponse(product).withUrl("http://api"));
         assertEquals(12.5, detail.path("variants").path(0).path("price").asDouble());
-        assertEquals("http://api/uploads/variant.png", detail.path("variants").path(0).path("images").path(0).path("url").asText());
-        assertEquals(parent.getId().toString(), detail.path("categories").path(0).path("children").path(0).path("parentId").asText());
+        assertEquals("http://api/uploads/variant.png", detail.path("variants").path(0).path("images").path(0).path("url").asString());
+        assertEquals(parent.getId().toString(), detail.path("categories").path(0).path("children").path(0).path("parentId").asString());
         assertFalse(detail.path("variants").path(0).has("product"));
         assertFalse(detail.path("variants").path(0).path("images").path(0).has("entity"));
 
         var variantDetail = mapper.valueToTree(new ProductVariantResponse(variant).withUrl("http://api"));
-        assertEquals("http://api/uploads/variant.png", variantDetail.path("images").path(0).asText());
-        assertEquals(product.getId().toString(), variantDetail.path("product").path("id").asText());
+        assertEquals("http://api/uploads/variant.png", variantDetail.path("images").path(0).asString());
+        assertEquals(product.getId().toString(), variantDetail.path("product").path("id").asString());
         assertTrue(variantDetail.path("product").path("variants").isNull());
     }
 }

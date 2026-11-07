@@ -1,94 +1,45 @@
-// src/components/category/CategoryCard.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './CategoryCard.css';
+﻿import { useId } from 'react';
 import defaultCategoryImage from '../../../assets/category.png';
+import './CategoryCard.css';
 
-export default function CategoryCard({ category, depth = 0, selectedCategoryId, onSelectCategory }) {
-  const navigate = useNavigate();
-  const [expanded, setExpanded] = useState(false);
-
-  const hasChildren = category.children && category.children.length > 0;
+export default function CategoryCard({ category, depth = 0, selectedCategoryId, onSelectCategory, expandedIds, onToggle, siblings, searching = false }) {
+  const childrenId = useId();
+  const children = category.children || [];
+  const hasChildren = children.length > 0;
+  const subcategoryCount = category.subcategoryCount ?? children.length;
+  const expanded = hasChildren && (searching || expandedIds.has(category.id));
   const selected = selectedCategoryId === category.id;
 
-  const handleCardClick = () => {
-    if (hasChildren) {
-      setExpanded((prev) => !prev);
-    } else {
-      
-    }
-  };
-
-  const handleCheckboxChange = (e) => {
-    e.stopPropagation();
-    onSelectCategory(category.id);
-  };
-
   return (
-    <div className="category-card-wrapper" style={{ '--depth': depth }}>
-      {/* Card row */}
-      <div
-        className={`category-card user-view ${hasChildren ? 'has-children' : ''} ${expanded ? 'expanded' : ''}`}
-        style={{ paddingLeft: depth > 0 ? `${depth * 12}px` : undefined }}
-        onClick={handleCardClick}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && handleCardClick()}
-        aria-expanded={hasChildren ? expanded : undefined}
-      >
-        {/* Checkbox */}
-        {onSelectCategory && (
-          <input
-            type="checkbox"
-            className="category-checkbox"
-            checked={selected}
-            onChange={handleCheckboxChange}
-            onClick={(e) => e.stopPropagation()}
-          />
-        )}
-
-        {/* Depth indicator line */}
-        {depth > 0 && <span className="depth-indicator" aria-hidden="true" />}
-
-        <div className="category-image-container">
-          <img
-            src={category.image || defaultCategoryImage}
-            alt={category.name}
-            className="category-image"
-            onError={(e) => { e.target.src = defaultCategoryImage; }}
-          />
-        </div>
-
-        <div className="category-info">
-          <h3 className="category-name">{category.name}</h3>
-          {hasChildren && (
-            <span className="category-children-count">
-              {category.children.length} sub{category.children.length === 1 ? '' : 's'}
-            </span>
-          )}
-        </div>
-
+    <li className="category-branch">
+      <div className={`category-tree-row${selected ? ' is-selected' : ''}`} style={{ '--category-depth': depth }}>
+        <button type="button" className="category-tree-select" onClick={() => onSelectCategory?.(category.id)} aria-pressed={selected} title={category.name}>
+          {depth === 0 ? (
+            <img src={category.image || defaultCategoryImage} alt="" className="category-tree-icon" onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = defaultCategoryImage;
+            }} />
+          ) : <span className="category-tree-dot" aria-hidden="true" />}
+          <span className="category-tree-name">{category.name}</span>
+        </button>
         {hasChildren && (
-          <span className="category-chevron" aria-hidden="true">
-            {expanded ? '▲' : '▼'}
-          </span>
+          <>
+            <span className="category-tree-count" title={`${subcategoryCount} subcategories`}>{subcategoryCount}</span>
+            <button type="button" className="category-tree-toggle" onClick={() => onToggle(category.id, siblings)} aria-label={`${expanded ? 'Collapse' : 'Expand'} ${category.name}`} aria-expanded={expanded} aria-controls={childrenId} disabled={searching}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="m9 5 7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </>
         )}
       </div>
-
-      {/* Recursive children */}
-      {hasChildren && expanded && (
-        <div className="category-children">
-          {category.children.map((child) => (
-            <CategoryCard
-              key={child.id}
-              category={child}
-              depth={depth + 1}
-              selectedCategoryId={selectedCategoryId}
-              onSelectCategory={onSelectCategory}
-            />
+      {hasChildren && (
+        <ul id={childrenId} className="category-tree-children" hidden={!expanded}>
+          {children.map((child) => (
+            <CategoryCard key={child.id} category={child} depth={depth + 1} selectedCategoryId={selectedCategoryId} onSelectCategory={onSelectCategory} expandedIds={expandedIds} onToggle={onToggle} siblings={children} searching={searching} />
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </li>
   );
 }

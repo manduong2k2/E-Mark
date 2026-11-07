@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.Marketplace_Management.Cart.Constants.CartStatusEnum;
 import com.Marketplace_Management.Shared.Entities.UuidEntity;
 
@@ -36,6 +39,7 @@ public class CartEntity extends UuidEntity {
     private String status = CartStatusEnum.NEW.name();
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Builder.Default
     private List<CartItemEntity> items = new ArrayList<>();
 

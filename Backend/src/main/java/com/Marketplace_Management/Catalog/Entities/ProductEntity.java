@@ -60,6 +60,7 @@ public class ProductEntity extends UuidEntity {
     private Set<CategoryEntity> categories;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<ProductVariantEntity> variants;
 
     @Column(nullable = true)
