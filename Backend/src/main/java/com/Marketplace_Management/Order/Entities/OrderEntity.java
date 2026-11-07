@@ -16,6 +16,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -23,7 +24,8 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = "items")
+@ToString(exclude = "items")
 public class OrderEntity extends UuidEntity {
 
     @Column(name = "user_id", nullable = false)
@@ -56,4 +58,11 @@ public class OrderEntity extends UuidEntity {
     @Builder.Default
     private List<OrderItemEntity> items = new ArrayList<>();
 
+    public void changeStatus(String status) {
+        this.status = status;
+    }
+
+    public double calculateTotal() {
+        return items.stream().mapToDouble(OrderItemEntity::calculateTotal).sum();
+    }
 }

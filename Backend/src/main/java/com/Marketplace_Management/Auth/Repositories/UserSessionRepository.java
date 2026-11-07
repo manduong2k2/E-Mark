@@ -15,9 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.Marketplace_Management.Auth.Contracts.IUserSessionRepository;
 import com.Marketplace_Management.Auth.DTOs.Commands.GetListSessionCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.SessionResponse;
-import com.Marketplace_Management.Auth.Entities.UserEntity;
 import com.Marketplace_Management.Auth.Entities.UserSessionEntity;
-import com.Marketplace_Management.Auth.Models.UserSession;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
@@ -27,39 +25,36 @@ import tools.jackson.databind.ObjectMapper;
 @Repository
 public class UserSessionRepository implements IUserSessionRepository {
     private final UserSessionJpaRepository jpaRepository;
-    private final UserJpaRepository userJpaRepository;
     private final DSLContext dsl;
     private final EntityMetadataRegistry metadataRegistry;
     private final ObjectMapper objectMapper;
 
     public UserSessionRepository(UserSessionJpaRepository jpaRepository,
-                                  UserJpaRepository userJpaRepository,
                                   DSLContext dsl,
                                   EntityMetadataRegistry metadataRegistry,
                                   ObjectMapper objectMapper) {
         this.jpaRepository = jpaRepository;
-        this.userJpaRepository = userJpaRepository;
         this.dsl = dsl;
         this.metadataRegistry = metadataRegistry;
         this.objectMapper = objectMapper;
     }
 
     @Override
-    public UserSession save(UserSession session) {
-        return toDomain(jpaRepository.save(toEntity(session)));
+    public UserSessionEntity save(UserSessionEntity session) {
+        return jpaRepository.save(session);
     }
 
     @Override
-    public Optional<UserSession> findById(UUID id) {
-        return jpaRepository.findById(id).map(this::toDomain);
+    public Optional<UserSessionEntity> findById(UUID id) {
+        return jpaRepository.findById(id);
     }
 
     @Override
-    public List<UserSession> findByUserIds(Collection<UUID> userIds) {
+    public List<UserSessionEntity> findByUserIds(Collection<UUID> userIds) {
         if (userIds.isEmpty()) {
             return List.of();
         }
-        return jpaRepository.findByUserIdIn(userIds).stream().map(this::toDomain).toList();
+        return jpaRepository.findByUserIdIn(userIds);
     }
 
     @Override
@@ -149,33 +144,4 @@ public class UserSessionRepository implements IUserSessionRepository {
         return UUID.fromString(value.toString());
     }
 
-    private UserSession toDomain(UserSessionEntity e) {
-        // user is LAZY — safe to read .getId() without triggering a SELECT on a loaded proxy
-        UUID userId = e.getUser() != null ? e.getUser().getId() : null;
-        return UserSession.builder()
-                .id(e.getId())
-                .userId(userId)
-                .ipAddress(e.getIpAddress())
-                .loginAt(e.getLoginAt())
-                .accessJti(e.getAccessJti())
-                .accessExpiresAt(e.getAccessExpiresAt())
-                .refreshJti(e.getRefreshJti())
-                .refreshExpiresAt(e.getRefreshExpiresAt())
-                .build();
-    }
-
-    private UserSessionEntity toEntity(UserSession s) {
-        // getReferenceById creates a Hibernate proxy — no SELECT issued; only the FK is written.
-        UserEntity userRef = s.getUserId() != null ? userJpaRepository.getReferenceById(s.getUserId()) : null;
-        return UserSessionEntity.builder()
-                .id(s.getId())
-                .user(userRef)
-                .ipAddress(s.getIpAddress())
-                .loginAt(s.getLoginAt())
-                .accessJti(s.getAccessJti())
-                .accessExpiresAt(s.getAccessExpiresAt())
-                .refreshJti(s.getRefreshJti())
-                .refreshExpiresAt(s.getRefreshExpiresAt())
-                .build();
-    }
 }

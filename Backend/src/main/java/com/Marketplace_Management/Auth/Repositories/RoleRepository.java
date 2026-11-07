@@ -16,9 +16,7 @@ import com.Marketplace_Management.Auth.Contracts.IRoleRepository;
 import com.Marketplace_Management.Auth.DTOs.Commands.GetListRoleCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.RoleResponse;
 import com.Marketplace_Management.Auth.Entities.RoleEntity;
-import com.Marketplace_Management.Auth.Models.Role;
 import com.Marketplace_Management.Shared.Constants.UserRole;
-import com.Marketplace_Management.Shared.Contracts.EntityDomainMapper;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
@@ -29,47 +27,45 @@ import tools.jackson.databind.ObjectMapper;
 @Repository
 public class RoleRepository implements IRoleRepository {
     private final RoleJpaRepository roleJpaRepository;
-    private final EntityDomainMapper<Role, RoleEntity> roleMapper;
     private final DSLContext dsl;
     private final EntityMetadataRegistry metadataRegistry;
     private final ObjectMapper objectMapper;
 
-    public RoleRepository(RoleJpaRepository roleJpaRepository, EntityDomainMapper<Role, RoleEntity> roleMapper,
+    public RoleRepository(RoleJpaRepository roleJpaRepository,
             DSLContext dsl, EntityMetadataRegistry metadataRegistry, ObjectMapper objectMapper) {
         this.roleJpaRepository = roleJpaRepository;
-        this.roleMapper = roleMapper;
         this.dsl = dsl;
         this.metadataRegistry = metadataRegistry;
         this.objectMapper = objectMapper;
     }
 
-    public Optional<Role> findByCode(String code) {
-        return roleJpaRepository.findByCode(code).map(roleMapper::toDomain);
+    public Optional<RoleEntity> findByCode(String code) {
+        return roleJpaRepository.findByCode(code);
     }
 
     public long count() {
         return roleJpaRepository.count();
     }
 
-    public List<Role> saveAll(List<Role> roles) {
-        return roleJpaRepository.saveAll(roles.stream().map(roleMapper::toEntity).toList()).stream().map(roleMapper::toDomain).toList();
+    public List<RoleEntity> saveAll(List<RoleEntity> roles) {
+        return roleJpaRepository.saveAll(roles);
     }
 
     // ===== Admin (Identity & Access) =====
 
     @Override
-    public Optional<Role> findById(UUID id) {
-        return roleJpaRepository.findById(id).map(roleMapper::toDomain);
+    public Optional<RoleEntity> findById(UUID id) {
+        return roleJpaRepository.findById(id);
     }
 
     @Override
-    public List<Role> findAllById(Collection<UUID> ids) {
-        return roleJpaRepository.findAllById(ids).stream().map(roleMapper::toDomain).toList();
+    public List<RoleEntity> findAllById(Collection<UUID> ids) {
+        return roleJpaRepository.findAllById(ids);
     }
 
     @Override
-    public Role save(Role role) {
-        return roleMapper.toDomain(roleJpaRepository.save(roleMapper.toEntity(role)));
+    public RoleEntity save(RoleEntity role) {
+        return roleJpaRepository.save(role);
     }
 
     @Override

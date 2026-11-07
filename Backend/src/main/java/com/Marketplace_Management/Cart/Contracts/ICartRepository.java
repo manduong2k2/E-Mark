@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.Marketplace_Management.Cart.Models.Cart.Cart;
+import com.Marketplace_Management.Cart.Entities.CartEntity;
 
 public interface ICartRepository {
-    List<Cart> findAll();
-    Cart create(Cart cart);
-    Optional<Cart> findById(UUID id);
-    Optional<Cart> findByUserId(UUID userId);
-    Cart update(Cart cart);
+    List<CartEntity> findAll();
+    CartEntity create(CartEntity cart);
+    Optional<CartEntity> findById(UUID id);
+    Optional<CartEntity> findByUserId(UUID userId);
+    CartEntity update(CartEntity cart);
     void delete(UUID id);
-    List<Cart> findByItemsProductVariantId(UUID productVariantId);
+    List<CartEntity> findByItemsProductVariantId(UUID productVariantId);
 }

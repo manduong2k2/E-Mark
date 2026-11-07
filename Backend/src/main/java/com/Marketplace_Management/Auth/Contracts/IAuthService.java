@@ -13,7 +13,7 @@ import com.Marketplace_Management.Auth.DTOs.Commands.ResetPasswordCommand;
 import com.Marketplace_Management.Auth.DTOs.Commands.UpdateProfileCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.AuthResponse;
 import com.Marketplace_Management.Auth.DTOs.Response.RegisterResponse;
-import com.Marketplace_Management.Auth.Models.User;
+import com.Marketplace_Management.Auth.DTOs.Response.ProfileResponse;
 
 import jakarta.mail.MessagingException;
 
@@ -28,7 +28,7 @@ public interface IAuthService {
     boolean resetPassword(ResetPasswordCommand command);
     AuthResponse changePassword(UUID userId, ChangePasswordCommand command);
     void logout(String accessToken, String refreshToken);
-    User getUserById(UUID userId);
+    ProfileResponse getUserById(UUID userId);
     void updateProfile(UUID userId, UpdateProfileCommand command) throws IOException;
     void grantRole(UUID userId, String role);
 }

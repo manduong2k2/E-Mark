@@ -42,8 +42,6 @@ import com.Marketplace_Management.Auth.DTOs.Request.RegisterRequest;
 import com.Marketplace_Management.Auth.DTOs.Request.ResetPasswordRequest;
 import com.Marketplace_Management.Auth.DTOs.Request.UpdateProfileRequest;
 import com.Marketplace_Management.Auth.DTOs.Response.AuthResponse;
-import com.Marketplace_Management.Auth.DTOs.Response.ProfileResponse;
-import com.Marketplace_Management.Auth.Models.User;
 import com.Marketplace_Management.Shared.Annotation.Auth.Authenticated;
 import com.Marketplace_Management.Shared.Controllers.BaseController;
 import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
@@ -152,9 +150,8 @@ public class AuthController extends BaseController {
     @GetMapping("/profile")
     public ResponseEntity<Map<String, Object>> profile() {
         UUID userId = SecurityUtils.currentUserId();
-        User user = auth.getUserById(userId);
         Map<String, Object> response = new HashMap<>();
-        response.put("data", new ProfileResponse(user).withUrl(baseUrl));
+        response.put("data", auth.getUserById(userId).withUrl(baseUrl));
         return ResponseEntity.ok(response);
     }
 

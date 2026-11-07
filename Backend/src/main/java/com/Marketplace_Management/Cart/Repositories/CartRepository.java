@@ -5,52 +5,46 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.Marketplace_Management.Cart.Contracts.ICartRepository;
 import com.Marketplace_Management.Cart.Entities.CartEntity;
-import com.Marketplace_Management.Cart.Mappers.CartMapper;
-import com.Marketplace_Management.Cart.Models.Cart.Cart;
 
 @Repository
 public class CartRepository implements ICartRepository {
 
     private final JpaCartRepository jpa;
-    private final CartMapper mapper;
 
-    public CartRepository(JpaCartRepository jpa, CartMapper mapper) {
+    public CartRepository(JpaCartRepository jpa) {
         this.jpa = jpa;
-        this.mapper = mapper;
     }
 
     @Override
-    public List<Cart> findAll() {
-        return jpa.findAll().stream()
-            .map(mapper::toDomain)
-            .toList();
+    public List<CartEntity> findAll() {
+        return jpa.findAll();
     }
 
     @Override
-    public Cart create(Cart cart) {
-        CartEntity entity = mapper.toEntity(cart);
-        CartEntity saved = jpa.save(entity);
-        return mapper.toDomain(saved);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public CartEntity create(CartEntity cart) {
+        // A concurrent first-cart insert must not mark the caller's transaction rollback-only.
+        return jpa.saveAndFlush(cart);
     }
 
     @Override
-    public Optional<Cart> findById(UUID id) {
-        return jpa.findById(id).map(mapper::toDomain);
+    public Optional<CartEntity> findById(UUID id) {
+        return jpa.findById(id);
     }
 
     @Override
-    public Optional<Cart> findByUserId(UUID userId) {
-        return jpa.findByUserId(userId).map(mapper::toDomain);
+    public Optional<CartEntity> findByUserId(UUID userId) {
+        return jpa.findByUserId(userId);
     }
 
     @Override
-    public Cart update(Cart cart) {
-        CartEntity entity = mapper.toEntity(cart);
-        CartEntity saved = jpa.save(entity);
-        return mapper.toDomain(saved);
+    public CartEntity update(CartEntity cart) {
+        return jpa.save(cart);
     }
 
     @Override
@@ -59,9 +53,7 @@ public class CartRepository implements ICartRepository {
     }
 
     @Override
-    public List<Cart> findByItemsProductVariantId(UUID productVariantId) {
-        return jpa.findByItemsProductVariantId(productVariantId).stream()
-            .map(mapper::toDomain)
-            .toList();
+    public List<CartEntity> findByItemsProductVariantId(UUID productVariantId) {
+        return jpa.findByItemsProductVariantId(productVariantId);
     }
 }

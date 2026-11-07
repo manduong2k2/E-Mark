@@ -10,8 +10,8 @@ import com.Marketplace_Management.Auth.Constants.Message;
 import com.Marketplace_Management.Auth.Constants.UserStatus;
 import com.Marketplace_Management.Auth.Contracts.IRoleRepository;
 import com.Marketplace_Management.Auth.Contracts.IUserRepository;
-import com.Marketplace_Management.Auth.Models.Role;
-import com.Marketplace_Management.Auth.Models.User;
+import com.Marketplace_Management.Auth.Entities.RoleEntity;
+import com.Marketplace_Management.Auth.Entities.UserEntity;
 
 import jakarta.transaction.Transactional;
 
@@ -29,7 +29,7 @@ public class AdminSeeder {
     
     @Transactional
     public void seedAdmin() {
-        User admin = User.builder()
+        UserEntity admin = UserEntity.builder()
                 .email("admin@e-mark.com")
                 .password(passwordEncoder.encode("123456"))
                 .status(UserStatus.ACTIVE)
@@ -38,7 +38,7 @@ public class AdminSeeder {
 
         if (userRepository.findByEmail(admin.getEmail()).isEmpty()) {
             
-            Set<Role> roles = new HashSet<>();
+            Set<RoleEntity> roles = new HashSet<>();
             roles.add(roleRepository.findByCode("ADMIN").orElseThrow(() -> new RuntimeException(Message.ROLE_NOT_FOUND)));
             admin.setRoles(roles);
             this.userRepository.save(admin);

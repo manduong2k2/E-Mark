@@ -8,6 +8,8 @@ import com.Marketplace_Management.Shared.Entities.UuidEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Set;
 import lombok.experimental.SuperBuilder;
@@ -25,6 +27,8 @@ public class UserEntity extends UuidEntity {
     private String email;
 
     @Column(columnDefinition = "varchar(200)", nullable = false)
+    @JsonIgnore
+    @ToString.Exclude
     private String password;
 
     @Column(columnDefinition = "varchar(255)", nullable = true)
@@ -43,6 +47,8 @@ public class UserEntity extends UuidEntity {
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<RoleEntity> roles = new java.util.HashSet<>();
 
 

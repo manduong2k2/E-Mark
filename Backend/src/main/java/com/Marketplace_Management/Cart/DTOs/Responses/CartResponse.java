@@ -3,7 +3,7 @@ package com.Marketplace_Management.Cart.DTOs.Responses;
 import java.util.List;
 import java.util.UUID;
 
-import com.Marketplace_Management.Cart.Models.Cart.Cart;
+import com.Marketplace_Management.Cart.Entities.CartEntity;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import lombok.Data;
@@ -17,10 +17,10 @@ public class CartResponse {
     private double total;
     private long totalItemCount;
 
-    public static CartResponse from(Cart cart) {
+    public static CartResponse from(CartEntity cart) {
         CartResponse response = new CartResponse();
         response.setId(cart.getId());
-        response.setStatus(cart.getStatus().getValue());
+        response.setStatus(cart.getStatus());
         response.setItems(
             cart.getItems().stream()
                 .map(CartItemResponse::from)

@@ -12,8 +12,6 @@ import com.Marketplace_Management.Order.Contracts.IOrderRepository;
 import com.Marketplace_Management.Order.DTOs.Commands.ListOrderCommand;
 import com.Marketplace_Management.Order.DTOs.Responses.HistoryResponse;
 import com.Marketplace_Management.Order.Entities.OrderEntity;
-import com.Marketplace_Management.Order.Models.Order;
-import com.Marketplace_Management.Shared.Contracts.EntityDomainMapper;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
 
@@ -30,12 +28,10 @@ public class OrderRepository implements IOrderRepository {
 
 
     private final OrderJpaRepository jpaRepository;
-    private final EntityDomainMapper<Order, OrderEntity> mapper;
     private final EntityManager entityManager;
 
-    public OrderRepository(OrderJpaRepository jpaRepository, EntityDomainMapper<Order, OrderEntity> mapper, EntityManager entityManager) {
+    public OrderRepository(OrderJpaRepository jpaRepository, EntityManager entityManager) {
         this.jpaRepository = jpaRepository;
-        this.mapper = mapper;
         this.entityManager = entityManager;
     }
 
@@ -115,25 +111,21 @@ public class OrderRepository implements IOrderRepository {
     }
 
     @Override
-    public Order create(Order order) {
-        OrderEntity entity = mapper.toEntity(order);
-        OrderEntity saved = jpaRepository.save(entity);
-        return mapper.toDomain(saved);
+    public OrderEntity create(OrderEntity order) {
+        return jpaRepository.save(order);
     }
 
     @Override
-    public Optional<Order> findById(UUID id) {
-        return jpaRepository.findById(id)
-                .map(mapper::toDomain);
+    public Optional<OrderEntity> findById(UUID id) {
+        return jpaRepository.findById(id);
     }
 
     @Override
-    public Order updateStatus(UUID id, String status) {
+    public OrderEntity updateStatus(UUID id, String status) {
         OrderEntity entity = jpaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        entity.setStatus(status);
-        OrderEntity saved = jpaRepository.save(entity);
-        return mapper.toDomain(saved);
+        entity.changeStatus(status);
+        return jpaRepository.save(entity);
     }
 
     @Override

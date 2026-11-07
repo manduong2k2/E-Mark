@@ -8,13 +8,13 @@ import java.util.UUID;
 
 import com.Marketplace_Management.Auth.DTOs.Commands.GetListSessionCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.SessionResponse;
-import com.Marketplace_Management.Auth.Models.UserSession;
+import com.Marketplace_Management.Auth.Entities.UserSessionEntity;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 public interface IUserSessionRepository {
-    UserSession save(UserSession session);
-    List<UserSession> findByUserIds(Collection<UUID> userIds);
-    Optional<UserSession> findById(UUID id);
+    UserSessionEntity save(UserSessionEntity session);
+    List<UserSessionEntity> findByUserIds(Collection<UUID> userIds);
+    Optional<UserSessionEntity> findById(UUID id);
     int deleteByRefreshJti(String refreshJti);
     int deleteByUserIdAndAccessJti(UUID userId, String accessJti);
     int deleteByIds(Collection<UUID> ids);

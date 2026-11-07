@@ -4,14 +4,13 @@ import java.io.Serializable;
 import java.util.UUID;
 
 import com.Marketplace_Management.Shared.Models.DomainEvent;
-import com.Marketplace_Management.Vendor.Models.Vendor;
 
 public class VendorActivatedEvent extends DomainEvent implements Serializable {
     private UUID userId;
 
-    public VendorActivatedEvent(Vendor vendor) {
+    public VendorActivatedEvent(UUID userId) {
         super();
-        this.userId = vendor.getUserId();
+        this.userId = userId;
     }
 
     public UUID getUserId() {

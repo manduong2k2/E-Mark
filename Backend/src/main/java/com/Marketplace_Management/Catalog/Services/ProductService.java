@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.Set;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -29,13 +29,13 @@ import com.Marketplace_Management.Catalog.DTOs.Commands.Product.UpdateProductCom
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductResponse;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductShortResponse;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductVariantResponse;
-import com.Marketplace_Management.Catalog.Events.ProductArchivedEvent;
-import com.Marketplace_Management.Catalog.Events.ProductDeletedEvent;
 import com.Marketplace_Management.Catalog.Entities.BrandEntity;
 import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
 import com.Marketplace_Management.Catalog.Entities.FileEntity;
 import com.Marketplace_Management.Catalog.Entities.ProductEntity;
 import com.Marketplace_Management.Catalog.Entities.ProductVariantEntity;
+import com.Marketplace_Management.Catalog.Events.ProductArchivedEvent;
+import com.Marketplace_Management.Catalog.Events.ProductDeletedEvent;
 import com.Marketplace_Management.Shared.Configuration.RabbitMqQueues.ProductQueueConfig;
 import com.Marketplace_Management.Shared.Contracts.IEventPublisher;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
@@ -123,14 +123,14 @@ public class ProductService implements IProductService {
                                 .images(new ArrayList<>())
                                 .build();
                         if (variantCommand.getImages() != null) {
-                            for (var image : variantCommand.getImages()) {
+                            variantCommand.getImages().forEach(imageCommand -> {
                                 try {
-                                    String url = fileService.uploadFile(image, "catalog/product_variants");
+                                    String url = fileService.uploadFile(imageCommand, "catalog/product_variants");
                                     variant.getImages().add(new FileEntity(null, url, variant));
                                 } catch (IOException e) {
                                     throw new UncheckedIOException(e);
                                 }
-                            }
+                            });
                         }
                         return variant;
                     }).collect(Collectors.toCollection(HashSet::new)))

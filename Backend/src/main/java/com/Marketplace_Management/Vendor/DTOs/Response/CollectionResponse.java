@@ -2,7 +2,7 @@ package com.Marketplace_Management.Vendor.DTOs.Response;
 
 import java.util.UUID;
 
-import com.Marketplace_Management.Vendor.Models.Collection;
+import com.Marketplace_Management.Vendor.Entities.CollectionEntity;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import lombok.AllArgsConstructor;
@@ -18,7 +18,7 @@ public class CollectionResponse {
     private String name;
     private Integer displayOrder;
     
-    public CollectionResponse(Collection collection) {
+    public CollectionResponse(CollectionEntity collection) {
         if (collection == null) {
             return;
         }

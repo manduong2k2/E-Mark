@@ -17,6 +17,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -24,7 +25,8 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = "order")
+@ToString(exclude = "order")
 public class OrderItemEntity extends UuidEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -56,4 +58,15 @@ public class OrderItemEntity extends UuidEntity {
     @Column(name = "product_description")
     private String productDescription;
 
+    public void plusOne() {
+        quantity++;
+    }
+
+    public void minusOne() {
+        quantity--;
+    }
+
+    public double calculateTotal() {
+        return quantity * productPrice;
+    }
 }

@@ -19,8 +19,6 @@ import com.Marketplace_Management.Auth.DTOs.Commands.GetListUserCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.UserResponse;
 import com.Marketplace_Management.Auth.Entities.RoleEntity;
 import com.Marketplace_Management.Auth.Entities.UserEntity;
-import com.Marketplace_Management.Auth.Models.User;
-import com.Marketplace_Management.Shared.Contracts.EntityDomainMapper;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
@@ -34,44 +32,39 @@ public class UserRepository implements IUserRepository{
 
     private final UserJpaRepository userJpaRepository;
     private final RoleJpaRepository roleJpaRepository;
-    private final EntityDomainMapper<User, UserEntity> userMapper;
     private final DSLContext dsl;
     private final EntityMetadataRegistry metadataRegistry;
     private final ObjectMapper objectMapper;
     private final IOAuthInfoRepository oauthInfoRepo;
 
     public UserRepository(UserJpaRepository userJpaRepository, RoleJpaRepository roleJpaRepository,
-            EntityDomainMapper<User, UserEntity> userMapper, DSLContext dsl,
+            DSLContext dsl,
             EntityMetadataRegistry metadataRegistry, ObjectMapper objectMapper, IOAuthInfoRepository oauthInfoRepo) {
         this.userJpaRepository = userJpaRepository;
         this.roleJpaRepository = roleJpaRepository;
-        this.userMapper = userMapper;
         this.dsl = dsl;
         this.metadataRegistry = metadataRegistry;
         this.objectMapper = objectMapper;
         this.oauthInfoRepo = oauthInfoRepo;
     }
 
-    public Optional<User> findByEmail(String email) {
-        UserEntity entity = userJpaRepository.findByEmail(email).orElse(null);
-        return entity != null ? Optional.of(userMapper.toDomain(entity)) : Optional.empty();
+    public Optional<UserEntity> findByEmail(String email) {
+        return userJpaRepository.findByEmail(email);
     }
 
-    public Optional<User> findByPhone(String phone) {
-        return userJpaRepository.findByPhone(phone).map(userMapper::toDomain);
+    public Optional<UserEntity> findByPhone(String phone) {
+        return userJpaRepository.findByPhone(phone);
     }
 
-    public Optional<User> findById(UUID id) {
-        UserEntity entity = userJpaRepository.findById(id).orElse(null);
-        return entity != null ? Optional.of(userMapper.toDomain(entity)) : Optional.empty();
+    public Optional<UserEntity> findById(UUID id) {
+        return userJpaRepository.findById(id);
     }
 
-    public User save(User user) {
-        UserEntity entity = userMapper.toEntity(user);
-        return userMapper.toDomain(userJpaRepository.save(entity));
+    public UserEntity save(UserEntity user) {
+        return userJpaRepository.save(user);
     }
 
-    public void delete(User user) {
+    public void delete(UserEntity user) {
         userJpaRepository.deleteById(user.getId());
     }
 

@@ -23,7 +23,6 @@ import com.Marketplace_Management.Cart.DTOs.Commands.UpdateCartItemCommand;
 import com.Marketplace_Management.Cart.DTOs.Requests.AddItemRequest;
 import com.Marketplace_Management.Cart.DTOs.Requests.UpdateItemRequest;
 import com.Marketplace_Management.Cart.DTOs.Responses.CartResponse;
-import com.Marketplace_Management.Cart.Models.Cart.Cart;
 import com.Marketplace_Management.Shared.Annotation.Auth.Authenticated;
 import com.Marketplace_Management.Shared.Security.SecurityUtils;
 
@@ -43,7 +42,7 @@ public class CartController {
     public ResponseEntity<Map<String, Object>> getMyCart() {
 
         UUID userId = SecurityUtils.currentUserId();
-        Cart cart = cartService.getByUserId(userId);
+        CartResponse cart = cartService.getByUserId(userId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
@@ -52,7 +51,7 @@ public class CartController {
             response.put("cart", null);
             response.put("message", "Cart is empty");
         } else {
-            response.put("cart", CartResponse.from(cart));
+            response.put("cart", cart);
         }
         return ResponseEntity.ok(response);
     }
@@ -63,7 +62,7 @@ public class CartController {
 
         AddToCartCommand command = AddToCartCommand.fromRequest(request);
 
-        CartResponse response = CartResponse.from(cartService.addItem(command));
+        CartResponse response = cartService.addItem(command);
 
         return ResponseEntity.status(Http.OK).body(response);
     }
@@ -81,7 +80,7 @@ public class CartController {
         command.setProductVariantId(productVariantId);
         command.setQuantity(request.getQuantity());
 
-        CartResponse response = CartResponse.from(cartService.updateItem(command));
+        CartResponse response = cartService.updateItem(command);
 
         return ResponseEntity.status(Http.OK).body(response);
     }
@@ -93,7 +92,7 @@ public class CartController {
 
         RemoveFromCartCommand command = new RemoveFromCartCommand(userId, productVariantId);
 
-        CartResponse response = CartResponse.from(cartService.removeItem(command));
+        CartResponse response = cartService.removeItem(command);
         
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("message", Message.CART_ITEM_REMOVED);

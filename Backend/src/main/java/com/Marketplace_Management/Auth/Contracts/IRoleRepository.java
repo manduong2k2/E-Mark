@@ -7,18 +7,18 @@ import java.util.UUID;
 
 import com.Marketplace_Management.Auth.DTOs.Commands.GetListRoleCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.RoleResponse;
-import com.Marketplace_Management.Auth.Models.Role;
+import com.Marketplace_Management.Auth.Entities.RoleEntity;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 public interface IRoleRepository{
-    Optional<Role> findByCode(String code);
+    Optional<RoleEntity> findByCode(String code);
     long count();
-    List<Role> saveAll(List<Role> roles);
+    List<RoleEntity> saveAll(List<RoleEntity> roles);
 
     // Admin (Identity & Access)
-    Optional<Role> findById(UUID id);
-    List<Role> findAllById(Collection<UUID> ids);
-    Role save(Role role);
+    Optional<RoleEntity> findById(UUID id);
+    List<RoleEntity> findAllById(Collection<UUID> ids);
+    RoleEntity save(RoleEntity role);
     void delete(UUID id);
     PaginatedResponse<RoleResponse> findAll(GetListRoleCommand command);
     Optional<RoleResponse> findResponseById(UUID id);

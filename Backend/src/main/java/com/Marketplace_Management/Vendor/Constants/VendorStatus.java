@@ -1,4 +1,4 @@
-package com.Marketplace_Management.Vendor.Models;
+package com.Marketplace_Management.Vendor.Constants;
 
 public enum VendorStatus {
     PENDING,

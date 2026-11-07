@@ -1,6 +1,7 @@
 package com.Marketplace_Management.Auth.Service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -24,8 +25,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.Marketplace_Management.Auth.Contracts.IUserSessionRepository;
 import com.Marketplace_Management.Auth.DTOs.Response.AuthResponse;
-import com.Marketplace_Management.Auth.Models.User;
-import com.Marketplace_Management.Auth.Models.UserSession;
+import com.Marketplace_Management.Auth.Entities.UserEntity;
+import com.Marketplace_Management.Auth.Entities.RoleEntity;
+import com.Marketplace_Management.Auth.Entities.UserSessionEntity;
 import com.Marketplace_Management.Auth.Services.UserSessionService;
 import com.Marketplace_Management.Shared.Security.JwtService;
 import com.Marketplace_Management.Shared.Security.JwtService.IssuedToken;
@@ -47,7 +49,8 @@ class UserSessionServiceTest {
 
     @Test
     void issue_returnsTokensAndStoresSessionWithJtisAndExpiries() {
-        User user = User.builder().id(UUID.randomUUID()).email("a@b.c").roles(Set.of()).build();
+        UserEntity user = UserEntity.builder().id(UUID.randomUUID()).email("a@b.c")
+                .roles(Set.of(new RoleEntity(UUID.randomUUID(), "User", "USER"))).build();
         Instant accessExp = Instant.now().plusSeconds(3600);
         Instant refreshExp = Instant.now().plusSeconds(7200);
         when(jwtService.generateAccessToken(any(), any(), any())).thenReturn(new IssuedToken("access-token", "access-jti", accessExp));
@@ -58,9 +61,10 @@ class UserSessionServiceTest {
         assertEquals("access-token", response.getAccessToken());
         assertEquals("refresh-token", response.getRefreshToken());
 
-        ArgumentCaptor<UserSession> saved = ArgumentCaptor.forClass(UserSession.class);
+        ArgumentCaptor<UserSessionEntity> saved = ArgumentCaptor.forClass(UserSessionEntity.class);
         verify(sessionRepo).save(saved.capture());
-        assertEquals(user.getId(), saved.getValue().getUserId());
+        assertSame(user, saved.getValue().getUser());
+        verify(jwtService).generateAccessToken(user.getId(), List.of("USER"), user.getName());
         assertEquals("access-jti", saved.getValue().getAccessJti());
         assertEquals(accessExp, saved.getValue().getAccessExpiresAt());
         assertEquals("refresh-jti", saved.getValue().getRefreshJti());
@@ -84,8 +88,8 @@ class UserSessionServiceTest {
     void revokeAll_deletesOnlySessionsWhoseTokenWasBlacklisted() {
         UUID userId = UUID.randomUUID();
         Instant exp = Instant.now().plusSeconds(3600);
-        UserSession ok = UserSession.builder().id(UUID.randomUUID()).userId(userId).accessJti("jti-ok").accessExpiresAt(exp).build();
-        UserSession failed = UserSession.builder().id(UUID.randomUUID()).userId(userId).accessJti("jti-failed").accessExpiresAt(exp).build();
+        UserSessionEntity ok = UserSessionEntity.builder().id(UUID.randomUUID()).user(UserEntity.builder().id(userId).build()).accessJti("jti-ok").accessExpiresAt(exp).build();
+        UserSessionEntity failed = UserSessionEntity.builder().id(UUID.randomUUID()).user(UserEntity.builder().id(userId).build()).accessJti("jti-failed").accessExpiresAt(exp).build();
 
         when(sessionRepo.findByUserIds(List.of(userId))).thenReturn(List.of(ok, failed));
         when(jwtService.blacklist("jti-ok", exp)).thenReturn(true);
@@ -111,8 +115,8 @@ class UserSessionServiceTest {
     void revokeAllBeforeDelete_blacklistsAndDeletesEverySession() {
         UUID userId = UUID.randomUUID();
         Instant exp = Instant.now().plusSeconds(3600);
-        UserSession a = UserSession.builder().id(UUID.randomUUID()).userId(userId).accessJti("jti-a").accessExpiresAt(exp).build();
-        UserSession b = UserSession.builder().id(UUID.randomUUID()).userId(userId).accessJti("jti-b").accessExpiresAt(exp).build();
+        UserSessionEntity a = UserSessionEntity.builder().id(UUID.randomUUID()).user(UserEntity.builder().id(userId).build()).accessJti("jti-a").accessExpiresAt(exp).build();
+        UserSessionEntity b = UserSessionEntity.builder().id(UUID.randomUUID()).user(UserEntity.builder().id(userId).build()).accessJti("jti-b").accessExpiresAt(exp).build();
 
         when(sessionRepo.findByUserIds(List.of(userId))).thenReturn(List.of(a, b));
         when(jwtService.blacklist(any(), any())).thenReturn(true);
@@ -126,7 +130,7 @@ class UserSessionServiceTest {
     void revokeAllBeforeDelete_throwsWhenATokenCannotBeBlacklisted() {
         UUID userId = UUID.randomUUID();
         Instant exp = Instant.now().plusSeconds(3600);
-        UserSession s1 = UserSession.builder().id(UUID.randomUUID()).userId(userId).accessJti("jti-1").accessExpiresAt(exp).build();
+        UserSessionEntity s1 = UserSessionEntity.builder().id(UUID.randomUUID()).user(UserEntity.builder().id(userId).build()).accessJti("jti-1").accessExpiresAt(exp).build();
 
         when(sessionRepo.findByUserIds(List.of(userId))).thenReturn(List.of(s1));
         when(jwtService.blacklist("jti-1", exp)).thenReturn(false);   // e.g. Redis down

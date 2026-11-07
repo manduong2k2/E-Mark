@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 import com.Marketplace_Management.Auth.Constants.OAuthProvider;
 import com.Marketplace_Management.Auth.Contracts.IOAuthInfoRepository;
 import com.Marketplace_Management.Auth.Entities.OAuthInfoEntity;
-import com.Marketplace_Management.Auth.Models.OAuthInfo;
 
 @Repository
 public class OAuthInfoRepository implements IOAuthInfoRepository {
@@ -23,13 +22,13 @@ public class OAuthInfoRepository implements IOAuthInfoRepository {
     }
 
     @Override
-    public Optional<OAuthInfo> findByProviderAndSubject(OAuthProvider provider, String subject) {
-        return jpaRepository.findByOauthProviderAndOauthProviderSubject(provider, subject).map(this::toDomain);
+    public Optional<OAuthInfoEntity> findByProviderAndSubject(OAuthProvider provider, String subject) {
+        return jpaRepository.findByOauthProviderAndOauthProviderSubject(provider, subject);
     }
 
     @Override
-    public OAuthInfo save(OAuthInfo info) {
-        return toDomain(jpaRepository.save(toEntity(info)));
+    public OAuthInfoEntity save(OAuthInfoEntity info) {
+        return jpaRepository.save(info);
     }
 
     @Override
@@ -43,23 +42,4 @@ public class OAuthInfoRepository implements IOAuthInfoRepository {
                         Collectors.mapping(OAuthInfoEntity::getOauthProvider, Collectors.toList())));
     }
 
-    private OAuthInfo toDomain(OAuthInfoEntity e) {
-        return OAuthInfo.builder()
-                .id(e.getId())
-                .userId(e.getUserId())
-                .oauthProvider(e.getOauthProvider())
-                .oauthProviderSubject(e.getOauthProviderSubject())
-                .createdAt(e.getCreatedAt())
-                .build();
-    }
-
-    private OAuthInfoEntity toEntity(OAuthInfo d) {
-        return OAuthInfoEntity.builder()
-                .id(d.getId())
-                .userId(d.getUserId())
-                .oauthProvider(d.getOauthProvider())
-                .oauthProviderSubject(d.getOauthProviderSubject())
-                .createdAt(d.getCreatedAt())
-                .build();
-    }
 }

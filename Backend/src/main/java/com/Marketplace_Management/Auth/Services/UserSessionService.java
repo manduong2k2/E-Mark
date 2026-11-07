@@ -22,8 +22,8 @@ import com.Marketplace_Management.Auth.Contracts.IUserSessionRepository;
 import com.Marketplace_Management.Auth.DTOs.Commands.GetListSessionCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.AuthResponse;
 import com.Marketplace_Management.Auth.DTOs.Response.SessionResponse;
-import com.Marketplace_Management.Auth.Models.User;
-import com.Marketplace_Management.Auth.Models.UserSession;
+import com.Marketplace_Management.Auth.Entities.UserEntity;
+import com.Marketplace_Management.Auth.Entities.UserSessionEntity;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Security.JwtService;
 import com.Marketplace_Management.Shared.Security.JwtService.IssuedToken;
@@ -48,13 +48,13 @@ public class UserSessionService {
         this.sessionRepo = sessionRepo;
     }
 
-    public AuthResponse issue(User user, String message) {
+    public AuthResponse issue(UserEntity user, String message) {
         List<String> roleCodes = user.getRoles().stream().map(role -> role.getCode()).toList();
         IssuedToken access = jwtService.generateAccessToken(user.getId(), roleCodes, user.getName());
         IssuedToken refresh = jwtService.generateRefreshToken(user.getId());
 
-        sessionRepo.save(UserSession.builder()
-                .userId(user.getId())
+        sessionRepo.save(UserSessionEntity.builder()
+                .user(user)
                 .ipAddress(currentIp())
                 .loginAt(Instant.now())
                 .accessJti(access.jti())
@@ -88,7 +88,7 @@ public class UserSessionService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int revokeAll(Collection<UUID> userIds) {
-        List<UserSession> sessions = sessionRepo.findByUserIds(userIds);
+        List<UserSessionEntity> sessions = sessionRepo.findByUserIds(userIds);
         List<UUID> revoked = blacklistAndDelete(sessions);
 
         if (revoked.size() < sessions.size()) {
@@ -100,7 +100,7 @@ public class UserSessionService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void revokeAllBeforeDelete(UUID userId) {
-        List<UserSession> sessions = sessionRepo.findByUserIds(List.of(userId));
+        List<UserSessionEntity> sessions = sessionRepo.findByUserIds(List.of(userId));
         List<UUID> revoked = blacklistAndDelete(sessions);
 
         if (revoked.size() < sessions.size()) {
@@ -111,9 +111,9 @@ public class UserSessionService {
     }
 
     /** Blacklists each access token; deletes (and returns) only the sessions whose token was blacklisted. */
-    private List<UUID> blacklistAndDelete(List<UserSession> sessions) {
+    private List<UUID> blacklistAndDelete(List<UserSessionEntity> sessions) {
         List<UUID> revoked = new ArrayList<>();
-        for (UserSession session : sessions) {
+        for (UserSessionEntity session : sessions) {
             if (jwtService.blacklist(session.getAccessJti(), session.getAccessExpiresAt())) {
                 revoked.add(session.getId());
             }
@@ -134,7 +134,7 @@ public class UserSessionService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void terminateSession(UUID sessionId) {
-        UserSession session = sessionRepo.findById(sessionId)
+        UserSessionEntity session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, Message.SESSION_NOT_FOUND));
 
         jwtService.blacklist(session.getAccessJti(), session.getAccessExpiresAt());
@@ -146,7 +146,7 @@ public class UserSessionService {
     public int terminateSessions(List<UUID> sessionIds) {
         if (sessionIds == null || sessionIds.isEmpty()) return 0;
 
-        List<UserSession> targets = sessionIds.stream()
+        List<UserSessionEntity> targets = sessionIds.stream()
                 .map(id -> sessionRepo.findById(id))
                 .filter(java.util.Optional::isPresent)
                 .map(java.util.Optional::get)

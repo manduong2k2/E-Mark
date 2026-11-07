@@ -4,11 +4,9 @@ import com.Marketplace_Management.Vendor.Contracts.IVendorRepository;
 import com.Marketplace_Management.Vendor.DTOs.Command.GetListVendorCommand;
 import com.Marketplace_Management.Vendor.DTOs.Response.VendorResponse;
 import com.Marketplace_Management.Vendor.Entities.VendorEntity;
-import com.Marketplace_Management.Vendor.Models.Vendor;
 
 import tools.jackson.databind.ObjectMapper;
 
-import com.Marketplace_Management.Shared.Contracts.EntityDomainMapper;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
 
@@ -24,14 +22,12 @@ import java.util.stream.Collectors;
 public class VendorRepository implements IVendorRepository {
 
     private final VendorJpaRepository jpaRepository;
-    private EntityDomainMapper<Vendor, VendorEntity> vendorMapper;
     private final DSLContext dslContext;
     private final EntityMetadataRegistry metadataRegistry;
     private final ObjectMapper objectMapper;
 
-    public VendorRepository(VendorJpaRepository jpaRepository, EntityDomainMapper<Vendor, VendorEntity> vendorMapper, DSLContext dslContext, EntityMetadataRegistry metadataRegistry, ObjectMapper objectMapper) {
+    public VendorRepository(VendorJpaRepository jpaRepository, DSLContext dslContext, EntityMetadataRegistry metadataRegistry, ObjectMapper objectMapper) {
         this.jpaRepository = jpaRepository;
-        this.vendorMapper = vendorMapper;
         this.dslContext = dslContext;
         this.metadataRegistry = metadataRegistry;
         this.objectMapper = objectMapper;
@@ -54,27 +50,22 @@ public class VendorRepository implements IVendorRepository {
     }
 
     @Override
-    public Vendor save(Vendor vendor) {
-        VendorEntity entity = vendorMapper.toEntity(vendor);
-        VendorEntity saved = jpaRepository.save(entity);
-        return vendorMapper.toDomain(saved);
+    public VendorEntity save(VendorEntity vendor) {
+        return jpaRepository.save(vendor);
     }
 
     @Override
-    public Optional<Vendor> findById(UUID id) {
-        return jpaRepository.findById(id)
-                .map(vendorMapper::toDomain);
+    public Optional<VendorEntity> findById(UUID id) {
+        return jpaRepository.findById(id);
     }
 
     @Override
-    public Optional<Vendor> findByUserId(UUID userId) {
-        return jpaRepository.findByUserId(userId)
-                .map(vendorMapper::toDomain);
+    public Optional<VendorEntity> findByUserId(UUID userId) {
+        return jpaRepository.findByUserId(userId);
     }
 
     @Override
     public boolean existsByUserId(UUID userId) {
-        return jpaRepository.findByUserId(userId).isEmpty()
-            ? false : true;
+        return jpaRepository.findByUserId(userId).isPresent();
     }
 }

@@ -5,13 +5,14 @@ import java.util.UUID;
 import org.hibernate.annotations.Nationalized;
 
 import com.Marketplace_Management.Shared.Entities.UuidEntity;
-import com.Marketplace_Management.Vendor.Models.VendorStatus;
+import com.Marketplace_Management.Vendor.Constants.VendorStatus;
 
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 import lombok.NoArgsConstructor;
+import lombok.Builder;
 
 @Entity
 @Table(name = "vendors")
@@ -28,7 +29,8 @@ public class VendorEntity extends UuidEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private VendorStatus status;
+    @Builder.Default
+    private VendorStatus status = VendorStatus.PENDING;
 
     @Column(length = 500)
     @Nationalized
@@ -52,5 +54,14 @@ public class VendorEntity extends UuidEntity {
     @Column(length = 15, unique = true)
     private String phone;
 
+    public void activate() {
+        if (status != VendorStatus.PENDING) {
+            throw new IllegalStateException("Vendor must be PENDING to activate");
+        }
+        status = VendorStatus.ACTIVE;
+    }
 
+    public void ban() {
+        status = VendorStatus.BANNED;
+    }
 }
