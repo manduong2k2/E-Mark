@@ -6,15 +6,15 @@ import java.util.UUID;
 
 import com.Marketplace_Management.Auth.DTOs.Commands.GetListUserCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.UserResponse;
-import com.Marketplace_Management.Auth.Entities.UserEntity;
+import com.Marketplace_Management.Auth.Entities.User;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 public interface IUserRepository{
-    Optional<UserEntity> findByEmail(String email);
-    Optional<UserEntity> findByPhone(String phone);
-    Optional<UserEntity> findById(UUID id);
-    UserEntity save(UserEntity user);
-    void delete(UserEntity user);
+    Optional<User> findByEmail(String email);
+    Optional<User> findByPhone(String phone);
+    Optional<User> findById(UUID id);
+    User save(User user);
+    void delete(User user);
 
     // Admin (Identity & Access)
     PaginatedResponse<UserResponse> findAll(GetListUserCommand command);

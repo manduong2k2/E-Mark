@@ -3,7 +3,7 @@ package com.Marketplace_Management.Catalog.DTOs.Response;
 import java.util.List;
 import java.util.UUID;
 
-import com.Marketplace_Management.Catalog.Entities.ProductVariantEntity;
+import com.Marketplace_Management.Catalog.Entities.ProductVariant;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import lombok.AllArgsConstructor;
@@ -24,7 +24,7 @@ public class ProductVariantResponse {
     private List<String> images;
     private ProductResponse product;
 
-    public ProductVariantResponse(ProductVariantEntity variant) {
+    public ProductVariantResponse(ProductVariant variant) {
         if (variant == null) {
             return;
         }

@@ -19,7 +19,7 @@ import com.Marketplace_Management.Auth.DTOs.Commands.SaveRoleCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.RoleResponse;
 import com.Marketplace_Management.Auth.DTOs.Response.UserResponse;
 import com.Marketplace_Management.Auth.Events.UserAccessChangedEvent;
-import com.Marketplace_Management.Auth.Entities.RoleEntity;
+import com.Marketplace_Management.Auth.Entities.Role;
 import com.Marketplace_Management.Shared.Constants.UserRole;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
@@ -58,7 +58,7 @@ public class RoleService implements IRoleService {
     // connection and only sees committed rows. Each repository call commits on its own.
     @Override
     public RoleResponse createRole(SaveRoleCommand command) {
-        RoleEntity saved = roleRepo.save(new RoleEntity(null, command.getName(), command.getCode()));
+        Role saved = roleRepo.save(new Role(null, command.getName(), command.getCode()));
         return getRole(saved.getId());
     }
 
@@ -68,7 +68,7 @@ public class RoleService implements IRoleService {
     // Cached profiles contain role names
     @CacheEvict(value = "userProfiles", allEntries = true)
     public RoleResponse updateRole(UUID id, SaveRoleCommand command) {
-        RoleEntity role = requireRole(id);
+        Role role = requireRole(id);
         boolean codeChanged = !role.getCode().equals(command.getCode());
 
         // System roles are read-only: the code is used by hasAuthority(...) and the admin frontend
@@ -96,7 +96,7 @@ public class RoleService implements IRoleService {
     @Override
     @Transactional
     public void deleteRole(UUID id) {
-        RoleEntity role = requireRole(id);
+        Role role = requireRole(id);
 
         if (UserRole.SYSTEM.contains(role.getCode())) {
             throw new BadRequestException(Message.SYSTEM_ROLE_PROTECTED);
@@ -108,7 +108,7 @@ public class RoleService implements IRoleService {
         roleRepo.delete(id);
     }
 
-    private RoleEntity requireRole(UUID id) {
+    private Role requireRole(UUID id) {
         return roleRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
     }

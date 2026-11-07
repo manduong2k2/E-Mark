@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.Marketplace_Management.Auth.Entities.UserEntity;
+import com.Marketplace_Management.Auth.Entities.User;
 import com.Marketplace_Management.Auth.Events.UserAccessChangedEvent;
 import com.Marketplace_Management.Auth.Services.EmailVerificationTokenService;
 import com.Marketplace_Management.Auth.Services.UserSessionService;
@@ -32,7 +32,7 @@ public class UserObserver {
         phase = TransactionPhase.AFTER_COMMIT,
         condition = "#event.type == T(com.Marketplace_Management.Shared.Events.EntityEvent.Type).CREATED"
                 + " && #event.entity.status != T(com.Marketplace_Management.Auth.Constants.UserStatus).ACTIVE")
-    public void onUserRegistered(EntityEvent<UserEntity> event) throws MessagingException {
+    public void onUserRegistered(EntityEvent<User> event) throws MessagingException {
         String token = Helper.randomString(16);
         tokenService.createToken(event.getEntity().getEmail(), token);  
         tokenService.sendVerifyEmail(event.getEntity().getEmail(), token);

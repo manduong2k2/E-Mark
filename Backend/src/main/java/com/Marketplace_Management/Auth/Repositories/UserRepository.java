@@ -17,8 +17,8 @@ import com.Marketplace_Management.Auth.Contracts.IOAuthInfoRepository;
 import com.Marketplace_Management.Auth.Contracts.IUserRepository;
 import com.Marketplace_Management.Auth.DTOs.Commands.GetListUserCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.UserResponse;
-import com.Marketplace_Management.Auth.Entities.RoleEntity;
-import com.Marketplace_Management.Auth.Entities.UserEntity;
+import com.Marketplace_Management.Auth.Entities.Role;
+import com.Marketplace_Management.Auth.Entities.User;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
@@ -48,23 +48,23 @@ public class UserRepository implements IUserRepository{
         this.oauthInfoRepo = oauthInfoRepo;
     }
 
-    public Optional<UserEntity> findByEmail(String email) {
+    public Optional<User> findByEmail(String email) {
         return userJpaRepository.findByEmail(email);
     }
 
-    public Optional<UserEntity> findByPhone(String phone) {
+    public Optional<User> findByPhone(String phone) {
         return userJpaRepository.findByPhone(phone);
     }
 
-    public Optional<UserEntity> findById(UUID id) {
+    public Optional<User> findById(UUID id) {
         return userJpaRepository.findById(id);
     }
 
-    public UserEntity save(UserEntity user) {
+    public User save(User user) {
         return userJpaRepository.save(user);
     }
 
-    public void delete(UserEntity user) {
+    public void delete(User user) {
         userJpaRepository.deleteById(user.getId());
     }
 
@@ -72,7 +72,7 @@ public class UserRepository implements IUserRepository{
 
     @Override
     public PaginatedResponse<UserResponse> findAll(GetListUserCommand command) {
-        QueryBuilder<UserEntity> queryBuilder = baseQuery()
+        QueryBuilder<User> queryBuilder = baseQuery()
                 .when(command.getSearch() != null, q -> {
                     String pattern = "%" + command.getSearch() + "%";
                     q.where(column("name").likeIgnoreCase(pattern).or(column("email").likeIgnoreCase(pattern)));
@@ -95,7 +95,7 @@ public class UserRepository implements IUserRepository{
 
     @Override
     public Optional<UserResponse> findResponseById(UUID id) {
-        QueryBuilder<UserEntity> queryBuilder = baseQuery().where("id", "=", id);
+        QueryBuilder<User> queryBuilder = baseQuery().where("id", "=", id);
         Optional<UserResponse> user = queryBuilder.get().stream().findFirst().map(item -> toResponse(queryBuilder, item));
         user.ifPresent(u -> withOAuthProviders(List.of(u)));
         return user;
@@ -105,7 +105,7 @@ public class UserRepository implements IUserRepository{
 
     @Override
     public List<UUID> findExistingIds(Collection<UUID> ids) {
-        return userJpaRepository.findAllById(ids).stream().map(UserEntity::getId).toList();
+        return userJpaRepository.findAllById(ids).stream().map(User::getId).toList();
     }
 
     @Override
@@ -119,10 +119,10 @@ public class UserRepository implements IUserRepository{
 
     @Override
     public int grantRole(UUID roleId, Collection<UUID> userIds) {
-        RoleEntity role = roleJpaRepository.getReferenceById(roleId);
-        List<UserEntity> changed = new ArrayList<>();
+        Role role = roleJpaRepository.getReferenceById(roleId);
+        List<User> changed = new ArrayList<>();
 
-        for (UserEntity user : userJpaRepository.findAllById(userIds)) {
+        for (User user : userJpaRepository.findAllById(userIds)) {
             // Skip users that already have the role
             if (user.getRoles().stream().noneMatch(r -> roleId.equals(r.getId()))) {
                 user.getRoles().add(role);
@@ -136,8 +136,8 @@ public class UserRepository implements IUserRepository{
 
     @Override
     public int revokeRole(UUID roleId, Collection<UUID> userIds) {
-        List<UserEntity> users = userJpaRepository.findAllById(userIds);
-        List<UserEntity> changed = users.stream()
+        List<User> users = userJpaRepository.findAllById(userIds);
+        List<User> changed = users.stream()
                 .filter(user -> user.getRoles().removeIf(r -> roleId.equals(r.getId())))
                 .toList();
         userJpaRepository.saveAll(changed);
@@ -146,9 +146,9 @@ public class UserRepository implements IUserRepository{
 
     // ===== helpers =====
 
-    private QueryBuilder<UserEntity> baseQuery() {
-        QueryBuilder<UserEntity> queryBuilder = new QueryBuilder<>(dsl, metadataRegistry, objectMapper);
-        return queryBuilder.query(UserEntity.class)
+    private QueryBuilder<User> baseQuery() {
+        QueryBuilder<User> queryBuilder = new QueryBuilder<>(dsl, metadataRegistry, objectMapper);
+        return queryBuilder.query(User.class)
                 // Explicit columns: never select the password hash
                 .select("id", "email", "name", "avatar", "phone", "status", "createdAt")
                 .with("roles", role -> role.select("id", "name", "code"));
@@ -166,7 +166,7 @@ public class UserRepository implements IUserRepository{
                         .where(DSL.field(DSL.name("role_id")).eq(roleId)));
     }
 
-    private UserResponse toResponse(QueryBuilder<UserEntity> queryBuilder, Map<String, Object> item) {
+    private UserResponse toResponse(QueryBuilder<User> queryBuilder, Map<String, Object> item) {
         return queryBuilder.to(QueryResults.normalize(item), UserResponse.class);
     }
 

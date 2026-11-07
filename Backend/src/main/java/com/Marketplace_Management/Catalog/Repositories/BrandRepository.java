@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import com.Marketplace_Management.Catalog.Contracts.IBrandRepository;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Brand.GetListBrandCommand;
 import com.Marketplace_Management.Catalog.DTOs.Response.BrandResponse;
-import com.Marketplace_Management.Catalog.Entities.BrandEntity;
+import com.Marketplace_Management.Catalog.Entities.Brand;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
@@ -35,8 +35,8 @@ public class BrandRepository implements IBrandRepository {
 
     @Override
     public PaginatedResponse<BrandResponse> findAll(GetListBrandCommand command) {
-        QueryBuilder<BrandEntity> queryBuilder = new QueryBuilder<>(dslContext, metadataRegistry, objectMapper);
-        queryBuilder.query(BrandEntity.class)
+        QueryBuilder<Brand> queryBuilder = new QueryBuilder<>(dslContext, metadataRegistry, objectMapper);
+        queryBuilder.query(Brand.class)
                 .withCount("products", product -> {
                     product.select("id", "name");
                 })
@@ -61,22 +61,22 @@ public class BrandRepository implements IBrandRepository {
     }
 
     @Override
-    public BrandEntity save(BrandEntity brand) {
+    public Brand save(Brand brand) {
         return jpaRepository.save(brand);
     }
 
     @Override
-    public Optional<BrandEntity> findById(UUID id) {
+    public Optional<Brand> findById(UUID id) {
         return jpaRepository.findById(id);
     }
 
     @Override
-    public Optional<BrandEntity> findByName(String name) {
+    public Optional<Brand> findByName(String name) {
         return jpaRepository.findByName(name);
     }
 
     @Override
-    public BrandEntity update(BrandEntity brand) {
+    public Brand update(Brand brand) {
         return save(brand);
     }
 

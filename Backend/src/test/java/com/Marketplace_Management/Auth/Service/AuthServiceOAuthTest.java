@@ -27,8 +27,8 @@ import com.Marketplace_Management.Auth.Contracts.IOAuthInfoRepository;
 import com.Marketplace_Management.Auth.Contracts.IUserRepository;
 import com.Marketplace_Management.Auth.DTOs.Commands.OAuthLoginCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.AuthResponse;
-import com.Marketplace_Management.Auth.Entities.OAuthInfoEntity;
-import com.Marketplace_Management.Auth.Entities.UserEntity;
+import com.Marketplace_Management.Auth.Entities.OAuthInfo;
+import com.Marketplace_Management.Auth.Entities.User;
 import com.Marketplace_Management.Auth.Services.AuthService;
 import com.Marketplace_Management.Auth.Services.UserSessionService;
 import com.Marketplace_Management.Auth.Services.OAuth.OAuthStrategy;
@@ -67,11 +67,11 @@ class AuthServiceOAuthTest {
     void linkedAccount_logsIn() {
         providerReturns(EMAIL, true);
         UUID userId = UUID.randomUUID();
-        UserEntity user = UserEntity.builder().id(userId).email(EMAIL).status(UserStatus.ACTIVE).build();
+        User user = User.builder().id(userId).email(EMAIL).status(UserStatus.ACTIVE).build();
         AuthResponse expected = org.mockito.Mockito.mock(AuthResponse.class);
 
         when(oauthInfoRepo.findByProviderAndSubject(OAuthProvider.FACEBOOK, SUBJECT))
-                .thenReturn(Optional.of(OAuthInfoEntity.builder().userId(userId).build()));
+                .thenReturn(Optional.of(OAuthInfo.builder().userId(userId).build()));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(sessionService.issue(user, Message.LOGIN_SUCCESS)).thenReturn(expected);
 
@@ -83,10 +83,10 @@ class AuthServiceOAuthTest {
     void linkedAccount_deactivated_isRejected() {
         providerReturns(EMAIL, true);
         UUID userId = UUID.randomUUID();
-        UserEntity user = UserEntity.builder().id(userId).email(EMAIL).status(UserStatus.INACTIVE).build();
+        User user = User.builder().id(userId).email(EMAIL).status(UserStatus.INACTIVE).build();
 
         when(oauthInfoRepo.findByProviderAndSubject(OAuthProvider.FACEBOOK, SUBJECT))
-                .thenReturn(Optional.of(OAuthInfoEntity.builder().userId(userId).build()));
+                .thenReturn(Optional.of(OAuthInfo.builder().userId(userId).build()));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         assertThrows(AuthenticationException.class, () -> authService.loginWithOAuth(command));
@@ -97,7 +97,7 @@ class AuthServiceOAuthTest {
     void existingActiveEmail_isLinkedToProvider() {
         providerReturns(EMAIL, true);
         UUID userId = UUID.randomUUID();
-        UserEntity user = UserEntity.builder().id(userId).email(EMAIL).status(UserStatus.ACTIVE).build();
+        User user = User.builder().id(userId).email(EMAIL).status(UserStatus.ACTIVE).build();
         AuthResponse expected = org.mockito.Mockito.mock(AuthResponse.class);
 
         when(oauthInfoRepo.findByProviderAndSubject(OAuthProvider.FACEBOOK, SUBJECT)).thenReturn(Optional.empty());
@@ -108,7 +108,7 @@ class AuthServiceOAuthTest {
 
         assertEquals(expected, authService.loginWithOAuth(command));
 
-        ArgumentCaptor<OAuthInfoEntity> link = ArgumentCaptor.forClass(OAuthInfoEntity.class);
+        ArgumentCaptor<OAuthInfo> link = ArgumentCaptor.forClass(OAuthInfo.class);
         verify(oauthInfoRepo).save(link.capture());
         assertEquals(userId, link.getValue().getUserId());
         assertEquals(OAuthProvider.FACEBOOK, link.getValue().getOauthProvider());
@@ -120,7 +120,7 @@ class AuthServiceOAuthTest {
     @Test
     void existingInactiveEmail_isRejectedWithoutLinkingOrIssuingSession() {
         providerReturns(EMAIL, true);
-        UserEntity user = UserEntity.builder().id(UUID.randomUUID()).email(EMAIL).status(UserStatus.INACTIVE).build();
+        User user = User.builder().id(UUID.randomUUID()).email(EMAIL).status(UserStatus.INACTIVE).build();
 
         when(oauthInfoRepo.findByProviderAndSubject(OAuthProvider.FACEBOOK, SUBJECT)).thenReturn(Optional.empty());
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));

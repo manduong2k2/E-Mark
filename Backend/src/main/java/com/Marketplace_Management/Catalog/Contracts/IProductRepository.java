@@ -4,21 +4,21 @@ import java.util.UUID;
 
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.GetListProductCommand;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductShortResponse;
-import com.Marketplace_Management.Catalog.Entities.ProductEntity;
-import com.Marketplace_Management.Catalog.Entities.ProductVariantEntity;
+import com.Marketplace_Management.Catalog.Entities.Product;
+import com.Marketplace_Management.Catalog.Entities.ProductVariant;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 
 public interface IProductRepository {
-    ProductEntity save(ProductEntity product);
+    Product save(Product product);
 
     PaginatedResponse<ProductShortResponse> findAll(GetListProductCommand command);
 
-    ProductEntity findById(UUID id);
+    Product findById(UUID id);
 
-    ProductEntity update(ProductEntity product);
+    Product update(Product product);
 
     void delete(UUID id);
 
-    ProductVariantEntity findVariantById(UUID variantId);
+    ProductVariant findVariantById(UUID variantId);
 }

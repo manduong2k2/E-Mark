@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
+import com.Marketplace_Management.Catalog.Entities.Category;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.Marketplace_Management.Shared.Utils.Helpers.UrlHelper;
 
@@ -23,7 +23,7 @@ public class CategoryResponse {
     private UUID parentId;
     private List<CategoryResponse> children;
 
-    public CategoryResponse(CategoryEntity category) {
+    public CategoryResponse(Category category) {
         this.id = category.getId();
         this.name = category.getName();
         this.image = category.getImage() != null ? category.getImage() : null;

@@ -12,28 +12,28 @@ import org.junit.jupiter.api.Test;
 
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductResponse;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductVariantResponse;
-import com.Marketplace_Management.Catalog.Entities.BrandEntity;
-import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
-import com.Marketplace_Management.Catalog.Entities.FileEntity;
-import com.Marketplace_Management.Catalog.Entities.ProductEntity;
-import com.Marketplace_Management.Catalog.Entities.ProductVariantEntity;
+import com.Marketplace_Management.Catalog.Entities.Brand;
+import com.Marketplace_Management.Catalog.Entities.Category;
+import com.Marketplace_Management.Catalog.Entities.Product;
+import com.Marketplace_Management.Catalog.Entities.ProductVariant;
+import com.Marketplace_Management.Shared.Entities.FileEntity;
 
 import tools.jackson.databind.json.JsonMapper;
 
 class CatalogResponseTest {
     @Test
     void responsesSerializeDtosWithoutTraversingEntityBackReferences() {
-        ProductEntity product = new ProductEntity();
+        Product product = new Product();
         product.setId(UUID.randomUUID());
         product.setName("Product");
-        product.setBrand(BrandEntity.builder().id(UUID.randomUUID()).name("Brand").image("uploads/brand.png").build());
+        product.setBrand(Brand.builder().id(UUID.randomUUID()).name("Brand").image("uploads/brand.png").build());
         product.setCategories(new HashSet<>());
-        CategoryEntity parent = CategoryEntity.builder().id(UUID.randomUUID()).name("Parent").build();
-        CategoryEntity child = CategoryEntity.builder().id(UUID.randomUUID()).name("Child").parent(parent).build();
+        Category parent = Category.builder().id(UUID.randomUUID()).name("Parent").build();
+        Category child = Category.builder().id(UUID.randomUUID()).name("Child").parent(parent).build();
         parent.getChildren().add(child);
         product.getCategories().add(parent);
         product.setVariants(new HashSet<>());
-        ProductVariantEntity variant = ProductVariantEntity.builder().id(UUID.randomUUID()).name("Variant")
+        ProductVariant variant = ProductVariant.builder().id(UUID.randomUUID()).name("Variant")
                 .price(12.5).stock(3).product(product).images(new ArrayList<>()).build();
         variant.getImages().add(new FileEntity(UUID.randomUUID(), "uploads/variant.png", variant));
         product.getVariants().add(variant);

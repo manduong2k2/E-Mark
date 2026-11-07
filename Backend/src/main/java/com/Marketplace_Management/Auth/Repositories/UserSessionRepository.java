@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.Marketplace_Management.Auth.Contracts.IUserSessionRepository;
 import com.Marketplace_Management.Auth.DTOs.Commands.GetListSessionCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.SessionResponse;
-import com.Marketplace_Management.Auth.Entities.UserSessionEntity;
+import com.Marketplace_Management.Auth.Entities.UserSession;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
@@ -40,17 +40,17 @@ public class UserSessionRepository implements IUserSessionRepository {
     }
 
     @Override
-    public UserSessionEntity save(UserSessionEntity session) {
+    public UserSession save(UserSession session) {
         return jpaRepository.save(session);
     }
 
     @Override
-    public Optional<UserSessionEntity> findById(UUID id) {
+    public Optional<UserSession> findById(UUID id) {
         return jpaRepository.findById(id);
     }
 
     @Override
-    public List<UserSessionEntity> findByUserIds(Collection<UUID> userIds) {
+    public List<UserSession> findByUserIds(Collection<UUID> userIds) {
         if (userIds.isEmpty()) {
             return List.of();
         }
@@ -83,7 +83,7 @@ public class UserSessionRepository implements IUserSessionRepository {
 
     @Override
     public PaginatedResponse<SessionResponse> findAll(GetListSessionCommand command) {
-        QueryBuilder<UserSessionEntity> qb = baseQuery()
+        QueryBuilder<UserSession> qb = baseQuery()
                 .when(command.getUserId() != null,
                         q -> q.where("user.id", "=", command.getUserId()))
                 .when(command.getSearch() != null,
@@ -109,9 +109,9 @@ public class UserSessionRepository implements IUserSessionRepository {
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private QueryBuilder<UserSessionEntity> baseQuery() {
-        return new QueryBuilder<UserSessionEntity>(dsl, metadataRegistry, objectMapper)
-                .query(UserSessionEntity.class)
+    private QueryBuilder<UserSession> baseQuery() {
+        return new QueryBuilder<UserSession>(dsl, metadataRegistry, objectMapper)
+                .query(UserSession.class)
                 .select("id", "ipAddress", "loginAt", "accessExpiresAt")
                 .with("user", user -> user.select("id", "name", "email", "avatar"));
     }

@@ -13,7 +13,7 @@ import com.Marketplace_Management.Catalog.DTOs.Commands.Brand.CreateBrandCommand
 import com.Marketplace_Management.Catalog.DTOs.Commands.Brand.GetListBrandCommand;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Brand.UpdateBrandCommand;
 import com.Marketplace_Management.Catalog.DTOs.Response.BrandResponse;
-import com.Marketplace_Management.Catalog.Entities.BrandEntity;
+import com.Marketplace_Management.Catalog.Entities.Brand;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
@@ -47,7 +47,7 @@ public class BrandService implements IBrandService {
 
     @Transactional(rollbackFor = IOException.class)
     public BrandResponse createBrand(CreateBrandCommand command) throws java.io.IOException {
-        BrandEntity brand = BrandEntity.builder()
+        Brand brand = Brand.builder()
                 .name(command.getName())
                 .description(command.getDescription())
                 .build();
@@ -60,7 +60,7 @@ public class BrandService implements IBrandService {
 
     @Transactional(rollbackFor = IOException.class)
     public BrandResponse updateBrand(UUID brandId, UpdateBrandCommand command) throws IOException {
-        BrandEntity brand = brandRepository.findById(brandId)
+        Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new ResourceNotFoundException(BRAND_NOT_FOUND));
 
         brand.setName(command.getName());

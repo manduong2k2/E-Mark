@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.Marketplace_Management.Catalog.Entities.ProductEntity;
+import com.Marketplace_Management.Catalog.Entities.Product;
 import com.Marketplace_Management.Vendor.DTOs.Response.VendorResponse;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.Marketplace_Management.Shared.Utils.Helpers.UrlHelper;
@@ -29,11 +29,11 @@ public class ProductResponse {
     private UUID vendorId;
     private VendorResponse vendor;
 
-    public ProductResponse(ProductEntity product) {
+    public ProductResponse(Product product) {
         this(product, true);
     }
 
-    public ProductResponse(ProductEntity product, boolean includeVariants) {
+    public ProductResponse(Product product, boolean includeVariants) {
         if (product == null) {
             return;
         }

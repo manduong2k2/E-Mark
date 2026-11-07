@@ -24,8 +24,8 @@ import com.Marketplace_Management.Auth.DTOs.Commands.GetListUserCommand;
 import com.Marketplace_Management.Auth.DTOs.Commands.UpdateUserCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.UserResponse;
 import com.Marketplace_Management.Auth.Events.UserAccessChangedEvent;
-import com.Marketplace_Management.Auth.Entities.RoleEntity;
-import com.Marketplace_Management.Auth.Entities.UserEntity;
+import com.Marketplace_Management.Auth.Entities.Role;
+import com.Marketplace_Management.Auth.Entities.User;
 import com.Marketplace_Management.Shared.Constants.UserRole;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
@@ -69,7 +69,7 @@ public class UserService implements IUserService {
     public UserResponse createUser(CreateUserCommand command) {
         ensurePhoneAvailable(command.getPhone(), null);
 
-        UserEntity user = UserEntity.builder()
+        User user = User.builder()
                 .email(command.getEmail())
                 .password(encoder.encode(command.getPassword()))
                 .name(command.getName())
@@ -78,7 +78,7 @@ public class UserService implements IUserService {
                 .roles(resolveRoles(command.getRoleIds()))
                 .build();
 
-        UserEntity saved = userRepo.save(user);
+        User saved = userRepo.save(user);
         return getUser(saved.getId());
     }
 
@@ -87,7 +87,7 @@ public class UserService implements IUserService {
     @Override
     @CacheEvict(value = "userProfiles", key = "#id")
     public UserResponse updateUser(UUID id, UpdateUserCommand command) {
-        UserEntity user = requireUser(id);
+        User user = requireUser(id);
 
         ensurePhoneAvailable(command.getPhone(), id);
 
@@ -116,7 +116,7 @@ public class UserService implements IUserService {
         if (id.equals(currentUserId)) {
             throw new BadRequestException(Message.CANNOT_DELETE_SELF);
         }
-        UserEntity user = requireUser(id);
+        User user = requireUser(id);
         // Sessions cascade with the user row, so revoke their tokens first (not via the AFTER_COMMIT event)
         sessionService.revokeAllBeforeDelete(id);
         userRepo.delete(user);
@@ -137,7 +137,7 @@ public class UserService implements IUserService {
     @Transactional
     @CacheEvict(value = "userProfiles", allEntries = true)
     public int revokeRole(UUID roleId, List<UUID> userIds, UUID currentUserId) {
-        RoleEntity role = requireRole(roleId);
+        Role role = requireRole(roleId);
         Set<UUID> ids = requireUsers(userIds);
 
         // Prevent an admin from locking themselves out of the admin area
@@ -163,22 +163,22 @@ public class UserService implements IUserService {
     }
 
     /** Requested roles, or the default USER role when none are given. */
-    private Set<RoleEntity> resolveRoles(List<UUID> roleIds) {
+    private Set<Role> resolveRoles(List<UUID> roleIds) {
         if (roleIds == null || roleIds.isEmpty()) {
-            RoleEntity userRole = roleRepo.findByCode(UserRole.USER)
+            Role userRole = roleRepo.findByCode(UserRole.USER)
                     .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
             return new HashSet<>(Set.of(userRole));
         }
 
         Set<UUID> ids = new LinkedHashSet<>(roleIds);
-        List<RoleEntity> roles = roleRepo.findAllById(ids);
+        List<Role> roles = roleRepo.findAllById(ids);
         if (roles.size() != ids.size()) {
             throw new ResourceNotFoundException(Message.SOME_ROLES_NOT_FOUND);
         }
         return new HashSet<>(roles);
     }
 
-    private RoleEntity requireRole(UUID roleId) {
+    private Role requireRole(UUID roleId) {
         return roleRepo.findById(roleId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
     }
@@ -191,7 +191,7 @@ public class UserService implements IUserService {
         return ids;
     }
 
-    private UserEntity requireUser(UUID userId) {
+    private User requireUser(UUID userId) {
         return userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
     }

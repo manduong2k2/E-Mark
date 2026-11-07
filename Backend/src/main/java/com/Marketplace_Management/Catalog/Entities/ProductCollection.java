@@ -12,14 +12,14 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "product_collection")
-public class ProductCollectionEntity {
+public class ProductCollection {
     @EmbeddedId
     private ProductCollectionId id;
     
     @ManyToOne
     @MapsId("productId")
     @JoinColumn(name = "product_id")
-    private ProductEntity product;
+    private Product product;
     
     @Column(nullable = false)
     private Integer displayOrder;

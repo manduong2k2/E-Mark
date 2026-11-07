@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import com.Marketplace_Management.Catalog.Contracts.IProductRepository;
-import com.Marketplace_Management.Catalog.Entities.ProductEntity;
+import com.Marketplace_Management.Catalog.Entities.Product;
 import com.Marketplace_Management.Shared.Security.SecurityUtils;
 import com.Marketplace_Management.Vendor.Contracts.IVendorService;
 
@@ -24,7 +24,7 @@ public class ProductSecurity {
         if (SecurityUtils.isAdmin()) {
             return true;
         }
-        ProductEntity product = productRepository.findById(productId);
+        Product product = productRepository.findById(productId);
         if (product == null || product.getVendorId() == null) {
             return false;
         }

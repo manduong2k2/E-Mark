@@ -1,6 +1,4 @@
-package com.Marketplace_Management.Catalog.Entities;
-
-import com.Marketplace_Management.Shared.Entities.UuidEntity;
+package com.Marketplace_Management.Shared.Entities;
 
 import java.util.UUID;
 

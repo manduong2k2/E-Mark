@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 @Table(name = "roles")
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class RoleEntity extends UuidEntity {
+public class Role extends UuidEntity {
 
     @Column(unique = false, nullable = false)
     private String name;
@@ -20,9 +20,9 @@ public class RoleEntity extends UuidEntity {
     @Column(unique = true, nullable = false)
     private String code;
 
-    public RoleEntity() {}
+    public Role() {}
 
-    public RoleEntity(UUID id, String name, String code) {
+    public Role(UUID id, String name, String code) {
         this.id = id;
         this.name = name;
         this.code = code;

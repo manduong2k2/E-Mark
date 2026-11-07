@@ -16,7 +16,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.Marketplace_Management.Catalog.Contracts.ICategoryRepository;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Category.UpdateCategoryCommand;
-import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
+import com.Marketplace_Management.Catalog.Entities.Category;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,8 +28,8 @@ class CategoryServiceEntityTest {
     @Test
     void updateKeepsTheExistingChildrenCollection() throws Exception {
         ReflectionTestUtils.setField(service, "baseUrl", "http://api");
-        CategoryEntity category = CategoryEntity.builder().id(UUID.randomUUID()).name("Parent").build();
-        CategoryEntity child = CategoryEntity.builder().id(UUID.randomUUID()).name("Child").parent(category).build();
+        Category category = Category.builder().id(UUID.randomUUID()).name("Parent").build();
+        Category child = Category.builder().id(UUID.randomUUID()).name("Child").parent(category).build();
         category.getChildren().add(child);
         var children = category.getChildren();
         when(repository.findById(category.getId())).thenReturn(Optional.of(category));

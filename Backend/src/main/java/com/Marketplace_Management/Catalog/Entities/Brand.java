@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
 @NoArgsConstructor
-public class BrandEntity extends UuidEntity {
+public class Brand extends UuidEntity {
     @Column(nullable = false)
     @Size(max = 100)
     @Nationalized
@@ -33,7 +33,7 @@ public class BrandEntity extends UuidEntity {
     private String description;
 
     @OneToMany(mappedBy = "brand")
-    private List<ProductEntity> products;
+    private List<Product> products;
 
 
 }

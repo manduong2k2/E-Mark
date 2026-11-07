@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.Marketplace_Management.Auth.Contracts.IRoleRepository;
 import com.Marketplace_Management.Auth.DTOs.Commands.GetListRoleCommand;
 import com.Marketplace_Management.Auth.DTOs.Response.RoleResponse;
-import com.Marketplace_Management.Auth.Entities.RoleEntity;
+import com.Marketplace_Management.Auth.Entities.Role;
 import com.Marketplace_Management.Shared.Constants.UserRole;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
@@ -39,7 +39,7 @@ public class RoleRepository implements IRoleRepository {
         this.objectMapper = objectMapper;
     }
 
-    public Optional<RoleEntity> findByCode(String code) {
+    public Optional<Role> findByCode(String code) {
         return roleJpaRepository.findByCode(code);
     }
 
@@ -47,24 +47,24 @@ public class RoleRepository implements IRoleRepository {
         return roleJpaRepository.count();
     }
 
-    public List<RoleEntity> saveAll(List<RoleEntity> roles) {
+    public List<Role> saveAll(List<Role> roles) {
         return roleJpaRepository.saveAll(roles);
     }
 
     // ===== Admin (Identity & Access) =====
 
     @Override
-    public Optional<RoleEntity> findById(UUID id) {
+    public Optional<Role> findById(UUID id) {
         return roleJpaRepository.findById(id);
     }
 
     @Override
-    public List<RoleEntity> findAllById(Collection<UUID> ids) {
+    public List<Role> findAllById(Collection<UUID> ids) {
         return roleJpaRepository.findAllById(ids);
     }
 
     @Override
-    public RoleEntity save(RoleEntity role) {
+    public Role save(Role role) {
         return roleJpaRepository.save(role);
     }
 
@@ -75,7 +75,7 @@ public class RoleRepository implements IRoleRepository {
 
     @Override
     public PaginatedResponse<RoleResponse> findAll(GetListRoleCommand command) {
-        QueryBuilder<RoleEntity> queryBuilder = baseQuery()
+        QueryBuilder<Role> queryBuilder = baseQuery()
                 .when(command.getSearch() != null, q -> {
                     String pattern = "%" + command.getSearch() + "%";
                     q.where(column("name").likeIgnoreCase(pattern).or(column("code").likeIgnoreCase(pattern)));
@@ -96,7 +96,7 @@ public class RoleRepository implements IRoleRepository {
 
     @Override
     public Optional<RoleResponse> findResponseById(UUID id) {
-        QueryBuilder<RoleEntity> queryBuilder = baseQuery().where("id", "=", id);
+        QueryBuilder<Role> queryBuilder = baseQuery().where("id", "=", id);
         Optional<RoleResponse> role = queryBuilder.get().stream().findFirst()
                 .map(item -> queryBuilder.to(QueryResults.normalize(item), RoleResponse.class));
         role.ifPresent(r -> withUsersCount(List.of(r)));
@@ -110,9 +110,9 @@ public class RoleRepository implements IRoleRepository {
 
     // ===== helpers =====
 
-    private QueryBuilder<RoleEntity> baseQuery() {
-        QueryBuilder<RoleEntity> queryBuilder = new QueryBuilder<>(dsl, metadataRegistry, objectMapper);
-        return queryBuilder.query(RoleEntity.class).select("id", "name", "code", "createdAt");
+    private QueryBuilder<Role> baseQuery() {
+        QueryBuilder<Role> queryBuilder = new QueryBuilder<>(dsl, metadataRegistry, objectMapper);
+        return queryBuilder.query(Role.class).select("id", "name", "code", "createdAt");
     }
 
     private Field<Object> column(String name) {

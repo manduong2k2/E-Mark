@@ -7,6 +7,7 @@ import java.util.Set;
 import org.hibernate.annotations.Nationalized;
 import org.hibernate.annotations.SQLRestriction;
 
+import com.Marketplace_Management.Shared.Entities.FileEntity;
 import com.Marketplace_Management.Shared.Entities.UuidEntity;
 
 import jakarta.persistence.CascadeType;
@@ -32,7 +33,7 @@ import lombok.Builder;
 @Data
 @NoArgsConstructor
 @SuperBuilder
-public class ProductVariantEntity extends UuidEntity{
+public class ProductVariant extends UuidEntity{
     @Column(nullable = false)
     @Size(max = 100)
     @Nationalized
@@ -56,7 +57,7 @@ public class ProductVariantEntity extends UuidEntity{
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     @ToString.Exclude
-    private ProductEntity product;
+    private Product product;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -70,20 +71,20 @@ public class ProductVariantEntity extends UuidEntity{
     )
     @Builder.Default
     @ToString.Exclude
-    private Set<ProductAttributeValueEntity> attributeValues = new HashSet<>();
+    private Set<ProductAttributeValue> attributeValues = new HashSet<>();
 
     @Override
     public boolean equals(Object other) {
         if (this == other) {
             return true;
         }
-        return other instanceof ProductVariantEntity variant
+        return other instanceof ProductVariant variant
                 && getId() != null && getId().equals(variant.getId());
     }
 
     @Override
     public int hashCode() {
-        return ProductVariantEntity.class.hashCode();
+        return ProductVariant.class.hashCode();
     }
 
 }

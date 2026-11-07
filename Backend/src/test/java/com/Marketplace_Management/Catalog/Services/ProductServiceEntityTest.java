@@ -31,13 +31,13 @@ import com.Marketplace_Management.Catalog.Contracts.ICategoryRepository;
 import com.Marketplace_Management.Catalog.Contracts.IProductRepository;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.CreateProductCommand;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.UpdateProductCommand;
-import com.Marketplace_Management.Catalog.Entities.BrandEntity;
-import com.Marketplace_Management.Catalog.Entities.FileEntity;
-import com.Marketplace_Management.Catalog.Entities.ProductAttributeValueEntity;
-import com.Marketplace_Management.Catalog.Entities.ProductEntity;
-import com.Marketplace_Management.Catalog.Entities.ProductVariantEntity;
+import com.Marketplace_Management.Catalog.Entities.Brand;
+import com.Marketplace_Management.Catalog.Entities.ProductAttributeValue;
+import com.Marketplace_Management.Catalog.Entities.Product;
+import com.Marketplace_Management.Catalog.Entities.ProductVariant;
 import com.Marketplace_Management.Shared.Contracts.IEventPublisher;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
+import com.Marketplace_Management.Shared.Entities.FileEntity;
 import com.Marketplace_Management.Shared.Security.SecurityUtils;
 import com.Marketplace_Management.Vendor.Contracts.IVendorService;
 import com.Marketplace_Management.Vendor.DTOs.Response.VendorResponse;
@@ -59,10 +59,10 @@ class ProductServiceEntityTest {
 
     @Test
     void updatePreservesEntityCollectionsAndAttributeSelections() throws Exception {
-        ProductEntity product = product();
-        ProductVariantEntity retained = variant(product, "SKU-1");
-        ProductVariantEntity removed = variant(product, "SKU-2");
-        ProductAttributeValueEntity value = ProductAttributeValueEntity.builder().id(1L).value("Red").build();
+        Product product = product();
+        ProductVariant retained = variant(product, "SKU-1");
+        ProductVariant removed = variant(product, "SKU-2");
+        ProductAttributeValue value = ProductAttributeValue.builder().id(1L).value("Red").build();
         retained.getAttributeValues().add(value);
         FileEntity retainedImage = new FileEntity(UUID.randomUUID(), "uploads/retained.png", retained);
         FileEntity removedImage = new FileEntity(UUID.randomUUID(), "uploads/removed.png", retained);
@@ -103,14 +103,14 @@ class ProductServiceEntityTest {
         assertEquals(2, images.size());
         assertEquals("uploads/new.png", images.get(1).getUrl());
         assertSame(retained, images.get(1).getEntity());
-        ProductVariantEntity added = variants.stream().filter(v -> "SKU-3".equals(v.getSku())).findFirst().orElseThrow();
+        ProductVariant added = variants.stream().filter(v -> "SKU-3".equals(v.getSku())).findFirst().orElseThrow();
         assertSame(product, added.getProduct());
         assertTrue(added.getAttributeValues().isEmpty());
     }
 
     @Test
     void updateRejectsVariantsFromAnotherProduct() {
-        ProductEntity product = product();
+        Product product = product();
         variant(product, "SKU-1");
         when(productRepository.findById(product.getId())).thenReturn(product);
         when(brandRepository.findById(product.getBrand().getId())).thenReturn(Optional.of(product.getBrand()));
@@ -127,7 +127,7 @@ class ProductServiceEntityTest {
     @Test
     void createConnectsVariantAndImageOwnersBeforeSavingWithoutCollapsingNewVariants() throws Exception {
         UUID userId = UUID.randomUUID();
-        BrandEntity brand = BrandEntity.builder().id(UUID.randomUUID()).name("Brand").build();
+        Brand brand = Brand.builder().id(UUID.randomUUID()).name("Brand").build();
         VendorResponse vendor = new VendorResponse();
         vendor.setId(UUID.randomUUID());
         var upload = new MockMultipartFile("image", "new.png", "image/png", new byte[] {1});
@@ -135,9 +135,9 @@ class ProductServiceEntityTest {
         when(brandRepository.findById(brand.getId())).thenReturn(Optional.of(brand));
         when(fileService.uploadFile(upload, "catalog/product_variants")).thenReturn("uploads/new.png");
         when(productRepository.save(any())).thenAnswer(invocation -> {
-            ProductEntity product = invocation.getArgument(0);
+            Product product = invocation.getArgument(0);
             assertEquals(2, product.getVariants().size());
-            for (ProductVariantEntity variant : product.getVariants()) {
+            for (ProductVariant variant : product.getVariants()) {
                 assertSame(product, variant.getProduct());
                 variant.getImages().forEach(image -> assertSame(variant, image.getEntity()));
                 variant.setId(UUID.randomUUID());
@@ -163,19 +163,19 @@ class ProductServiceEntityTest {
         }
     }
 
-    private ProductEntity product() {
-        ProductEntity product = new ProductEntity();
+    private Product product() {
+        Product product = new Product();
         product.setId(UUID.randomUUID());
         product.setName("Product");
         product.setStatus("PUBLISHED");
-        product.setBrand(BrandEntity.builder().id(UUID.randomUUID()).name("Brand").build());
+        product.setBrand(Brand.builder().id(UUID.randomUUID()).name("Brand").build());
         product.setCategories(new HashSet<>());
         product.setVariants(new HashSet<>());
         return product;
     }
 
-    private ProductVariantEntity variant(ProductEntity product, String sku) {
-        ProductVariantEntity variant = ProductVariantEntity.builder().id(UUID.randomUUID())
+    private ProductVariant variant(Product product, String sku) {
+        ProductVariant variant = ProductVariant.builder().id(UUID.randomUUID())
                 .name("Variant").sku(sku).price(10).stock(1).product(product).images(new ArrayList<>()).build();
         product.getVariants().add(variant);
         return variant;

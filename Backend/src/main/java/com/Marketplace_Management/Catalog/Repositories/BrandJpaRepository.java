@@ -5,8 +5,8 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.Marketplace_Management.Catalog.Entities.BrandEntity;
+import com.Marketplace_Management.Catalog.Entities.Brand;
 
-public interface BrandJpaRepository extends JpaRepository<BrandEntity, UUID> {
-    Optional<BrandEntity> findByName(String name);
+public interface BrandJpaRepository extends JpaRepository<Brand, UUID> {
+    Optional<Brand> findByName(String name);
 }

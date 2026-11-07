@@ -37,9 +37,9 @@ import com.Marketplace_Management.Auth.DTOs.Response.AuthResponse;
 import com.Marketplace_Management.Auth.DTOs.Response.RegisterResponse;
 import com.Marketplace_Management.Auth.DTOs.Response.ProfileResponse;
 import com.Marketplace_Management.Auth.Events.UserAccessChangedEvent;
-import com.Marketplace_Management.Auth.Entities.RoleEntity;
-import com.Marketplace_Management.Auth.Entities.OAuthInfoEntity;
-import com.Marketplace_Management.Auth.Entities.UserEntity;
+import com.Marketplace_Management.Auth.Entities.Role;
+import com.Marketplace_Management.Auth.Entities.OAuthInfo;
+import com.Marketplace_Management.Auth.Entities.User;
 import com.Marketplace_Management.Auth.Services.OAuth.OAuthStrategy;
 import com.Marketplace_Management.Auth.Services.OAuth.OAuthUserInfo;
 import com.Marketplace_Management.Shared.Constants.UserRole;
@@ -80,7 +80,7 @@ public class AuthService implements IAuthService {
 
     @Transactional
     public RegisterResponse register(RegisterCommand command) throws MessagingException {
-        UserEntity user = UserEntity.builder()
+        User user = User.builder()
                 .email(command.getEmail())
                 .password(encoder.encode(command.getPassword()))
                 .name(command.getName())
@@ -104,13 +104,13 @@ public class AuthService implements IAuthService {
 
         OAuthUserInfo info = strategy.verify(command.getCredential());
 
-        Optional<OAuthInfoEntity> link = oauthInfoRepo.findByProviderAndSubject(info.provider(), info.subject());
+        Optional<OAuthInfo> link = oauthInfoRepo.findByProviderAndSubject(info.provider(), info.subject());
         if (link.isEmpty()) {
             OAuthUserResult result = linkOrCreateUser(info);
             return sessionService.issue(result.user(), Message.LOGIN_SUCCESS).isNewUser(result.isNewUser());
         }
 
-        UserEntity user = repo.findById(link.get().getUserId())
+        User user = repo.findById(link.get().getUserId())
                 .filter(linked -> UserStatus.ACTIVE.equals(linked.getStatus()))
                 .orElseThrow(() -> new AuthenticationException(Message.ACTIVATION) {
                 });
@@ -125,9 +125,9 @@ public class AuthService implements IAuthService {
             };
         }
 
-        Optional<UserEntity> existingUser = repo.findByEmail(info.email());
+        Optional<User> existingUser = repo.findByEmail(info.email());
         boolean isNewUser = existingUser.isEmpty();
-        UserEntity user = existingUser
+        User user = existingUser
                 .map(existing -> {
                     if (existing.getStatus().equals(UserStatus.INACTIVE)) {
                         throw new BadRequestException(Message.ACTIVATION);
@@ -139,7 +139,7 @@ public class AuthService implements IAuthService {
                 .orElseGet(() -> createOAuthUser(info));
 
         oauthInfoRepo.save(
-                OAuthInfoEntity.builder()
+                OAuthInfo.builder()
                         .userId(user.getId())
                         .oauthProvider(info.provider())
                         .oauthProviderSubject(info.subject())
@@ -148,18 +148,18 @@ public class AuthService implements IAuthService {
         return new OAuthUserResult(user, isNewUser);
     }
 
-    public record OAuthUserResult(UserEntity user, boolean isNewUser) {
+    public record OAuthUserResult(User user, boolean isNewUser) {
     }
 
-    private UserEntity syncUserInfo(UserEntity user, OAuthUserInfo info) {
+    private User syncUserInfo(User user, OAuthUserInfo info) {
         if ((user.getAvatar() == null || user.getAvatar().isBlank()) && info.picture() != null) {
             user.setAvatar(info.picture());
         }
         return repo.save(user);
     }
 
-    private UserEntity createOAuthUser(OAuthUserInfo info) {
-        return createUserWithDefaultRole(UserEntity.builder()
+    private User createOAuthUser(OAuthUserInfo info) {
+        return createUserWithDefaultRole(User.builder()
                 .email(info.email())
                 .password(encoder.encode(Helper.randomString(32)))
                 .name(info.name())
@@ -168,11 +168,11 @@ public class AuthService implements IAuthService {
                 .build());
     }
 
-    private UserEntity createUserWithDefaultRole(UserEntity user) {
-        RoleEntity userRole = this.roleRepo.findByCode(UserRole.USER)
+    private User createUserWithDefaultRole(User user) {
+        Role userRole = this.roleRepo.findByCode(UserRole.USER)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
 
-        Set<RoleEntity> roles = new java.util.HashSet<RoleEntity>();
+        Set<Role> roles = new java.util.HashSet<Role>();
         roles.add(userRole);
         user.setRoles(roles);
 
@@ -200,7 +200,7 @@ public class AuthService implements IAuthService {
     }
 
     public AuthResponse loginAdmin(LoginCommand command) {
-        UserEntity user = authenticate(command);
+        User user = authenticate(command);
         if (user.getRoles().stream().noneMatch(role -> UserRole.ADMIN.equals(role.getCode()))) {
             throw new AccessDeniedException(Message.FORBIDDEN) {
             };
@@ -210,8 +210,8 @@ public class AuthService implements IAuthService {
 
     // Password first, then status: the activation message must not reveal anything
     // to someone without the password
-    private UserEntity authenticate(LoginCommand command) {
-        UserEntity user = repo.findByEmail(command.getEmail())
+    private User authenticate(LoginCommand command) {
+        User user = repo.findByEmail(command.getEmail())
                 .filter(found -> encoder.matches(command.getPassword(), found.getPassword()))
                 .orElseThrow(() -> new AuthenticationException(Message.CREDENTIALS) {
                 });
@@ -273,7 +273,7 @@ public class AuthService implements IAuthService {
      */
     @CacheEvict(value = "userProfiles", key = "#userId")
     public AuthResponse changePassword(UUID userId, ChangePasswordCommand command) {
-        UserEntity user = requireUser(userId);
+        User user = requireUser(userId);
 
         if (!encoder.matches(command.getCurrentPassword(), user.getPassword())) {
             throw new BadRequestException(Message.CURRENT_PASSWORD_INCORRECT);
@@ -302,7 +302,7 @@ public class AuthService implements IAuthService {
     @Transactional(rollbackFor = IOException.class)
     @CacheEvict(value = "userProfiles", key = "#userId")
     public void updateProfile(UUID userId, UpdateProfileCommand command) throws IOException {
-        UserEntity user = requireUser(userId);
+        User user = requireUser(userId);
         if (command.getName() != null && !command.getName().isBlank()) {
             user.setName(command.getName().trim());
         }
@@ -324,7 +324,7 @@ public class AuthService implements IAuthService {
     @Transactional
     @CacheEvict(value = "userProfiles", key = "#userId")
     public void grantRole(UUID userId, String role) {
-        UserEntity user = requireUser(userId);
+        User user = requireUser(userId);
 
         var roleEntity = roleRepo.findByCode(role)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.ROLE_NOT_FOUND));
@@ -333,7 +333,7 @@ public class AuthService implements IAuthService {
         eventPublisher.publishEvent(UserAccessChangedEvent.of(userId, "role granted: " + role));
     }
 
-    private UserEntity requireUser(UUID userId) {
+    private User requireUser(UUID userId) {
         return repo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(Message.USER_NOT_FOUND));
     }

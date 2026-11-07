@@ -5,8 +5,8 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.Marketplace_Management.Catalog.Entities.ProductEntity;
+import com.Marketplace_Management.Catalog.Entities.Product;
 
-public interface ProductJpaRepository extends JpaRepository<ProductEntity, UUID> {
-    List<ProductEntity> findByName(String name);    
+public interface ProductJpaRepository extends JpaRepository<Product, UUID> {
+    List<Product> findByName(String name);    
 }

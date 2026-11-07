@@ -15,7 +15,7 @@ import com.Marketplace_Management.Catalog.DTOs.Commands.Category.CreateCategoryC
 import com.Marketplace_Management.Catalog.DTOs.Commands.Category.GetListCategoryCommand;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Category.UpdateCategoryCommand;
 import com.Marketplace_Management.Catalog.DTOs.Response.CategoryResponse;
-import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
+import com.Marketplace_Management.Catalog.Entities.Category;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Errors.Exceptions.BadRequestException;
@@ -52,7 +52,7 @@ public class CategoryService implements ICategoryService {
     @Transactional(rollbackFor = IOException.class)
     @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse createCategory(CreateCategoryCommand command) throws IOException {
-        CategoryEntity category = CategoryEntity.builder()
+        Category category = Category.builder()
                 .name(command.getName())
                 .description(command.getDescription())
                 .build();
@@ -68,7 +68,7 @@ public class CategoryService implements ICategoryService {
     @Transactional(rollbackFor = IOException.class)
     @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse updateCategory(UUID categoryId, UpdateCategoryCommand command) throws IOException {
-        CategoryEntity category = categoryRepository.findById(categoryId)
+        Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND));
 
         category.setName(command.getName());
@@ -83,7 +83,7 @@ public class CategoryService implements ICategoryService {
         return new CategoryResponse(category).withUrl(baseUrl);
     }
 
-    private CategoryEntity findParent(UUID parentId) {
+    private Category findParent(UUID parentId) {
         if (parentId == null) {
             return null;
         }
@@ -98,8 +98,8 @@ public class CategoryService implements ICategoryService {
                 throw new BadRequestException("Cannot set parent to its descendants");
             }
             ancestorId = categoryRepository.findById(ancestorId)
-                    .map(CategoryEntity::getParent)
-                    .map(CategoryEntity::getId)
+                    .map(Category::getParent)
+                    .map(Category::getId)
                     .orElse(null);
         }
     }

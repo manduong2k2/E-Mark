@@ -28,7 +28,7 @@ import lombok.experimental.SuperBuilder;
 @ToString(onlyExplicitlyIncluded = true)
 @Data
 @SuperBuilder
-public class ProductEntity extends UuidEntity {
+public class Product extends UuidEntity {
     @EqualsAndHashCode.Include
     @Column(nullable = false)
     @Size(max = 100)
@@ -47,7 +47,7 @@ public class ProductEntity extends UuidEntity {
 
     @ManyToOne
     @JoinColumn(name = "brand_id", nullable = false)
-    private BrandEntity brand;
+    private Brand brand;
 
     @ManyToMany
     @JoinTable(
@@ -57,15 +57,15 @@ public class ProductEntity extends UuidEntity {
         uniqueConstraints = @UniqueConstraint(columnNames = {"product_id", "category_id"})
     )
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<CategoryEntity> categories;
+    private Set<Category> categories;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<ProductVariantEntity> variants;
+    private Set<ProductVariant> variants;
 
     @Column(nullable = true)
     private UUID vendorId;
 
-    public ProductEntity() {
+    public Product() {
     }
 }

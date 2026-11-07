@@ -49,7 +49,7 @@ import lombok.Builder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OAuthInfoEntity {
+public class OAuthInfo {
     @Id
     // UUID v7: time-ordered, so new rows are appended to the primary-key index
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
@@ -66,7 +66,7 @@ public class OAuthInfoEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private UserEntity user;
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "oauth_provider", nullable = false, length = 20)

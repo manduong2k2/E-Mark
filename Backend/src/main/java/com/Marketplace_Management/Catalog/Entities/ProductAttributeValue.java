@@ -19,37 +19,22 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "product_attributes", uniqueConstraints = @UniqueConstraint(
-        name = "uk_product_attributes_product_code", columnNames = {"product_id", "code"}))
+@Table(name = "product_attribute_values", uniqueConstraints = @UniqueConstraint(
+        name = "uk_product_attribute_values_attribute_value", columnNames = {"product_attribute_id", "value"}))
 @Getter
 @Setter
 @NoArgsConstructor
 @SuperBuilder
 @ToString(onlyExplicitlyIncluded = true)
-public class ProductAttributeEntity extends NumericEntity {
+public class ProductAttributeValue extends NumericEntity {
     @NotBlank
-    @Size(max = 100)
-    @Column(nullable = false, length = 100)
-    @ToString.Include
-    private String code;
-
-    @NotBlank
-    @Size(max = 100)
-    @Column(nullable = false, length = 100)
-    @Nationalized
-    @ToString.Include
-    private String name;
-
     @Size(max = 255)
-    @Column(length = 255)
-    private String icon;
-
-    @Size(max = 500)
-    @Column(length = 500)
+    @Column(nullable = false, length = 255)
     @Nationalized
-    private String description;
+    @ToString.Include
+    private String value;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
-    private ProductEntity product;
+    @JoinColumn(name = "product_attribute_id", nullable = false)
+    private ProductAttribute productAttribute;
 }

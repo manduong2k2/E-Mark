@@ -24,12 +24,6 @@ import lombok.ToString;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
-/**
- * One active login (token pair). Tracking only — never used to verify a token.
- * Rows are hard-deleted on logout, refresh (replaced by a new row), access change, and
- * by the daily cleanup once the access token has expired.
- * Does not extend JpaEntity on purpose: no soft delete, no entity lifecycle events.
- */
 @Entity
 @Table(
     name = "user_sessions",
@@ -46,7 +40,7 @@ import lombok.Builder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserSessionEntity {
+public class UserSession {
     @Id
     // UUID v7: time-ordered, so new rows are appended to the primary-key index
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
@@ -60,7 +54,7 @@ public class UserSessionEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private UserEntity user;
+    private User user;
 
     // IPv6 max length is 45
     @Column(name = "ip_address", length = 45)

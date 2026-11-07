@@ -29,17 +29,17 @@ import com.Marketplace_Management.Catalog.DTOs.Commands.Product.UpdateProductCom
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductResponse;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductShortResponse;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductVariantResponse;
-import com.Marketplace_Management.Catalog.Entities.BrandEntity;
-import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
-import com.Marketplace_Management.Catalog.Entities.FileEntity;
-import com.Marketplace_Management.Catalog.Entities.ProductEntity;
-import com.Marketplace_Management.Catalog.Entities.ProductVariantEntity;
+import com.Marketplace_Management.Catalog.Entities.Brand;
+import com.Marketplace_Management.Catalog.Entities.Category;
+import com.Marketplace_Management.Catalog.Entities.Product;
+import com.Marketplace_Management.Catalog.Entities.ProductVariant;
 import com.Marketplace_Management.Catalog.Events.ProductArchivedEvent;
 import com.Marketplace_Management.Catalog.Events.ProductDeletedEvent;
 import com.Marketplace_Management.Shared.Configuration.RabbitMqQueues.ProductQueueConfig;
 import com.Marketplace_Management.Shared.Contracts.IEventPublisher;
 import com.Marketplace_Management.Shared.Contracts.IFileService;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
+import com.Marketplace_Management.Shared.Entities.FileEntity;
 import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundException;
 import com.Marketplace_Management.Shared.Events.EventOptions;
 import com.Marketplace_Management.Shared.Security.SecurityUtils;
@@ -82,7 +82,7 @@ public class ProductService implements IProductService {
     @Transactional(readOnly = true)
     @Cacheable(value = "product", key = "#productId")
     public ProductResponse getById(UUID productId) {
-        ProductEntity product = productRepository.findById(productId);
+        Product product = productRepository.findById(productId);
 
         if (product == null) {
             throw new ResourceNotFoundException("Product not found");
@@ -105,9 +105,9 @@ public class ProductService implements IProductService {
         if (vendor == null) {
             throw new ResourceNotFoundException("Vendor not found");
         }
-        ProductEntity product;
+        Product product;
         try {
-            product = ProductEntity.builder()
+            product = Product.builder()
                     .name(command.getName())
                     .description(command.getDescription())
                     .brand(findBrand(command.getBrandId()))
@@ -115,7 +115,7 @@ public class ProductService implements IProductService {
                     .status(command.getStatus() != null ? command.getStatus() : ProductStatusEnum.PUBLISHED.name())
                     .vendorId(vendor.getId())
                     .variants(command.getVariants().stream().map(variantCommand -> {
-                        ProductVariantEntity variant = ProductVariantEntity.builder()
+                        ProductVariant variant = ProductVariant.builder()
                                 .name(variantCommand.getName())
                                 .sku(variantCommand.getSku())
                                 .price(variantCommand.getPrice())
@@ -140,7 +140,7 @@ public class ProductService implements IProductService {
         }
         product.getVariants().forEach(variant -> variant.setProduct(product));
 
-        ProductEntity savedProduct = productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
 
         return new ProductResponse(savedProduct).withUrl(baseUrl).withVendor(vendor);
     }
@@ -149,7 +149,7 @@ public class ProductService implements IProductService {
     @Transactional(rollbackFor = IOException.class)
     @CacheEvict(value = "product", key = "#productId")
     public ProductResponse updateProduct(UUID productId, UpdateProductCommand command) throws IOException {
-        ProductEntity product = productRepository.findById(productId);
+        Product product = productRepository.findById(productId);
         if (product == null) {
             throw new ResourceNotFoundException("Product not found");
         }
@@ -161,7 +161,7 @@ public class ProductService implements IProductService {
             product.setStatus(command.getStatus());
         }
 
-        Set<CategoryEntity> categories = findCategories(command.getCategoryIds());
+        Set<Category> categories = findCategories(command.getCategoryIds());
         if (product.getCategories() == null) {
             product.setCategories(categories);
         } else {
@@ -172,7 +172,7 @@ public class ProductService implements IProductService {
             updateVariants(product, command.getVariants());
         }
 
-        ProductEntity savedProduct = productRepository.update(product);
+        Product savedProduct = productRepository.update(product);
 
         if ("ARCHIVED".equals(product.getStatus())) {
             eventPublisher.publish(
@@ -200,17 +200,17 @@ public class ProductService implements IProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductVariantResponse getProductVariant(UUID productVariantId) {
-        ProductVariantEntity productVariant = productRepository.findVariantById(productVariantId);
+        ProductVariant productVariant = productRepository.findVariantById(productVariantId);
         return productVariant != null ? new ProductVariantResponse(productVariant).withUrl(baseUrl) : null;
     }
 
-    private BrandEntity findBrand(UUID brandId) {
+    private Brand findBrand(UUID brandId) {
         return brandRepository.findById(brandId)
                 .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
     }
 
-    private Set<CategoryEntity> findCategories(List<UUID> categoryIds) {
-        Set<CategoryEntity> categories = new HashSet<>();
+    private Set<Category> findCategories(List<UUID> categoryIds) {
+        Set<Category> categories = new HashSet<>();
         if (categoryIds != null) {
             for (UUID categoryId : categoryIds) {
                 categories.add(categoryRepository.findById(categoryId)
@@ -220,21 +220,21 @@ public class ProductService implements IProductService {
         return categories;
     }
 
-    private void updateVariants(ProductEntity product,
+    private void updateVariants(Product product,
             List<UpdateProductCommand.UpdateProductVariantCommand> commands) throws IOException {
         if (product.getVariants() == null) {
             product.setVariants(new HashSet<>());
         }
-        Map<UUID, ProductVariantEntity> existingVariants = product.getVariants().stream()
+        Map<UUID, ProductVariant> existingVariants = product.getVariants().stream()
                 .filter(variant -> variant.getId() != null)
-                .collect(Collectors.toMap(ProductVariantEntity::getId, variant -> variant));
+                .collect(Collectors.toMap(ProductVariant::getId, variant -> variant));
         Set<UUID> retainedIds = new HashSet<>();
-        List<ProductVariantEntity> newVariants = new ArrayList<>();
+        List<ProductVariant> newVariants = new ArrayList<>();
 
         for (var command : commands) {
-            ProductVariantEntity variant;
+            ProductVariant variant;
             if (command.getId() == null) {
-                variant = ProductVariantEntity.builder().product(product).images(new ArrayList<>()).build();
+                variant = ProductVariant.builder().product(product).images(new ArrayList<>()).build();
                 newVariants.add(variant);
             } else {
                 variant = existingVariants.get(command.getId());
@@ -257,7 +257,7 @@ public class ProductService implements IProductService {
         product.getVariants().addAll(newVariants);
     }
 
-    private void updateImages(ProductVariantEntity variant,
+    private void updateImages(ProductVariant variant,
             List<UpdateProductCommand.UpdateFileCommand> commands) throws IOException {
         if (commands == null) {
             return;

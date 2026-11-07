@@ -23,7 +23,7 @@ import lombok.Builder;
 @ToString(exclude = {"parent", "children"})
 @NoArgsConstructor
 @SuperBuilder
-public class CategoryEntity extends UuidEntity {
+public class Category extends UuidEntity {
     @Column(nullable = false)
     @Size(max = 100)
     @Nationalized
@@ -38,12 +38,12 @@ public class CategoryEntity extends UuidEntity {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    private CategoryEntity parent;
+    private Category parent;
 
     @OneToMany(mappedBy = "parent",
                cascade = CascadeType.ALL,
                orphanRemoval = true)
     @Builder.Default
-    private List<CategoryEntity> children = new ArrayList<>();
+    private List<Category> children = new ArrayList<>();
 
 }

@@ -7,11 +7,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.Marketplace_Management.Auth.Constants.OAuthProvider;
-import com.Marketplace_Management.Auth.Entities.OAuthInfoEntity;
+import com.Marketplace_Management.Auth.Entities.OAuthInfo;
 
 public interface IOAuthInfoRepository {
-    Optional<OAuthInfoEntity> findByProviderAndSubject(OAuthProvider provider, String subject);
-    OAuthInfoEntity save(OAuthInfoEntity info);
+    Optional<OAuthInfo> findByProviderAndSubject(OAuthProvider provider, String subject);
+    OAuthInfo save(OAuthInfo info);
     /** userId -> providers linked to that user (users without links are absent). */
     Map<UUID, List<OAuthProvider>> findProvidersByUserIds(Collection<UUID> userIds);
 }

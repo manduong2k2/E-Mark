@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import com.Marketplace_Management.Catalog.Contracts.IProductRepository;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.GetListProductCommand;
 import com.Marketplace_Management.Catalog.DTOs.Response.ProductShortResponse;
-import com.Marketplace_Management.Catalog.Entities.ProductEntity;
-import com.Marketplace_Management.Catalog.Entities.ProductVariantEntity;
+import com.Marketplace_Management.Catalog.Entities.Product;
+import com.Marketplace_Management.Catalog.Entities.ProductVariant;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.EntityMetadataRegistry;
 import com.Marketplace_Management.Shared.Utils.QueryBuilder.QueryBuilder;
@@ -43,7 +43,7 @@ public class ProductRepository implements IProductRepository {
     public PaginatedResponse<ProductShortResponse> findAll(GetListProductCommand command) {
 
         QueryBuilder<?> queryBuilder = new QueryBuilder<>(dslContext, metadataRegistry, objectMapper);
-        queryBuilder.query(ProductEntity.class)
+        queryBuilder.query(Product.class)
                 .select("id", "name", "status")
                 .with("brand", brand -> {
                     brand.select("id", "name");
@@ -92,17 +92,17 @@ public class ProductRepository implements IProductRepository {
     }
 
     @Override
-    public ProductEntity save(ProductEntity product) {
+    public Product save(Product product) {
         return jpaRepository.save(product);
     }
 
     @Override
-    public ProductEntity findById(UUID id) {
+    public Product findById(UUID id) {
         return jpaRepository.findById(id).orElse(null);
     }
 
     @Override
-    public ProductEntity update(ProductEntity product) {
+    public Product update(Product product) {
         return save(product);
     }
 
@@ -112,7 +112,7 @@ public class ProductRepository implements IProductRepository {
     }
 
     @Override
-    public ProductVariantEntity findVariantById(UUID variantId) {
+    public ProductVariant findVariantById(UUID variantId) {
         return productVariantJpaRepository.findById(variantId).orElse(null);
     }
 }

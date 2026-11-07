@@ -22,7 +22,7 @@ import lombok.Builder;
 @EqualsAndHashCode(callSuper = false)
 @SuperBuilder
 @NoArgsConstructor
-public class UserEntity extends UuidEntity {
+public class User extends UuidEntity {
     @Column(unique = true, columnDefinition = "varchar(255)", nullable = false)
     private String email;
 
@@ -49,7 +49,7 @@ public class UserEntity extends UuidEntity {
     @Builder.Default
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Set<RoleEntity> roles = new java.util.HashSet<>();
+    private Set<Role> roles = new java.util.HashSet<>();
 
 
 

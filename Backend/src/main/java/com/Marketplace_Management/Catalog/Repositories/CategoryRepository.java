@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import com.Marketplace_Management.Catalog.Contracts.ICategoryRepository;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Category.GetListCategoryCommand;
-import com.Marketplace_Management.Catalog.Entities.CategoryEntity;
+import com.Marketplace_Management.Catalog.Entities.Category;
 import com.Marketplace_Management.Shared.DTOs.Responses.PaginatedResponse;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -31,11 +31,11 @@ public class CategoryRepository implements ICategoryRepository {
     }
 
     @Override
-    public PaginatedResponse<CategoryEntity> findAll(GetListCategoryCommand command) {
+    public PaginatedResponse<Category> findAll(GetListCategoryCommand command) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<CategoryEntity> query = builder.createQuery(CategoryEntity.class);
+        CriteriaQuery<Category> query = builder.createQuery(Category.class);
 
-        Root<CategoryEntity> root = query.from(CategoryEntity.class);
+        Root<Category> root = query.from(Category.class);
 
         List<Predicate> predicates = new ArrayList<>();
 
@@ -65,7 +65,7 @@ public class CategoryRepository implements ICategoryRepository {
 
         // Get total count
         CriteriaQuery<Long> countQuery = builder.createQuery(Long.class);
-        Root<CategoryEntity> countRoot = countQuery.from(CategoryEntity.class);
+        Root<Category> countRoot = countQuery.from(Category.class);
         List<Predicate> countPredicates = new ArrayList<>();
 
         if (command.getSearch() != null && !command.getSearch().trim().isEmpty()) {
@@ -86,7 +86,7 @@ public class CategoryRepository implements ICategoryRepository {
         int firstResult = command.getPage() * command.getSize();
         int maxResults = command.getSize();
 
-        List<CategoryEntity> entities = entityManager.createQuery(query)
+        List<Category> entities = entityManager.createQuery(query)
                 .setFirstResult(firstResult)
                 .setMaxResults(maxResults)
                 .getResultList();
@@ -95,22 +95,22 @@ public class CategoryRepository implements ICategoryRepository {
     }
 
     @Override
-    public CategoryEntity save(CategoryEntity category) {
+    public Category save(Category category) {
         return jpaRepository.save(category);
     }
 
     @Override
-    public Optional<CategoryEntity> findById(UUID id) {
+    public Optional<Category> findById(UUID id) {
         return jpaRepository.findById(id);
     }
 
     @Override
-    public Optional<CategoryEntity> findByName(String name) {
+    public Optional<Category> findByName(String name) {
         return jpaRepository.findByName(name);
     }
     
     @Override
-    public CategoryEntity update(CategoryEntity category) {
+    public Category update(Category category) {
         return save(category);
     }
     

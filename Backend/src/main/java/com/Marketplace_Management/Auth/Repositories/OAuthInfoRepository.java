@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import com.Marketplace_Management.Auth.Constants.OAuthProvider;
 import com.Marketplace_Management.Auth.Contracts.IOAuthInfoRepository;
-import com.Marketplace_Management.Auth.Entities.OAuthInfoEntity;
+import com.Marketplace_Management.Auth.Entities.OAuthInfo;
 
 @Repository
 public class OAuthInfoRepository implements IOAuthInfoRepository {
@@ -22,12 +22,12 @@ public class OAuthInfoRepository implements IOAuthInfoRepository {
     }
 
     @Override
-    public Optional<OAuthInfoEntity> findByProviderAndSubject(OAuthProvider provider, String subject) {
+    public Optional<OAuthInfo> findByProviderAndSubject(OAuthProvider provider, String subject) {
         return jpaRepository.findByOauthProviderAndOauthProviderSubject(provider, subject);
     }
 
     @Override
-    public OAuthInfoEntity save(OAuthInfoEntity info) {
+    public OAuthInfo save(OAuthInfo info) {
         return jpaRepository.save(info);
     }
 
@@ -38,8 +38,8 @@ public class OAuthInfoRepository implements IOAuthInfoRepository {
         }
         return jpaRepository.findByUserIdIn(userIds).stream()
                 .collect(Collectors.groupingBy(
-                        OAuthInfoEntity::getUserId,
-                        Collectors.mapping(OAuthInfoEntity::getOauthProvider, Collectors.toList())));
+                        OAuthInfo::getUserId,
+                        Collectors.mapping(OAuthInfo::getOauthProvider, Collectors.toList())));
     }
 
 }
