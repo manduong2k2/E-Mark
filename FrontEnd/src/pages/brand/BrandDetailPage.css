@@ -151,7 +151,7 @@
 }
 
 /* ── Pagination ── */
-.pagination-controls {
+.brand-details-pagination-controls {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -159,7 +159,7 @@
   padding: 16px;
 }
 
-.pagination-btn {
+.brand-details-pagination-btn {
   padding: 8px 16px;
   background: white;
   border: 1px solid #e1e5e9;
@@ -170,23 +170,23 @@
   transition: all 0.2s ease;
 }
 
-.pagination-btn:hover:not(:disabled) {
+.brand-details-pagination-btn:hover:not(:disabled) {
   background: #667eea;
   color: white;
   border-color: #667eea;
 }
 
-.pagination-btn:disabled {
+.brand-details-pagination-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.pagination-numbers {
+.brand-details-pagination-numbers {
   display: flex;
   gap: 8px;
 }
 
-.pagination-number {
+.brand-details-pagination-number {
   width: 40px;
   height: 40px;
   border: 1px solid #e1e5e9;
@@ -198,15 +198,13 @@
   transition: all 0.2s ease;
 }
 
-.pagination-number:hover {
+.brand-details-pagination-number:hover {
   background: #f8f9fa;
-  border-color: #667eea;
 }
 
-.pagination-number.active {
+.brand-details-pagination-number.active {
   background: #667eea;
   color: white;
-  border-color: #667eea;
 }
 
 /* ── Responsive ── */

@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -28,10 +29,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.Marketplace_Management.Catalog.Contracts.IBrandRepository;
 import com.Marketplace_Management.Catalog.Contracts.ICategoryRepository;
+import com.Marketplace_Management.Catalog.Contracts.IProductFactory;
 import com.Marketplace_Management.Catalog.Contracts.IProductRepository;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.CreateProductCommand;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.UpdateProductCommand;
 import com.Marketplace_Management.Catalog.Entities.Brand;
+import com.Marketplace_Management.Catalog.Entities.ProductAttribute;
 import com.Marketplace_Management.Catalog.Entities.ProductAttributeValue;
 import com.Marketplace_Management.Catalog.Entities.Product;
 import com.Marketplace_Management.Catalog.Entities.ProductVariant;
@@ -50,6 +53,7 @@ class ProductServiceEntityTest {
     @Mock IEventPublisher eventPublisher;
     @Mock IFileService fileService;
     @Mock IVendorService vendorService;
+    @Mock IProductFactory productFactory;
     @InjectMocks ProductService service;
 
     @BeforeEach
@@ -125,41 +129,142 @@ class ProductServiceEntityTest {
     }
 
     @Test
-    void createConnectsVariantAndImageOwnersBeforeSavingWithoutCollapsingNewVariants() throws Exception {
+    void createPersistsFactoryProductAndReturnsVendor() throws Exception {
         UUID userId = UUID.randomUUID();
-        Brand brand = Brand.builder().id(UUID.randomUUID()).name("Brand").build();
         VendorResponse vendor = new VendorResponse();
         vendor.setId(UUID.randomUUID());
         var upload = new MockMultipartFile("image", "new.png", "image/png", new byte[] {1});
+        Product factoryProduct = product();
+        factoryProduct.setId(null);
+        factoryProduct.setVendorId(vendor.getId());
+        factoryProduct.setAttributes(new HashSet<>());
+        ProductVariant first = variant(factoryProduct, "SKU-1");
+        first.setId(null);
+        first.getImages().add(new File(null, "uploads/new.png", first));
+        ProductVariant second = variant(factoryProduct, "SKU-2");
+        second.setId(null);
+
         when(vendorService.getByUser(userId)).thenReturn(vendor);
-        when(brandRepository.findById(brand.getId())).thenReturn(Optional.of(brand));
-        when(fileService.uploadFile(upload, "catalog/product_variants")).thenReturn("uploads/new.png");
         when(productRepository.save(any())).thenAnswer(invocation -> {
             Product product = invocation.getArgument(0);
+            assertSame(factoryProduct, product);
             assertEquals(2, product.getVariants().size());
             for (ProductVariant variant : product.getVariants()) {
                 assertSame(product, variant.getProduct());
                 variant.getImages().forEach(image -> assertSame(variant, image.getEntity()));
-                variant.setId(UUID.randomUUID());
+                if (variant.getId() == null) {
+                    variant.setId(UUID.randomUUID());
+                }
                 assertTrue(product.getVariants().contains(variant));
             }
-            product.setId(UUID.randomUUID());
+            if (product.getId() == null) {
+                product.setId(UUID.randomUUID());
+            }
             return product;
         });
-        var command = CreateProductCommand.builder().name("Product").brandId(brand.getId())
+        var command = CreateProductCommand.builder().name("Product").brandId(factoryProduct.getBrand().getId())
                 .variants(List.of(
                         CreateProductCommand.CreateProductVariantCommand.builder()
                                 .name("Variant").sku("SKU-1").price(10).stock(1).images(List.of(upload)).build(),
                         CreateProductCommand.CreateProductVariantCommand.builder()
                                 .name("Variant").sku("SKU-2").price(10).stock(1).build()))
                 .build();
+        when(productFactory.create(command)).thenReturn(factoryProduct);
 
         try (var security = mockStatic(SecurityUtils.class)) {
             security.when(SecurityUtils::currentUserId).thenReturn(userId);
             var response = service.createProduct(command);
+            assertEquals(factoryProduct.getId(), response.getId());
             assertEquals(2, response.getVariants().size());
             assertEquals(vendor.getId(), response.getVendorId());
             assertSame(vendor, response.getVendor());
+            assertEquals("", first.getAttributeValuesKey());
+            assertEquals("", second.getAttributeValuesKey());
+            verify(productFactory).create(command);
+            verifyNoInteractions(brandRepository, fileService);
+        }
+    }
+
+    @Test
+    void createRebuildsVariantKeysFromPersistedValueIdsInsteadOfTempIds() throws Exception {
+        UUID userId = UUID.randomUUID();
+        VendorResponse vendor = new VendorResponse();
+        vendor.setId(UUID.randomUUID());
+        Product product = product();
+        product.setVendorId(vendor.getId());
+        ProductAttribute color = ProductAttribute.builder().code("color").product(product).build();
+        ProductAttribute size = ProductAttribute.builder().code("size").product(product).build();
+        ProductAttributeValue red = ProductAttributeValue.builder().value("Red").productAttribute(color).build();
+        ProductAttributeValue blue = ProductAttributeValue.builder().value("Blue").productAttribute(color).build();
+        ProductAttributeValue small = ProductAttributeValue.builder().value("S").productAttribute(size).build();
+        color.getValues().addAll(List.of(red, blue));
+        size.getValues().add(small);
+        product.setAttributes(new HashSet<>(List.of(color, size)));
+        ProductVariant redVariant = variant(product, "RED-S");
+        ProductVariant blueVariant = variant(product, "BLUE-S");
+        redVariant.setAttributeValues(new HashSet<>(List.of(red, small)));
+        blueVariant.setAttributeValues(new HashSet<>(List.of(blue, small)));
+
+        var command = CreateProductCommand.builder().name("Product").brandId(product.getBrand().getId())
+                .attributes(List.of(
+                        CreateProductCommand.CreateProductAttributeCommand.builder().code("color")
+                                .values(List.of(
+                                        CreateProductCommand.CreateProductAttributeValueCommand.builder()
+                                                .tempId(3001L).value("Red").build(),
+                                        CreateProductCommand.CreateProductAttributeValueCommand.builder()
+                                                .tempId(42L).value("Blue").build()))
+                                .build(),
+                        CreateProductCommand.CreateProductAttributeCommand.builder().code("size")
+                                .values(List.of(CreateProductCommand.CreateProductAttributeValueCommand.builder()
+                                        .tempId(5001L).value("S").build()))
+                                .build()))
+                .variants(List.of(
+                        CreateProductCommand.CreateProductVariantCommand.builder().sku("RED-S")
+                                .attributeValueIds(List.of(5001L, 3001L)).build(),
+                        CreateProductCommand.CreateProductVariantCommand.builder().sku("BLUE-S")
+                                .attributeValueIds(List.of(42L, 5001L)).build()))
+                .build();
+        when(vendorService.getByUser(userId)).thenReturn(vendor);
+        when(productFactory.create(command)).thenReturn(product);
+        when(productRepository.save(product)).thenAnswer(invocation -> {
+            // Simulate generated IDs becoming available during persistence.
+            red.setId(42L);
+            blue.setId(70L);
+            small.setId(9L);
+            return product;
+        });
+
+        try (var security = mockStatic(SecurityUtils.class)) {
+            security.when(SecurityUtils::currentUserId).thenReturn(userId);
+            service.createProduct(command);
+        }
+
+        assertEquals(new HashSet<>(List.of(red, small)), redVariant.getAttributeValues());
+        assertEquals(new HashSet<>(List.of(blue, small)), blueVariant.getAttributeValues());
+        assertEquals("42,9", redVariant.getAttributeValuesKey());
+        assertEquals("70,9", blueVariant.getAttributeValuesKey());
+    }
+
+    @Test
+    void createRejectsUnknownAttributeValueTempId() throws Exception {
+        UUID userId = UUID.randomUUID();
+        VendorResponse vendor = new VendorResponse();
+        vendor.setId(UUID.randomUUID());
+        Product product = product();
+        product.setAttributes(new HashSet<>());
+        variant(product, "SKU-1");
+        var command = CreateProductCommand.builder()
+                .variants(List.of(CreateProductCommand.CreateProductVariantCommand.builder().sku("SKU-1")
+                        .attributeValueIds(List.of(999L)).build()))
+                .build();
+        when(vendorService.getByUser(userId)).thenReturn(vendor);
+        when(productFactory.create(command)).thenReturn(product);
+        when(productRepository.save(product)).thenReturn(product);
+
+        try (var security = mockStatic(SecurityUtils.class)) {
+            security.when(SecurityUtils::currentUserId).thenReturn(userId);
+            var exception = assertThrows(IllegalArgumentException.class, () -> service.createProduct(command));
+            assertEquals("Unknown attribute value tempId: 999", exception.getMessage());
         }
     }
 

@@ -51,7 +51,12 @@ public class CreateProductRequest {
     @In(enumClass = ProductStatusEnum.class, message = "Invalid product status")
     private String status;
 
+    private List<@Valid CreateProductAttributeRequest> attributes;
+
+    @Distinct(field = "sku", message = "Each product variant SKU must be unique")
     private List<@Valid CreateProductVariantRequest> variants;
+
+
 
     @Data
     public static class CreateProductVariantRequest {
@@ -72,6 +77,39 @@ public class CreateProductRequest {
         private int stock;
 
         private List<MultipartFile> images;
+
+        @Distinct
+        private List<Long> attributeValueIds;
+    }
+
+    @Data
+    public static class CreateProductAttributeRequest {
+
+        @NotBlank(message = "Product attribute code is required")
+        @Size(min = 1, max = 100, message = "Product attribute code must be between 1 and 100 characters")
+        private String code;
+
+        @NotBlank(message = "Product attribute name is required")
+        @Size(min = 1, max = 100, message = "Product attribute name must be between 1 and 100 characters")
+        private String name;
+
+        @Nullable
+        private MultipartFile icon;
+
+        @Nullable
+        @Size(max = 500, message = "Description must be less than 500 characters")
+        private String description;
+
+        private List<@Valid CreateProductAttributeValueRequest> values;
+    }
+
+    @Data
+    public static class CreateProductAttributeValueRequest {
+        private long tempId;
+
+        @NotBlank(message = "Product attribute value is required")
+        @Size(min = 1, max = 255, message = "Product attribute value must be between 1 and 255 characters")
+        private String value;
     }
 
     public CreateProductCommand validated() {
@@ -82,6 +120,20 @@ public class CreateProductRequest {
                 .vendorId(vendorId != null ? UUID.fromString(vendorId) : null)
                 .categoryIds(categoryIds != null ? categoryIds.stream().map(UUID::fromString).toList() : List.of())
                 .status(status)
+                .attributes(attributes.stream().map(a -> 
+                    CreateProductCommand.CreateProductAttributeCommand.builder()
+                        .code(a.getCode())
+                        .name(a.getName())
+                        .icon(a.getIcon())
+                        .description(a.getDescription())
+                        .values(a.getValues().stream().map(v -> 
+                            CreateProductCommand.CreateProductAttributeValueCommand.builder()
+                                .tempId(v.getTempId())
+                                .value(v.getValue())
+                                .build()
+                        ).toList())
+                        .build()
+                ).toList())
                 .variants(variants.stream().map(v -> 
                     CreateProductCommand.CreateProductVariantCommand.builder()
                         .name(v.getName())
@@ -89,6 +141,7 @@ public class CreateProductRequest {
                         .price(v.getPrice())
                         .stock(v.getStock())
                         .images(v.getImages())
+                        .attributeValueIds(v.getAttributeValueIds())
                         .build()
                 ).toList())
                 .build();

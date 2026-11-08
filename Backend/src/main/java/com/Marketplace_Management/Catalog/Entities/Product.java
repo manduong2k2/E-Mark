@@ -1,5 +1,6 @@
 package com.Marketplace_Management.Catalog.Entities;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,6 +12,7 @@ import com.Marketplace_Management.Shared.Entities.UuidEntity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -57,11 +59,17 @@ public class Product extends UuidEntity {
         uniqueConstraints = @UniqueConstraint(columnNames = {"product_id", "category_id"})
     )
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<Category> categories;
+    @Builder.Default
+    private Set<Category> categories = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<ProductVariant> variants;
+    @Builder.Default
+    private Set<ProductVariant> variants = new HashSet<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<ProductAttribute> attributes = new HashSet<>();
 
     @Column(nullable = true)
     private UUID vendorId;

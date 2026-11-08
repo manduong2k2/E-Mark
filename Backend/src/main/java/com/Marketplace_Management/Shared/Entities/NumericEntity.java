@@ -4,16 +4,18 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @MappedSuperclass
 @SuperBuilder
 @NoArgsConstructor
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
 public abstract class NumericEntity extends JpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

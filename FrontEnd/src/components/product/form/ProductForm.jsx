@@ -1,9 +1,27 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useId } from 'react';
 import CategoryTreeSelect from '../../category/tree/CategoryTreeSelect';
 import SearchableVendorSelect from '../../vendor/select/SearchableVendorSelect';
+import ProductOptionsEditor from './ProductOptionsEditor';
+import { retainOptionSelections, selectOptionValue, validateProductOptions } from './productOptions';
 import './ProductForm.css';
 
-export default function ProductForm({
+const FORM_STEPS = [
+  { id: 'basic', label: 'Basic Information' },
+  { id: 'options', label: 'Product Options' },
+  { id: 'variants', label: 'Product Variants' },
+];
+
+function errorStep(field) {
+  if (field.startsWith('attributes')) return 'options';
+  if (field.startsWith('variant_') || field.startsWith('variants')) return 'variants';
+  return 'basic';
+}
+
+export default function ProductForm(props) {
+  return <ProductFormFields key={props.product?.id || 'new'} {...props} />;
+}
+
+function ProductFormFields({
   product,
   brands = [],
   categories = [],
@@ -16,75 +34,70 @@ export default function ProductForm({
 }) {
   const defaultStatus = statuses.length > 0 ? statuses[0] : '';
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     name: product?.name || '',
     description: product?.description || '',
     brandId: product?.brandId || product?.brand?.id || '',
     vendorId: product?.vendorId || product?.vendor?.id || '',
     categoryIds: product?.categoryIds || product?.categories?.map((c) => c.id) || [],
     status: product?.status || defaultStatus,
-    variants: product?.variants?.map((v) => ({
+    attributes: [],
+    variants: product?.variants?.length ? product.variants.map((v) => ({
       ...v,
-      tempId: v.tempId || Date.now() + Math.random(),
-      images: v.images || [],
-    })) || [
+      tempId: v.id || v.tempId || Date.now() + Math.random(),
+      name: v.name || '',
+      price: v.price ?? '',
+      stock: v.stock ?? '',
+      sku: v.sku || '',
+      images: Array.isArray(v.images) ? v.images.map(image => ({
+        type: 'existing',
+        id: typeof image === 'string' ? null : image.id,
+        url: typeof image === 'string' ? image : image.url,
+      })) : [],
+      attributeValueIds: [],
+    })) : [
         {
-          tempId: Date.now(),
+          tempId: Date.now() + Math.random(),
           name: '',
           price: '',
           stock: '',
           sku: '',
           images: [],
+          attributeValueIds: [],
         },
       ],
-  });
+  }));
 
   const [errors, setErrors] = useState({});
+  const [activeStep, setActiveStep] = useState('basic');
+  const formId = useId();
+  const tabRefs = useRef({});
   const variantFileInputRefs = useRef({});
+  const activeStepIndex = FORM_STEPS.findIndex(step => step.id === activeStep);
+  const hasStepErrors = step => Object.entries(errors).some(([field, message]) => message && errorStep(field) === step);
 
-  // Update form data when product prop changes
-  useEffect(() => {
-    if (product) {
-      const mappedVariants = product.variants?.map((v) => {
-        return {
-          id: v.id || null,
-          tempId: v.id || Date.now() + Math.random(),
-          name: v.name || '',
-          price: v.price ?? '',
-          stock: v.stock ?? '',
-          sku: v.sku || '',
-          images: Array.isArray(v.images)
-          ? v.images.map((image) => ({
-              type: 'existing',
-              id: typeof image === 'string' ? null : image.id,
-              url: typeof image === 'string' ? image : image.url
-            }))
-            : [],
-        };
-      }) || [];
+  const changeStep = (step, focusTab = false) => {
+    setActiveStep(step);
+    if (focusTab) tabRefs.current[step]?.focus();
+  };
 
-      const newFormData = {
-        name: product.name || '',
-        description: product.description || '',
-        brandId: product.brandId || product.brand?.id || '',
-        categoryIds: product.categoryIds || product.categories?.map((c) => c.id) || [],
-        status: product.status || defaultStatus,
-        vendorId: product.vendorId || product.vendor?.id || '',
-        variants: mappedVariants.length > 0 ? mappedVariants : [
-          {
-            tempId: Date.now(),
-            name: '',
-            price: '',
-            stock: '',
-            sku: '',
-            images: [],
-          },
-        ],
-      };
+  const handleTabKeyDown = (event, index) => {
+    let nextIndex;
+    if (event.key === 'ArrowRight') nextIndex = (index + 1) % FORM_STEPS.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (index + FORM_STEPS.length - 1) % FORM_STEPS.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = FORM_STEPS.length - 1;
+    else return;
+    event.preventDefault();
+    changeStep(FORM_STEPS[nextIndex].id, true);
+  };
 
-      setFormData(newFormData);
-    }
-  }, [product, defaultStatus]);
+  const showValidationErrors = (fieldErrors) => {
+    setErrors(fieldErrors);
+    const firstStep = FORM_STEPS.find(step => Object.entries(fieldErrors).some(([field, message]) =>
+      message && errorStep(field) === step.id));
+    if (firstStep) changeStep(firstStep.id, true);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -118,6 +131,16 @@ export default function ProductForm({
     });
   };
 
+  const handleOptionsChange = (attributes) => {
+    setFormData(prev => ({
+      ...prev,
+      attributes,
+      variants: retainOptionSelections(prev.variants, attributes),
+    }));
+    setErrors(prev => Object.fromEntries(Object.entries(prev).filter(([key]) =>
+      !key.startsWith('attributes') && !key.endsWith('_attributeValueIds'))));
+  };
+
   const handleRemoveVariantImage = (variantIdx, imageIdx) => {
     setFormData((prev) => {
       const updatedVariants = [...prev.variants];
@@ -130,13 +153,14 @@ export default function ProductForm({
   };
 
   const validate = () => {
-    const newErrors = {};
+    const newErrors = product ? {} : validateProductOptions(formData.attributes, formData.variants);
     if (!formData.name.trim()) newErrors.name = 'Product name is required';
     if (!formData.brandId) newErrors.brandId = 'Please select a brand';
 
     if (!formData.variants || formData.variants.length === 0) {
       newErrors.variants = 'At least one variant is required';
     } else {
+      const skus = new Set();
       formData.variants.forEach((v, idx) => {
         if (!v.name?.trim()) newErrors[`variant_${idx}_name`] = 'Variant name is required';
         if (v.price === '' || isNaN(Number(v.price)) || Number(v.price) < 0)
@@ -144,10 +168,12 @@ export default function ProductForm({
         if (v.stock === '' || isNaN(Number(v.stock)) || Number(v.stock) < 0)
           newErrors[`variant_${idx}_stock`] = 'Invalid stock (must be ≥ 0)';
         if (!v.sku?.trim()) newErrors[`variant_${idx}_sku`] = 'SKU is required';
+        else if (skus.has(v.sku.trim())) newErrors[`variant_${idx}_sku`] = 'Each variant SKU must be unique';
+        skus.add(v.sku?.trim());
       });
     }
 
-    setErrors(newErrors);
+    showValidationErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -157,6 +183,13 @@ export default function ProductForm({
 
     const serverErrors = await onSubmit({
       ...formData,
+      attributes: formData.attributes.map(attribute => ({
+        ...attribute,
+        code: attribute.code.trim(),
+        name: attribute.name.trim(),
+        description: attribute.description.trim(),
+        values: attribute.values.map(value => ({ ...value, value: value.value.trim() })),
+      })),
       variants: formData.variants,
     });
 
@@ -172,21 +205,22 @@ export default function ProductForm({
           // Convert variants[0].sku -> variant_0_sku
           let mappedKey = key;
           mappedKey = mappedKey.replace(/variants\[(\d+)\]\./, 'variant_$1_');
+          mappedKey = mappedKey.replace(/(attributeValueIds)\[\d+\]$/, '$1');
           mappedErrors[mappedKey] = value;
         });
         // Bind field errors
-        setErrors(mappedErrors);
+        showValidationErrors(mappedErrors);
       } else if (serverErrors._ || serverErrors.message) {
         // Legacy format or simple message
         const errorMessage = serverErrors._ || serverErrors.message;
         window.showError(errorMessage, 'Validation Error');
         const { _: _ignored, message: _msgIgnored, ...fieldErrors } = serverErrors;
         if (Object.keys(fieldErrors).length > 0) {
-          setErrors(fieldErrors);
+          showValidationErrors(fieldErrors);
         }
       } else {
         // Field errors only
-        setErrors(serverErrors);
+        showValidationErrors(serverErrors);
       }
     }
   };
@@ -199,6 +233,7 @@ export default function ProductForm({
       stock: '',
       sku: '',
       images: [],
+      attributeValueIds: [],
     };
     setFormData((prev) => ({
       ...prev,
@@ -261,8 +296,26 @@ export default function ProductForm({
   return (
     <div className="product-form-wrapper">
       <div className="form-container">
-        <form onSubmit={handleSubmit} className="product-form">
-          <span>
+        <form onSubmit={handleSubmit} className="product-form product-form--steps">
+          <div className="product-form-tabs" role="tablist" aria-label="Product form steps">
+            {FORM_STEPS.map((step, index) => (
+              <button key={step.id} type="button" role="tab"
+                ref={element => { tabRefs.current[step.id] = element; }}
+                id={`${formId}-tab-${step.id}`} aria-controls={`${formId}-panel-${step.id}`}
+                aria-selected={activeStep === step.id} tabIndex={activeStep === step.id ? 0 : -1}
+                aria-label={`${index + 1} ${step.label}${hasStepErrors(step.id) ? ', contains errors' : ''}`}
+                className={`product-form-tab${activeStep === step.id ? ' is-active' : ''}${hasStepErrors(step.id) ? ' has-errors' : ''}`}
+                disabled={loading} onClick={() => changeStep(step.id)}
+                onKeyDown={event => handleTabKeyDown(event, index)}>
+                <span className="product-form-tab-number" aria-hidden="true">{index + 1}</span>
+                <span className="product-form-tab-label">{step.label}</span>
+                {hasStepErrors(step.id) && <span className="product-form-tab-error" aria-hidden="true">!</span>}
+              </button>
+            ))}
+          </div>
+
+          <div className="product-form-panel" role="tabpanel" id={`${formId}-panel-basic`}
+            aria-labelledby={`${formId}-tab-basic`} hidden={activeStep !== 'basic'}>
             {/* Section 1: Basic Information */}
             <div className="form-section">
               <div className="section-header">
@@ -272,7 +325,6 @@ export default function ProductForm({
                   </h3>
                   <p className="section-subtitle">Product name, brand, and category</p>
                 </div>
-                <span className="step-badge">Step 1</span>
               </div>
 
               <div className="form-grid form-grid-2col">
@@ -371,10 +423,24 @@ export default function ProductForm({
                 </div>
               )}
             </div>
-          </span>
+          </div>
 
-          <span>
-            {/* Section 2: Product Variants */}
+          <div className="product-form-panel" role="tabpanel" id={`${formId}-panel-options`}
+            aria-labelledby={`${formId}-tab-options`} hidden={activeStep !== 'options'}>
+            {!product ? (
+              <ProductOptionsEditor attributes={formData.attributes} onChange={handleOptionsChange}
+                errors={errors} disabled={loading} />
+            ) : (
+              <section className="form-section">
+                <h3 className="section-title">Product Options</h3>
+                <p className="section-subtitle">Options can be configured when creating a product.</p>
+              </section>
+            )}
+          </div>
+
+          <div className="product-form-panel" role="tabpanel" id={`${formId}-panel-variants`}
+            aria-labelledby={`${formId}-tab-variants`} hidden={activeStep !== 'variants'}>
+            {/* Section 3: Product Variants */}
             <div className="form-section">
               <div className="section-header">
                 <div>
@@ -475,6 +541,45 @@ export default function ProductForm({
                         </div>
                       </div>
 
+                      {!product && formData.attributes.length > 0 && (
+                        <fieldset className="product-variant-options" disabled={loading}>
+                          <legend>Option selections</legend>
+                          <div className="form-grid form-grid-2col">
+                            {formData.attributes.map((attribute, attributeIndex) => {
+                              const selectId = `variant-${variant.tempId}-option-${attribute.tempId}`;
+                              const optionError = errors[`variant_${idx}_attributeValueIds`];
+                              const selectedValue = attribute.values.find(value =>
+                                (variant.attributeValueIds || []).includes(value.tempId));
+                              return (
+                                <div className="form-group" key={attribute.tempId}>
+                                  <label className="form-label" htmlFor={selectId}>
+                                    {attribute.name.trim() || `Option ${attributeIndex + 1}`} <span className="required">*</span>
+                                  </label>
+                                  <select id={selectId} value={selectedValue?.tempId ?? ''}
+                                    className={`form-select ${optionError ? 'error' : ''}`}
+                                    aria-invalid={Boolean(optionError)}
+                                    aria-describedby={optionError ? `variant-${idx}-options-error` : undefined}
+                                    onChange={e => handleVariantChange(idx, 'attributeValueIds',
+                                      selectOptionValue(variant.attributeValueIds || [], attribute, e.target.value))}>
+                                    <option value="">-- Select value --</option>
+                                    {attribute.values.map((value, valueIndex) => (
+                                      <option key={value.tempId} value={value.tempId} disabled={!value.value.trim()}>
+                                        {value.value.trim() || `Value ${valueIndex + 1} (empty)`}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {errors[`variant_${idx}_attributeValueIds`] && (
+                            <span id={`variant-${idx}-options-error`} className="error-message" role="alert">
+                              {errors[`variant_${idx}_attributeValueIds`]}
+                            </span>
+                          )}
+                        </fieldset>
+                      )}
+
                       {/* Variant Images */}
                       <div className="variant-images">
                         <label className="form-label">
@@ -557,27 +662,43 @@ export default function ProductForm({
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Form Actions */}
-            <div className="form-actions">
-              <button
-                type="button"
-                onClick={onCancel}
-                className="btn btn-cancel"
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                <i className="fa-solid fa-paper-plane"></i>
-                <span>{loading ? 'Saving...' : product ? 'Update' : 'Create'} Product</span>
-              </button>
+          {/* Form Actions */}
+          <div className="form-actions product-form-step-actions">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="btn btn-cancel"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <div className="product-form-step-navigation">
+              {activeStepIndex > 0 && (
+                <button type="button" className="btn btn-secondary" disabled={loading}
+                  onClick={() => changeStep(FORM_STEPS[activeStepIndex - 1].id, true)}>
+                  <i className="fa-solid fa-arrow-left" aria-hidden="true"></i> Back
+                </button>
+              )}
+              {activeStepIndex < FORM_STEPS.length - 1 ? (
+                <button type="button" className="btn btn-primary" disabled={loading}
+                  onClick={() => changeStep(FORM_STEPS[activeStepIndex + 1].id, true)}>
+                  Next <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                </button>
+              ) : (
+                <button
+                  key="submit-product"
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={loading}
+                >
+                  <i className="fa-solid fa-paper-plane"></i>
+                  <span>{loading ? 'Saving...' : product ? 'Update' : 'Create'} Product</span>
+                </button>
+              )}
             </div>
-          </span>
+          </div>
         </form>
       </div>
     </div>

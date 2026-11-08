@@ -1,9 +1,9 @@
 package com.Marketplace_Management.Catalog.Services;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.Marketplace_Management.Catalog.Constants.ProductStatusEnum;
 import com.Marketplace_Management.Catalog.Contracts.IBrandRepository;
 import com.Marketplace_Management.Catalog.Contracts.ICategoryRepository;
+import com.Marketplace_Management.Catalog.Contracts.IProductFactory;
 import com.Marketplace_Management.Catalog.Contracts.IProductRepository;
 import com.Marketplace_Management.Catalog.Contracts.IProductService;
 import com.Marketplace_Management.Catalog.DTOs.Commands.Product.CreateProductCommand;
@@ -32,6 +33,8 @@ import com.Marketplace_Management.Catalog.DTOs.Response.ProductVariantResponse;
 import com.Marketplace_Management.Catalog.Entities.Brand;
 import com.Marketplace_Management.Catalog.Entities.Category;
 import com.Marketplace_Management.Catalog.Entities.Product;
+import com.Marketplace_Management.Catalog.Entities.ProductAttribute;
+import com.Marketplace_Management.Catalog.Entities.ProductAttributeValue;
 import com.Marketplace_Management.Catalog.Entities.ProductVariant;
 import com.Marketplace_Management.Catalog.Events.ProductArchivedEvent;
 import com.Marketplace_Management.Catalog.Events.ProductDeletedEvent;
@@ -54,12 +57,13 @@ public class ProductService implements IProductService {
     private final IEventPublisher eventPublisher;
     private final IFileService fileService;
     private final IVendorService vendorService;
+    private final IProductFactory productFactory;
 
     @Value("${spring.application.base-url}")
     private String baseUrl;
 
     public ProductService(IProductRepository productRepository, IEventPublisher eventPublisher,
-            IFileService fileService, IVendorService vendorService,
+            IFileService fileService, IVendorService vendorService, IProductFactory productFactory,
             IBrandRepository brandRepository, ICategoryRepository categoryRepository) {
         this.productRepository = productRepository;
         this.brandRepository = brandRepository;
@@ -67,6 +71,7 @@ public class ProductService implements IProductService {
         this.eventPublisher = eventPublisher;
         this.fileService = fileService;
         this.vendorService = vendorService;
+        this.productFactory = productFactory;
     }
 
     // @Cacheable(value = "products", key = "#command.page + '_' + #command.size +
@@ -105,48 +110,72 @@ public class ProductService implements IProductService {
         if (vendor == null) {
             throw new ResourceNotFoundException("Vendor not found");
         }
-        Product product;
-        try {
-            product = Product.builder()
-                    .name(command.getName())
-                    .description(command.getDescription())
-                    .brand(findBrand(command.getBrandId()))
-                    .categories(findCategories(command.getCategoryIds()))
-                    .status(command.getStatus() != null ? command.getStatus() : ProductStatusEnum.PUBLISHED.name())
-                    .vendorId(vendor.getId())
-                    .variants(command.getVariants().stream().map(variantCommand -> {
-                        ProductVariant variant = ProductVariant.builder()
-                                .name(variantCommand.getName())
-                                .sku(variantCommand.getSku())
-                                .price(variantCommand.getPrice())
-                                .stock(variantCommand.getStock())
-                                .images(new ArrayList<>())
-                                .build();
-                        if (variantCommand.getImages() != null) {
-                            variantCommand.getImages().forEach(imageCommand -> {
-                                try {
-                                    String url = fileService.uploadFile(imageCommand, "catalog/product_variants");
-                                    variant.getImages().add(new File(null, url, variant));
-                                } catch (IOException e) {
-                                    throw new UncheckedIOException(e);
-                                }
-                            });
-                        }
-                        return variant;
-                    }).collect(Collectors.toCollection(HashSet::new)))
-                    .build();
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
-        product.getVariants().forEach(variant -> variant.setProduct(product));
 
-        Product savedProduct = productRepository.save(product);
+        Map<String, List<Long>> variantAttributeValueMap = command.getVariants().stream()
+                .collect(Collectors.toMap(
+                        variant -> variant.getSku(),
+                        variant -> variant.getAttributeValueIds() != null ? variant.getAttributeValueIds()
+                                : List.of()));
+
+        Product product = productFactory.create(command);
+
+        Product persistedProduct = productRepository.save(product);
+        Map<Long, ProductAttributeValue> persistedValuesByTempId = mapPersistedAttributeValues(command, persistedProduct);
+
+        persistedProduct.getVariants().forEach(variant -> {
+            variant.setProduct(persistedProduct);
+            List<Long> attributeValueIds = variantAttributeValueMap.get(variant.getSku());
+            Set<ProductAttributeValue> attributeValues = new HashSet<>();
+
+            if (attributeValueIds != null) {
+                attributeValueIds.forEach(tempId -> {
+                    ProductAttributeValue value = persistedValuesByTempId.get(tempId);
+                    if (value == null) {
+                        throw new IllegalArgumentException("Unknown attribute value tempId: " + tempId);
+                    }
+                    attributeValues.add(value);
+                });
+            }
+
+            // The setter rebuilds the key using the database-generated value IDs.
+            variant.setAttributeValues(attributeValues);
+        });
+
+        Product savedProduct = productRepository.save(persistedProduct);
 
         return new ProductResponse(savedProduct).withUrl(baseUrl).withVendor(vendor);
     }
 
+    private Map<Long, ProductAttributeValue> mapPersistedAttributeValues(CreateProductCommand command, Product product) {
+        Map<Long, ProductAttributeValue> valuesByTempId = new HashMap<>();
+        if (command.getAttributes() == null || command.getAttributes().isEmpty()) {
+            return valuesByTempId;
+        }
+
+        Map<String, ProductAttribute> attributesByCode = product.getAttributes().stream()
+                .collect(Collectors.toMap(ProductAttribute::getCode, attribute -> attribute));
+        for (var attributeCommand : command.getAttributes()) {
+            ProductAttribute attribute = attributesByCode.get(attributeCommand.getCode());
+            if (attribute == null) {
+                throw new IllegalStateException("Persisted attribute not found: " + attributeCommand.getCode());
+            }
+            Map<String, ProductAttributeValue> valuesByName = attribute.getValues().stream()
+                    .collect(Collectors.toMap(ProductAttributeValue::getValue, value -> value));
+            for (var valueCommand : attributeCommand.getValues()) {
+                ProductAttributeValue value = valuesByName.get(valueCommand.getValue());
+                if (value == null || value.getId() == null) {
+                    throw new IllegalStateException("Persisted attribute value not found: " + valueCommand.getValue());
+                }
+                if (valuesByTempId.putIfAbsent(valueCommand.getTempId(), value) != null) {
+                    throw new IllegalArgumentException("Duplicate attribute value tempId: " + valueCommand.getTempId());
+                }
+            }
+        }
+        return valuesByTempId;
+    }
+
     @Override
-    @Transactional(rollbackFor = IOException.class)
+    @Transactional
     @CacheEvict(value = "product", key = "#productId")
     public ProductResponse updateProduct(UUID productId, UpdateProductCommand command) throws IOException {
         Product product = productRepository.findById(productId);
@@ -252,7 +281,8 @@ public class ProductService implements IProductService {
             updateImages(variant, command.getImages());
         }
 
-        // Keep existing entities and their attribute selections; remove only omitted variants.
+        // Keep existing entities and their attribute selections; remove only omitted
+        // variants.
         product.getVariants().removeIf(variant -> !retainedIds.contains(variant.getId()));
         product.getVariants().addAll(newVariants);
     }

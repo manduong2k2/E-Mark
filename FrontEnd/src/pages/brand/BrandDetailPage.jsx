@@ -151,16 +151,16 @@ export default function BrandDetailPage() {
             </div>
             
             {pagination.totalPages > 1 && (
-              <div className="pagination-controls">
+              <div className="brand-details-pagination-controls">
                 <button
-                  className="pagination-btn"
+                  className="brand-details-pagination-btn"
                   disabled={!pagination.hasPrevious}
                   onClick={() => handlePageChange(pagination.currentPage - 1)}
                 >
                   Previous
                 </button>
                 
-                <div className="pagination-numbers">
+                <div className="brand-details-pagination-numbers">
                   {Array.from({ length: pagination.totalPages }, (_, i) => (
                     <button
                       key={i}
@@ -173,7 +173,7 @@ export default function BrandDetailPage() {
                 </div>
                 
                 <button
-                  className="pagination-btn"
+                  className="brand-details-pagination-btn"
                   disabled={!pagination.hasNext}
                   onClick={() => handlePageChange(pagination.currentPage + 1)}
                 >
