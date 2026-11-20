@@ -25,8 +25,8 @@ import lombok.EqualsAndHashCode;
 @Entity
 @Data
 @Table(name = "deliveries", indexes = {
-    @Index(name = "idx_delivery_order", columnList = "orderId"),
-    @Index(name = "idx_delivery_user", columnList = "userId"),
+    @Index(name = "idx_delivery_order", columnList = "order_id"),
+    @Index(name = "idx_delivery_user", columnList = "user_id"),
     @Index(name = "idx_delivery_shipping_address", columnList = "shipping_address_id")
 })
 @EqualsAndHashCode(callSuper = false)
@@ -52,7 +52,7 @@ public class Delivery extends UuidEntity{
     private LocalDateTime actualDeliveryDate;
 
     @Min(0)
-    @Column(nullable = false, columnDefinition = "DOUBLE DEFAULT 0")
+    @Column(nullable = false, columnDefinition = "DOUBLE PRECISION DEFAULT 0")
     private Double fee;
 
     @Nationalized

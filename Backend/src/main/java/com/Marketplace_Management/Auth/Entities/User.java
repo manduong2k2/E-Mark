@@ -23,7 +23,7 @@ import lombok.Builder;
 @SuperBuilder
 @NoArgsConstructor
 public class User extends UuidEntity {
-    @Column(unique = true, columnDefinition = "varchar(255)", nullable = false)
+    @Column(columnDefinition = "varchar(255)", nullable = false)
     private String email;
 
     @Column(columnDefinition = "varchar(200)", nullable = false)
@@ -34,10 +34,10 @@ public class User extends UuidEntity {
     @Column(columnDefinition = "varchar(255)", nullable = true)
     private String name;
 
-    @Column(columnDefinition = "varchar(255)", nullable = true)
+    @Column(columnDefinition = "varchar(50)", nullable = true)
     private String avatar;
 
-    @Column(unique = true, columnDefinition = "varchar(255)", nullable = true)
+    @Column(columnDefinition = "varchar(255)", nullable = true)
     private String phone;
 
     @Column(name = "status", length = 20, columnDefinition = "varchar(20) default 'INACTIVE'")

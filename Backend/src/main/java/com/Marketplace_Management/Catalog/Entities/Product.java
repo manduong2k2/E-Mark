@@ -22,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 @Table(
     name = "products",
     indexes = {
-        @Index(name = "idx_product_brand_price", columnList = "brand_id, price"),
+        @Index(name = "idx_product_brand", columnList = "brand_id"),
         @Index(name = "idx_product_status", columnList = "status")
     }
 )

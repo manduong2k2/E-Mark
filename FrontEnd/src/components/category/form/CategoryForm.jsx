@@ -12,7 +12,9 @@ export default function CategoryForm({ category, categories = [], onSubmit, onCa
 
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(category?.image || '');
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
+  const dragDepthRef = useRef(0);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,8 +24,7 @@ export default function CategoryForm({ category, categories = [], onSubmit, onCa
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const selectImage = (file) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -46,6 +47,39 @@ export default function CategoryForm({ category, categories = [], onSubmit, onCa
       setErrors(prev => ({ ...prev, image: '' }));
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleImageChange = (e) => {
+    selectImage(e.target.files[0]);
+    e.target.value = '';
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepthRef.current += 1;
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+    if (dragDepthRef.current === 0) setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepthRef.current = 0;
+    setIsDragging(false);
+    selectImage(e.dataTransfer.files[0]);
   };
 
   const validateForm = () => {
@@ -72,6 +106,8 @@ export default function CategoryForm({ category, categories = [], onSubmit, onCa
   const handleReset = () => {
     setFormData({ name: '', description: '', image: '', parentId: '' });
     setImagePreview('');
+    setIsDragging(false);
+    dragDepthRef.current = 0;
     setErrors({});
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -144,34 +180,47 @@ export default function CategoryForm({ category, categories = [], onSubmit, onCa
                 className="image-input-hidden"
               />
 
-              {imagePreview ? (
-                <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" className="preview-image" />
-                  <button
-                    type="button"
-                    className="remove-image-btn"
-                    onClick={() => {
-                      setImagePreview('');
-                      setFormData(prev => ({ ...prev, image: '', imageFile: undefined }));
-                      if (fileInputRef.current) fileInputRef.current.value = '';
+              <div
+                className={`image-upload-container${isDragging ? ' is-dragging' : ''}`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                {imagePreview ? (
+                  <div className="image-preview">
+                    <img src={imagePreview} alt="Preview" className="preview-image" draggable={false} />
+                    <button
+                      type="button"
+                      className="remove-image-btn"
+                      onClick={() => {
+                        setImagePreview('');
+                        setFormData(prev => ({ ...prev, image: '', imageFile: undefined }));
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    className="upload-placeholder"
+                    onClick={() => fileInputRef.current?.click()}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                      }
                     }}
                   >
-                    ×
-                  </button>
-                </div>
-              ) : (
-                <div
-                  className="upload-placeholder"
-                  onClick={() => fileInputRef.current?.click()}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
-                >
-                  <div className="upload-icon">📷</div>
-                  <p>Click to select category image</p>
-                  <small>Supported: JPG, PNG, GIF (max 5MB)</small>
-                </div>
-              )}
+                    <div className="upload-icon">📷</div>
+                    <p>Click or drag and drop an image</p>
+                    <small>Supported: JPG, PNG, GIF (max 5MB)</small>
+                  </div>
+                )}
+              </div>
               {errors.image && <span className="error-message">{errors.image}</span>}
             </div>
           </div>

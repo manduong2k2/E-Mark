@@ -7,7 +7,7 @@
   {
     "name": "spring.application.environment",
     "type": "java.lang.String",
-    "description": "Environment for the application (local, dev, prod)"
+    "description": "Environment for the application (local, dev, prod). Exception details in 500 responses are included only for local"
   },
   {
     "name": "spring.application.auth.domain",
@@ -73,12 +73,6 @@
     "name": "third-party.facebook.app-secret",
     "type": "java.lang.String",
     "description": "Facebook App Secret, used for the app access token and appsecret_proof when calling the Graph API"
-  },
-  {
-    "name": "app.debug",
-    "type": "java.lang.Boolean",
-    "description": "Include the exception class, cause and stack trace in 500 responses. Never enable in production",
-    "defaultValue": false
   },
   {
     "name": "third-party.facebook.graph-url",

@@ -41,7 +41,7 @@ public class RegisterVendorRequest implements VendorProfileFields {
     @Nullable
     @Email(message = "Email must be valid")
     @Size(max = 100, message = "Email must not exceed 100 characters")
-    @Unique(table = "vendors", column = "email", message = "Email already registered")
+    @Unique(table = "vendors", deletedAtColumn = "deleted_at", column = "email", message = "Email already registered")
     private String email;
 
     @Nullable
@@ -51,6 +51,6 @@ public class RegisterVendorRequest implements VendorProfileFields {
     @Nullable
     @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Phone number must be valid")
     @Size(max = 15, message = "Phone must not exceed 15 characters")
-    @Unique(table = "vendors", column = "phone", message = "Phone already registered")
+    @Unique(table = "vendors", deletedAtColumn = "deleted_at", column = "phone", message = "Phone already registered")
     private String phone;
 }

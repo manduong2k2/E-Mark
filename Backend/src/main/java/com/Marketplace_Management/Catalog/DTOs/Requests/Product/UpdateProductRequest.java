@@ -50,7 +50,7 @@ public class UpdateProductRequest {
     private List<@Valid UpdateProductVariantRequest> variants;
 
     @Data
-    @Unique(table = "product_variants", column = "sku", message = "Product SKU already exists", ignore = "id")
+    @Unique(table = "product_variants", deletedAtColumn = "deleted_at", column = "sku", message = "Product SKU already exists", ignore = "id")
     public static class UpdateProductVariantRequest {
         @Nullable
         private UUID id;

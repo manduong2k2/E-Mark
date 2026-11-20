@@ -16,7 +16,7 @@ import com.Marketplace_Management.Shared.Entities.UuidEntity;
 
 @Entity
 @Table(name = "delivery_trackings", indexes = {
-    @Index(name = "idx_delivery_tracking_delivery", columnList = "deliveryId")
+    @Index(name = "idx_delivery_tracking_delivery", columnList = "delivery_id")
 })
 @Data
 @EqualsAndHashCode(callSuper = false)

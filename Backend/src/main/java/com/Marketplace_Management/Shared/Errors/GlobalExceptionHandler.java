@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -31,15 +31,18 @@ import com.Marketplace_Management.Shared.Errors.Exceptions.ResourceNotFoundExcep
  * Error bodies: { message } for expected errors; validation adds { errors: {
  * field: message } }.
  * Unexpected errors are logged; their details (class, cause, stack trace) are
- * only returned with app.debug=true.
+ * returned only when spring.application.environment is local.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 	private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 	private static final String BASE_PACKAGE = Marketplace_ManagementApplication.class.getPackageName();
 
-	@Value("${app.debug:false}")
-	private boolean debug;
+	private final boolean includeDetails;
+
+	public GlobalExceptionHandler(Environment environment) {
+		this.includeDetails = "local".equalsIgnoreCase(environment.getProperty("spring.application.environment", "production"));
+	}
 
 	@ExceptionHandler(AuthenticationException.class)
 	public ResponseEntity<Map<String, Object>> handleAuthentication(AuthenticationException ex) {
@@ -106,8 +109,8 @@ public class GlobalExceptionHandler {
 
 		ApiError.ApiErrorBuilder error = ApiError.builder()
 				.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-				.message(debug ? ex.getMessage() : "An unexpected error occurred. Please try again later.");
-		if (debug) {
+				.message(includeDetails ? ex.getMessage() : "An unexpected error occurred. Please try again later.");
+		if (includeDetails) {
 			List<String> trace = Arrays.stream(ex.getStackTrace()).map(StackTraceElement::toString).toList();
 			error.className(ex.getClass().getName())
 					.cause(ex.getCause() != null ? ex.getCause().getMessage() : null)

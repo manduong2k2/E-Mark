@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - preConditions:
+      - dbms:
+          type: postgresql
+  - include:
+      file: com/Marketplace_Management/Shared/Migration/db.changelog.yaml
+  - include:
+      file: com/Marketplace_Management/Auth/Migration/db.changelog.yaml
+  - include:
+      file: com/Marketplace_Management/Vendor/Migration/db.changelog.yaml
+  - include:
+      file: com/Marketplace_Management/Catalog/Migration/db.changelog.yaml
+  - include:
+      file: com/Marketplace_Management/Delivery/Migration/db.changelog.yaml
+  - include:
+      file: com/Marketplace_Management/Cart/Migration/db.changelog.yaml
+  - include:
+      file: com/Marketplace_Management/Order/Migration/db.changelog.yaml
+  - include:
+      file: com/Marketplace_Management/Assistant/Migration/db.changelog.yaml
+  - include:
+      file: com/Marketplace_Management/Merchandising/Migration/db.changelog.yaml

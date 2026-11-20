@@ -65,7 +65,7 @@ public class CreateProductRequest {
         private String name;
 
         @NotBlank(message = "Product SKU is required")
-        @Unique(table = "product_variants", column = "sku", message = "Product variant SKU already exists")
+        @Unique(table = "product_variants", deletedAtColumn = "deleted_at", column = "sku", message = "Product variant SKU already exists")
         private String sku;
 
         @NotNull(message = "Price is required")

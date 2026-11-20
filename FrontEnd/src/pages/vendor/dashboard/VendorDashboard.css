@@ -576,11 +576,13 @@
 }
 
 .vendor-image-picker:hover .vendor-image-overlay,
-.vendor-image-picker:focus-visible .vendor-image-overlay {
+.vendor-image-picker:focus-visible .vendor-image-overlay,
+.vendor-image-picker.is-dragging .vendor-image-overlay {
   opacity: 1;
 }
 
-.vendor-image-picker:focus-visible {
+.vendor-image-picker:focus-visible,
+.vendor-image-picker.is-dragging {
   outline: none;
   border-color: var(--adm-accent);
   box-shadow: 0 0 0 4px var(--adm-accent-ring);

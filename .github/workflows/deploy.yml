@@ -30,7 +30,7 @@ jobs:
 
       - name: Restart Backend
         run: |
-          sudo systemctl restart marketplace-backend
+          sudo systemctl restart e-mark-be
 
       - name: Validate Nginx
         run: |

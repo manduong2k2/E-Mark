@@ -9,7 +9,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -19,8 +18,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "product_attribute_values", uniqueConstraints = @UniqueConstraint(
-        name = "uk_product_attribute_values_attribute_value", columnNames = {"product_attribute_id", "value"}))
+@Table(name = "product_attribute_values")
 @Getter
 @Setter
 @NoArgsConstructor
