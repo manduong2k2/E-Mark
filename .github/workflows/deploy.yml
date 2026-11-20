@@ -1,9 +1,14 @@
-name: Deploy
+
+name: Deploy E-Mark
 
 on:
   push:
     branches:
       - main
+
+concurrency:
+  group: e-mark-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -11,28 +16,48 @@ jobs:
 
     steps:
       - name: Update source
-        working-directory: /var/www/Marketplace-Management
+        working-directory: /var/www/E-Mark
         run: |
           git fetch origin main
           git reset --hard origin/main
 
       - name: Build Backend
-        working-directory: /var/www/Marketplace-Management/Backend
+        working-directory: /var/www/E-Mark/Backend
         run: |
           chmod +x mvnw
           ./mvnw clean package -DskipTests
 
       - name: Build Frontend
-        working-directory: /var/www/Marketplace-Management/FrontEnd
+        working-directory: /var/www/E-Mark/FrontEnd
         run: |
           yarn install --frozen-lockfile
           yarn build
 
+      - name: Restore SELinux contexts
+        run: |
+          sudo restorecon -v \
+            /var/www/E-Mark/Backend/target/Marketplace_Management-0.0.1-SNAPSHOT.jar
+
+          sudo restorecon -RF \
+            /var/www/E-Mark/FrontEnd/dist
+
       - name: Restart Backend
         run: |
-          sudo systemctl restart e-mark-be
+          sudo systemctl restart e-mark-be.service
+          sudo systemctl is-active --quiet e-mark-be.service
 
-      - name: Validate Nginx
+      - name: Validate Backend
         run: |
-          sudo nginx -t
-          sudo systemctl reload nginx
+          for i in {1..30}; do
+            if curl --fail --silent \
+              http://127.0.0.1:8083/api/products \
+              > /dev/null; then
+              echo "Backend is healthy"
+              exit 0
+            fi
+
+            sleep 2
+          done
+
+          sudo journalctl -u e-mark-be.service -n 50 --no-pager
+          exit 1
