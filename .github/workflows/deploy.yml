@@ -21,20 +21,6 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
 
-      - name: Debug Java Environment
-        working-directory: /var/www/E-Mark/Backend
-        run: |
-          echo "USER=$(whoami)"
-          echo "JAVA_HOME=${JAVA_HOME:-unset}"
-          echo "PATH=$PATH"
-      
-          command -v java
-          command -v javac
-      
-          java -version
-          javac -version
-          ./mvnw -version
-
       - name: Build Backend
         working-directory: /var/www/E-Mark/Backend
         run: |
