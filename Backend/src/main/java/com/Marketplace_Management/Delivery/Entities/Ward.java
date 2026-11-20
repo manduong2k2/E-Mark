@@ -7,7 +7,7 @@ import lombok.Data;
 @Table(
     name = "wards",
     indexes = {
-        @Index(name = "idx_wards_province", columnList = "province_code")
+        @Index(name = "idx_wards_province", columnList = "province_id")
     }
 )
 @Data

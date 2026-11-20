@@ -82,6 +82,14 @@
 
 .image-upload-container {
   position: relative;
+  width: fit-content;
+}
+
+.category-form .image-upload-container.is-dragging > .upload-placeholder,
+.category-form .image-upload-container.is-dragging > .image-preview {
+  border-color: var(--master-primary, #6366f1);
+  background: rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .image-input {

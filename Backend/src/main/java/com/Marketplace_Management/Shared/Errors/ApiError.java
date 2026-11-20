@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 @Builder
 @JsonPropertyOrder({"status", "message", "cause", "className", "appTrace", "fullTrace"})
-/** Body of a 500 response; className / cause / traces are only filled with app.debug=true. */
+/** Body of a 500 response; details are included only when spring.application.environment is local. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiError {
     private int status;

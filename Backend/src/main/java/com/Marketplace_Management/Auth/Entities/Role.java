@@ -17,7 +17,7 @@ public class Role extends UuidEntity {
     @Column(unique = false, nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String code;
 
     public Role() {}

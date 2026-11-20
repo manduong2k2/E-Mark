@@ -42,16 +42,16 @@ public class Vendor extends UuidEntity {
     @Column(length = 500)
     private String banner;
 
-    @Column(length = 100, unique = true)
+    @Column(length = 100)
     private String taxCode;
 
-    @Column(length = 100, unique = true)
+    @Column(length = 100)
     private String email;
 
-    @Column(length = 100, unique = true)
+    @Column(length = 100)
     private UUID addressId;
 
-    @Column(length = 15, unique = true)
+    @Column(length = 15)
     private String phone;
 
     public void activate() {

@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateUserRequest {
     @NotBlank(message = "Email must not be empty")
-    @Unique(table = "users", column = "email", message = "Email already exists")
+    @Unique(table = "users", deletedAtColumn = "deleted_at", column = "email", message = "Email already exists")
     @Size(max = 255, message = "Email must not exceed 255 characters")
     @Email(message = "Email must be valid")
     private String email;

@@ -3,6 +3,7 @@ package com.Marketplace_Management.Catalog.Entities;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hibernate.annotations.Nationalized;
 import org.hibernate.annotations.SQLRestriction;
@@ -12,8 +13,10 @@ import com.Marketplace_Management.Shared.Entities.UuidEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -42,6 +45,9 @@ public class ProductVariant extends UuidEntity{
     @Column(nullable = false)
     private String sku;
 
+    @Column(name = "attribute_values_key", length = 1024)
+    private String attributeValuesKey;
+
     @Column(nullable = false)
     private double price;
 
@@ -49,8 +55,9 @@ public class ProductVariant extends UuidEntity{
     private int stock;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "entity_id", referencedColumnName = "id", insertable = false, updatable = false)
-    @SQLRestriction("entity_type = 'com.Marketplace_Management.Catalog.Entities.ProductVariantEntity'")
+    @JoinColumn(name = "entity_id", referencedColumnName = "id", insertable = false, updatable = false,
+        foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @SQLRestriction("entity_type = 'com.Marketplace_Management.Catalog.Entities.ProductVariant'")
     @ToString.Exclude
     private List<File> images;
 
@@ -80,6 +87,14 @@ public class ProductVariant extends UuidEntity{
         }
         return other instanceof ProductVariant variant
                 && getId() != null && getId().equals(variant.getId());
+    }
+
+    public void setAttributeValues(Set<ProductAttributeValue> attributeValues) {
+        this.attributeValues = attributeValues;
+        this.attributeValuesKey = attributeValues.stream()
+            .map(value -> String.valueOf(value.getId()))
+            .sorted()
+            .collect(Collectors.joining(",")); 
     }
 
     @Override

@@ -14,11 +14,6 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.brand-list-container {
-  padding: 40px 20px;
-  margin: 20px 0;
-}
-
 /* Header Section */
 .showcase-header {
   display: flex;

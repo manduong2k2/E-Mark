@@ -14,6 +14,8 @@ const EMAIL = /^\S+@\S+\.\S+$/;
 /** Image picker with preview: keeps the current image until a new file is chosen. */
 function ImagePicker({ label, hint, current, file, onPick, error, wide, shape }) {
   const inputRef = useRef(null);
+  const dragDepthRef = useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
   const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
@@ -24,14 +26,39 @@ function ImagePicker({ label, hint, current, file, onPick, error, wide, shape })
       <span className="admin-ui-field-label">{label}</span>
       <button
         type="button"
-        className={`vendor-image-picker vendor-image-picker--${shape}`}
+        className={`vendor-image-picker vendor-image-picker--${shape}${isDragging ? ' is-dragging' : ''}`}
         onClick={() => inputRef.current?.click()}
-        aria-label={`Choose ${label.toLowerCase()}`}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dragDepthRef.current += 1;
+          setIsDragging(true);
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'copy';
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+          if (dragDepthRef.current === 0) setIsDragging(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dragDepthRef.current = 0;
+          setIsDragging(false);
+          const droppedFile = e.dataTransfer.files[0];
+          if (droppedFile) onPick(droppedFile);
+        }}
+        aria-label={`Choose ${label.toLowerCase()} or drag and drop an image`}
       >
-        {shown ? <img src={shown} alt="" /> : (
+        {shown ? <img src={shown} alt="" draggable={false} /> : (
           <span className="vendor-image-placeholder">
             <i className="bi bi-image"></i>
-            <span>Choose an image</span>
+            <span>Click or drop an image</span>
           </span>
         )}
         <span className="vendor-image-overlay"><i className="bi bi-camera"></i> {shown ? 'Change' : 'Upload'}</span>

@@ -4,8 +4,9 @@ import org.hibernate.annotations.UuidGenerator;
 
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
@@ -14,8 +15,9 @@ import java.util.UUID;
 @MappedSuperclass
 @SuperBuilder
 @NoArgsConstructor
-@Data
-@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
 public abstract class UuidEntity extends JpaEntity {
     @Id
     // UUID v7: time-ordered, so new rows are appended to the primary-key index

@@ -20,6 +20,6 @@ public class CreateRoleRequest {
     @NotBlank(message = "Code must not be empty")
     @Size(max = 50, message = "Code must not exceed 50 characters")
     @Pattern(regexp = "^[A-Z][A-Z0-9_]*$", message = "Code must be UPPER_SNAKE_CASE (A-Z, 0-9, _)")
-    @Unique(table = "roles", column = "code", message = "Code already exists")
+    @Unique(table = "roles", deletedAtColumn = "deleted_at", column = "code", message = "Code already exists")
     private String code;
 }

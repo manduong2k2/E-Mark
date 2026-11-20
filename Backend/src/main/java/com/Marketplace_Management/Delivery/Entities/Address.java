@@ -27,7 +27,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Table(name = "addresses", indexes = {
-        @Index(name = "idx_address_ward", columnList = "wardId"),
+        @Index(name = "idx_address_ward", columnList = "ward_id"),
         @Index(name = "idx_addresses_user_id", columnList = "user_id"),
 })
 public class Address extends NumericEntity {

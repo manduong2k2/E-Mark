@@ -80,7 +80,6 @@ public class ProductController extends BaseController{
         return objectResponse(productVariant);
     }
 
-    // Admins, or the vendor owning the product
     @PreAuthorize("@productSecurity.canManage(#productId)")
     @PutMapping("/{productId}")
     public ResponseEntity<Map<String, Object>> update(
@@ -93,7 +92,6 @@ public class ProductController extends BaseController{
         return objectResponse(updated);
     }
 
-    // Admins, or the vendor owning the product
     @PreAuthorize("@productSecurity.canManage(#productId)")
     @DeleteMapping("/{productId}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable UUID productId) {

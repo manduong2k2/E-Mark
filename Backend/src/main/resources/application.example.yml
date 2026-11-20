@@ -34,7 +34,11 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
     
   jooq:
     sql-dialect: POSTGRES
@@ -97,7 +101,3 @@ jwt:
   refresh-token-expiration: 14
   private-key: classpath:keys/private.pem
   public-key: classpath:keys/public.pem
-
-# true: 500 responses include the exception class, cause and stack trace (never in production)
-app:
-  debug: false
