@@ -66,11 +66,16 @@ public class ProductFactory implements IProductFactory{
                     .vendorId(vendor.getId())
                     .attributes(command.getAttributes().stream().map(attribute -> {
                         try {
-                            String url = fileService.uploadFile(attribute.getIcon(), "catalog/product_variants");
+                            String url = null;
+                            if (attribute.getIcon() != null) {
+                                url = fileService.uploadFile(attribute.getIcon(), "catalog/product_variants");
+                            }
+
                             return ProductAttribute.builder()
                                     .code(attribute.getCode())
                                     .name(attribute.getName())
                                     .icon(url)
+                                    .description(attribute.getDescription())
                                     .values(attribute.getValues().stream().map(value -> 
                                         ProductAttributeValue.builder()
                                         .value(value.getValue()).build()).collect(Collectors.toSet())

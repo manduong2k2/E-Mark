@@ -5,7 +5,7 @@
 CREATE TABLE users (
     id uuid not null,
     name varchar(255),
-    avatar varchar(50),
+    avatar varchar(255),
     email varchar(255) not null,
     password varchar(200) not null,
     phone varchar(255),

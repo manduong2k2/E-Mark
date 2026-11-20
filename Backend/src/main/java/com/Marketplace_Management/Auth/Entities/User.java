@@ -34,7 +34,7 @@ public class User extends UuidEntity {
     @Column(columnDefinition = "varchar(255)", nullable = true)
     private String name;
 
-    @Column(columnDefinition = "varchar(50)", nullable = true)
+    @Column(columnDefinition = "varchar(255)", nullable = true)
     private String avatar;
 
     @Column(columnDefinition = "varchar(255)", nullable = true)

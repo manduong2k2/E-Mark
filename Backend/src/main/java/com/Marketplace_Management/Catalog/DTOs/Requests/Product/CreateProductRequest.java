@@ -120,7 +120,7 @@ public class CreateProductRequest {
                 .vendorId(vendorId != null ? UUID.fromString(vendorId) : null)
                 .categoryIds(categoryIds != null ? categoryIds.stream().map(UUID::fromString).toList() : List.of())
                 .status(status)
-                .attributes(attributes.stream().map(a -> 
+                .attributes(attributes != null ? attributes.stream().map(a -> 
                     CreateProductCommand.CreateProductAttributeCommand.builder()
                         .code(a.getCode())
                         .name(a.getName())
@@ -133,7 +133,7 @@ public class CreateProductRequest {
                                 .build()
                         ).toList())
                         .build()
-                ).toList())
+                ).toList() : List.of())
                 .variants(variants.stream().map(v -> 
                     CreateProductCommand.CreateProductVariantCommand.builder()
                         .name(v.getName())

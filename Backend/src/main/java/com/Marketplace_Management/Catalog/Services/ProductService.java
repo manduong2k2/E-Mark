@@ -175,7 +175,7 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     @CacheEvict(value = "product", key = "#productId")
     public ProductResponse updateProduct(UUID productId, UpdateProductCommand command) throws IOException {
         Product product = productRepository.findById(productId);
